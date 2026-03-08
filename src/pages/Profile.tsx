@@ -46,7 +46,6 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
 
   const { isFollowing, followerCount, followingCount, toggleFollow, loading: followLoading } = useFollow(profileData?.id ?? null);
-  const [loading, setLoading] = useState(true);
 
   const isOwnProfile = !username || (authProfile && authProfile.username === username) || (!username && !!user);
 
