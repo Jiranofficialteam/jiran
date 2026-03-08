@@ -270,6 +270,20 @@ const Profile = () => {
       </div>
 
       <EditProfileModal open={editOpen} onClose={() => setEditOpen(false)} onSaved={fetchProfile} />
+      <FollowListModal
+        open={!!followListType}
+        onClose={() => setFollowListType(null)}
+        userId={profileData?.id || ""}
+        type={followListType || "followers"}
+      />
+      {selectedPostId && (
+        <PostDetailModal
+          open={!!selectedPostId}
+          onClose={() => setSelectedPostId(null)}
+          postId={selectedPostId}
+          profileData={profileData ? { username: profileData.username, avatar_url: profileData.avatar_url, verified: profileData.verified } : undefined}
+        />
+      )}
       <BottomNav />
     </div>
   );
