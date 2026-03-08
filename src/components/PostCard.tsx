@@ -261,11 +261,36 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
               <Rocket className="h-3 w-3" /> Boost
             </button>
           )}
-          <button className="text-foreground transition-opacity hover:opacity-60">
-            <MoreHorizontal className="h-5 w-5" />
-          </button>
-        </div>
-      </div>
+          <div className="relative">
+            <button onClick={() => setMenuOpen(!menuOpen)} className="text-foreground transition-opacity hover:opacity-60">
+              <MoreHorizontal className="h-5 w-5" />
+            </button>
+            {menuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                <div className="absolute right-0 top-8 z-50 w-44 overflow-hidden rounded-xl border border-border bg-card shadow-lg">
+                  {isOwnPost && (
+                    <>
+                      <button onClick={() => { setMenuOpen(false); setEditOpen(true); }} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-foreground hover:bg-secondary">
+                        <Pencil className="h-4 w-4" /> Edit Post
+                      </button>
+                      <button onClick={handleDeletePost} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10">
+                        <Trash2 className="h-4 w-4" /> Delete Post
+                      </button>
+                    </>
+                  )}
+                  <button onClick={() => { setMenuOpen(false); handleShare(); }} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-foreground hover:bg-secondary">
+                    <Copy className="h-4 w-4" /> Copy Link
+                  </button>
+                  {!isOwnPost && (
+                    <button onClick={() => { setMenuOpen(false); toast.info("Post reported"); }} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10">
+                      <Flag className="h-4 w-4" /> Report
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
 
       <div className="relative">
         {renderMedia()}
