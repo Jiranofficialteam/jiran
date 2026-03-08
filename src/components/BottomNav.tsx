@@ -1,4 +1,4 @@
-import { Home, Search, PlusSquare, Heart, User } from "lucide-react";
+import { Home, Search, PlusSquare, Heart, User, Film } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -9,6 +9,7 @@ const BottomNav = () => {
   const links = [
     { to: "/", icon: Home, label: "Home" },
     { to: "/explore", icon: Search, label: "Explore" },
+    { to: "/reels", icon: Film, label: "Reels" },
     { to: "/create", icon: PlusSquare, label: "Create" },
     { to: "/notifications", icon: Heart, label: "Activity" },
     { to: "/profile", icon: User, label: "Profile", isProfile: true },

@@ -12,6 +12,7 @@ import Messages from "./pages/Messages";
 import CreatePost from "./pages/CreatePost";
 import CreateStory from "./pages/CreateStory";
 import Auth from "./pages/Auth";
+import Reels from "./pages/Reels";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/messages" element={<Messages />} />
             <Route path="/create" element={<CreatePost />} />
             <Route path="/create-story" element={<CreateStory />} />
+            <Route path="/reels" element={<Reels />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
