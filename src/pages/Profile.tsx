@@ -53,7 +53,7 @@ const Profile = () => {
 
   const { isFollowing, followerCount, followingCount, toggleFollow, loading: followLoading } = useFollow(profileData?.id ?? null);
 
-  const isOwnProfile = !username || (authProfile && authProfile.username === username) || (!username && !!user);
+  const isOwnProfile = !username || (authProfile && authProfile.username?.trim() === username) || (!username && !!user);
 
   const fetchProfile = async () => {
     setLoading(true);
