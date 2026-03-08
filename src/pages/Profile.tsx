@@ -76,6 +76,17 @@ const Profile = () => {
       // Fetch post count
       const { count: pc } = await db.from("posts").select("*", { count: "exact", head: true }).eq("user_id", profileResult.id);
       setPostCount(pc || 0);
+
+      // Fetch saved posts (own profile only)
+      if (user && profileResult.id === user.id) {
+        const { data: saves } = await db
+          .from("saves")
+          .select("post_id, posts!saves_post_id_fkey (id, image_url, images, type)")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(30);
+        setSavedPosts((saves || []).map((s: any) => s.posts).filter(Boolean));
+      }
     } catch (e) {
       console.error(e);
     }
