@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, Send, Image, BadgeCheck, Check, CheckCheck, Smile, Mic, ThumbsUp } from "lucide-react";
+import { ArrowLeft, Send, Image, BadgeCheck, Check, CheckCheck, Smile, Mic, ThumbsUp, X, Play } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMessages, Message } from "@/hooks/useMessages";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatDistanceToNowStrict, format, isToday, isYesterday } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface ChatViewProps {
   conversationId: string;
