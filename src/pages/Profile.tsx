@@ -41,6 +41,7 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState("posts");
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [posts, setPosts] = useState<PostData[]>([]);
+  const [savedPosts, setSavedPosts] = useState<PostData[]>([]);
   const [postCount, setPostCount] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -75,6 +76,17 @@ const Profile = () => {
       // Fetch post count
       const { count: pc } = await db.from("posts").select("*", { count: "exact", head: true }).eq("user_id", profileResult.id);
       setPostCount(pc || 0);
+
+      // Fetch saved posts (own profile only)
+      if (user && profileResult.id === user.id) {
+        const { data: saves } = await db
+          .from("saves")
+          .select("post_id, posts!saves_post_id_fkey (id, image_url, images, type)")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(30);
+        setSavedPosts((saves || []).map((s: any) => s.posts).filter(Boolean));
+      }
     } catch (e) {
       console.error(e);
     }
@@ -213,16 +225,33 @@ const Profile = () => {
 
         {/* Grid */}
         <div className="grid grid-cols-3 gap-0.5 pb-20 md:gap-1">
-          {posts.map((post) => (
-            <button key={post.id} className="relative aspect-square overflow-hidden group">
-              <img src={post.image_url || post.images?.[0] || "/placeholder.svg"} alt="" className="h-full w-full object-cover" loading="lazy" />
-              <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
-            </button>
-          ))}
-          {posts.length === 0 && (
-            <div className="col-span-3 py-16 text-center text-muted-foreground">
-              <p className="text-lg">No posts yet</p>
-            </div>
+          {activeTab === "saved" ? (
+            savedPosts.length > 0 ? (
+              savedPosts.map((post) => (
+                <button key={post.id} className="relative aspect-square overflow-hidden group">
+                  <img src={post.image_url || post.images?.[0] || "/placeholder.svg"} alt="" className="h-full w-full object-cover" loading="lazy" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
+                </button>
+              ))
+            ) : (
+              <div className="col-span-3 py-16 text-center text-muted-foreground">
+                <p className="text-lg">No saved posts</p>
+              </div>
+            )
+          ) : (
+            <>
+              {posts.filter((p) => activeTab === "reels" ? p.type === "reel" : true).map((post) => (
+                <button key={post.id} className="relative aspect-square overflow-hidden group">
+                  <img src={post.image_url || post.images?.[0] || "/placeholder.svg"} alt="" className="h-full w-full object-cover" loading="lazy" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
+                </button>
+              ))}
+              {posts.filter((p) => activeTab === "reels" ? p.type === "reel" : true).length === 0 && (
+                <div className="col-span-3 py-16 text-center text-muted-foreground">
+                  <p className="text-lg">{activeTab === "reels" ? "No reels yet" : "No posts yet"}</p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

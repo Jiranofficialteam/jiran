@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Heart, MessageCircle, Send, Bookmark, MoreHorizontal,
   BadgeCheck, Smile, ChevronLeft, ChevronRight, Play, Pause,
@@ -10,6 +10,9 @@ import { useToggleLike, useToggleSave, useAddComment } from "@/hooks/usePostInte
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
+const db = supabase as any;
 
 interface PostCardProps {
   post?: Post;
@@ -19,16 +22,12 @@ interface PostCardProps {
 /* ─── Carousel Media ─── */
 const CarouselMedia = ({ images, onDoubleTap }: { images: string[]; onDoubleTap: () => void }) => {
   const [current, setCurrent] = useState(0);
-
   const prev = () => setCurrent((c) => Math.max(0, c - 1));
   const next = () => setCurrent((c) => Math.min(images.length - 1, c + 1));
 
   return (
     <div className="relative overflow-hidden" onDoubleClick={onDoubleTap}>
-      <div
-        className="flex transition-transform duration-300 ease-out"
-        style={{ transform: `translateX(-${current * 100}%)` }}
-      >
+      <div className="flex transition-transform duration-300 ease-out" style={{ transform: `translateX(-${current * 100}%)` }}>
         {images.map((img, i) => (
           <img key={i} src={img} alt="" className="w-full flex-shrink-0 object-cover" style={{ maxHeight: 585 }} loading="lazy" />
         ))}
@@ -61,7 +60,6 @@ const VideoMedia = ({ videoUrl, poster, isReel, onDoubleTap }: { videoUrl: strin
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
-
   const togglePlay = () => {
     if (!videoRef.current) return;
     playing ? videoRef.current.pause() : videoRef.current.play();
@@ -89,6 +87,13 @@ const VideoMedia = ({ videoUrl, poster, isReel, onDoubleTap }: { videoUrl: strin
   );
 };
 
+interface DBComment {
+  id: string;
+  text: string;
+  created_at: string;
+  profiles: { id: string; username: string; avatar_url: string; verified: boolean };
+}
+
 /* ─── PostCard ─── */
 const PostCard = ({ post, feedPost }: PostCardProps) => {
   const { user } = useAuth();
@@ -96,7 +101,6 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
   const toggleSave = useToggleSave();
   const addComment = useAddComment();
 
-  // Normalize data from either mock or DB
   const isDB = !!feedPost;
   const postId = feedPost?.id || post?.id || "";
   const username = feedPost?.profile?.username || post?.user?.username || "";
@@ -113,19 +117,33 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
   const [saved, setSaved] = useState(feedPost?.user_saved || post?.saved || false);
   const [likes, setLikes] = useState(feedPost?.likes_count || post?.likes || 0);
   const [showHeart, setShowHeart] = useState(false);
-  const [comments, setComments] = useState<Comment[]>(post?.comments || []);
+  const [mockComments, setMockComments] = useState<Comment[]>(post?.comments || []);
+  const [dbComments, setDbComments] = useState<DBComment[]>([]);
   const [showAllComments, setShowAllComments] = useState(false);
   const [commentText, setCommentText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const commentsCount = feedPost?.comments_count || comments.length;
+  const commentsCount = feedPost?.comments_count || mockComments.length;
+
+  // Fetch real comments when expanded for DB posts
+  useEffect(() => {
+    if (!isDB || !showAllComments) return;
+    const fetchComments = async () => {
+      const { data } = await db
+        .from("comments")
+        .select("id, text, created_at, profiles!comments_user_id_fkey (id, username, avatar_url, verified)")
+        .eq("post_id", postId)
+        .order("created_at", { ascending: true })
+        .limit(50);
+      if (data) setDbComments(data);
+    };
+    fetchComments();
+  }, [isDB, showAllComments, postId]);
 
   const handleLike = () => {
     const newLiked = !liked;
     setLiked(newLiked);
     setLikes((p) => newLiked ? p + 1 : p - 1);
-    if (isDB && user) {
-      toggleLike.mutate({ postId, liked });
-    }
+    if (isDB && user) toggleLike.mutate({ postId, liked });
   };
 
   const handleDoubleTap = () => {
@@ -148,6 +166,18 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
     if (!commentText.trim()) return;
     if (isDB && user) {
       addComment.mutate({ postId, text: commentText.trim() });
+      // Optimistic: add to DB comments
+      setDbComments((prev) => [...prev, {
+        id: `temp-${Date.now()}`,
+        text: commentText.trim(),
+        created_at: new Date().toISOString(),
+        profiles: {
+          id: user.id,
+          username: user.user_metadata?.username || "you",
+          avatar_url: user.user_metadata?.avatar_url || "",
+          verified: false,
+        },
+      }]);
     } else {
       const newComment: Comment = {
         id: `c-new-${Date.now()}`,
@@ -156,7 +186,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
         timestamp: "now",
         likes: 0,
       };
-      setComments((prev) => [...prev, newComment]);
+      setMockComments((prev) => [...prev, newComment]);
     }
     setCommentText("");
   };
@@ -242,24 +272,48 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
           </button>
         )}
 
-        {showAllComments && comments.length > 0 && (
+        {showAllComments && (
           <div className="mt-2 space-y-2">
-            {comments.map((comment) => (
-              <div key={comment.id} className="flex items-start gap-2">
-                <img src={comment.user.avatar} alt="" className="mt-0.5 h-6 w-6 rounded-full object-cover" />
-                <div className="flex-1">
-                  <p className="text-sm">
-                    <Link to={`/profile/${comment.user.username}`} className="font-semibold">{comment.user.username}</Link>{" "}
-                    {comment.text}
-                  </p>
-                  <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
-                    <span>{comment.timestamp}</span>
-                    <button className="font-semibold">Like</button>
-                    <button className="font-semibold">Reply</button>
+            {isDB ? (
+              dbComments.map((c) => (
+                <div key={c.id} className="flex items-start gap-2">
+                  <Link to={`/profile/${c.profiles?.username}`}>
+                    <img src={c.profiles?.avatar_url || "/placeholder.svg"} alt="" className="mt-0.5 h-6 w-6 rounded-full object-cover" />
+                  </Link>
+                  <div className="flex-1">
+                    <p className="text-sm">
+                      <Link to={`/profile/${c.profiles?.username}`} className="font-semibold">{c.profiles?.username}</Link>{" "}
+                      {c.text}
+                    </p>
+                    <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
+                      <span>{getTimeAgo(c.created_at)}</span>
+                      <button className="font-semibold">Like</button>
+                      <button className="font-semibold">Reply</button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              mockComments.map((comment) => (
+                <div key={comment.id} className="flex items-start gap-2">
+                  <img src={comment.user.avatar} alt="" className="mt-0.5 h-6 w-6 rounded-full object-cover" />
+                  <div className="flex-1">
+                    <p className="text-sm">
+                      <Link to={`/profile/${comment.user.username}`} className="font-semibold">{comment.user.username}</Link>{" "}
+                      {comment.text}
+                    </p>
+                    <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
+                      <span>{comment.timestamp}</span>
+                      <button className="font-semibold">Like</button>
+                      <button className="font-semibold">Reply</button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+            {dbComments.length === 0 && isDB && (
+              <p className="text-xs text-muted-foreground">No comments yet</p>
+            )}
             <button onClick={() => setShowAllComments(false)} className="text-sm text-muted-foreground">Hide comments</button>
           </div>
         )}
