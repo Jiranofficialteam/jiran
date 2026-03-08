@@ -7,6 +7,8 @@ import { useFollow } from "@/hooks/useFollow";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import EditProfileModal from "@/components/EditProfileModal";
+import FollowListModal from "@/components/FollowListModal";
+import PostDetailModal from "@/components/PostDetailModal";
 
 const db = supabase as any;
 
