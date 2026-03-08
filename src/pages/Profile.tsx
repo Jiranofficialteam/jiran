@@ -41,6 +41,7 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState("posts");
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [posts, setPosts] = useState<PostData[]>([]);
+  const [savedPosts, setSavedPosts] = useState<PostData[]>([]);
   const [postCount, setPostCount] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
   const [loading, setLoading] = useState(true);
