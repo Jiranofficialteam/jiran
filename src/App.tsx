@@ -12,6 +12,7 @@ import Messages from "./pages/Messages";
 import CreatePost from "./pages/CreatePost";
 import CreateStory from "./pages/CreateStory";
 import Auth from "./pages/Auth";
+import Reels from "./pages/Reels";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
