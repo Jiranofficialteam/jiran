@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import {
   Heart, MessageCircle, Send, Bookmark, MoreHorizontal,
   BadgeCheck, Smile, ChevronLeft, ChevronRight, Play, Pause,
-  Volume2, VolumeX, Film, Images, Copy
+  Volume2, VolumeX, Film, Images, Copy, Rocket
 } from "lucide-react";
 import { Post, Comment, currentUser } from "@/data/mockData";
 import { FeedPost } from "@/hooks/useFeed";
@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import BoostPostModal from "./BoostPostModal";
 
 const db = supabase as any;
 
