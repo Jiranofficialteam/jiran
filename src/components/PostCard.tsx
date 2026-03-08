@@ -291,8 +291,9 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
               </>
             )}
           </div>
+        </div>
+      </div>
 
-      <div className="relative">
         {renderMedia()}
         {showHeart && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
