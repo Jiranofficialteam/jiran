@@ -60,7 +60,7 @@ const Profile = () => {
     try {
       let profileResult;
       if (username) {
-        const { data } = await db.from("profiles").select("*").eq("username", username).single();
+        const { data } = await db.from("profiles").select("*").ilike("username", username).single();
         profileResult = data;
       } else if (user) {
         const { data } = await db.from("profiles").select("*").eq("id", user.id).single();
