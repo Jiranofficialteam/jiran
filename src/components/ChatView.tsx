@@ -23,18 +23,64 @@ const ChatView = ({ conversationId, otherUser, onBack }: ChatViewProps) => {
   const { user } = useAuth();
   const { messages, loading, sendMessage } = useMessages(conversationId);
   const [text, setText] = useState("");
+  const [mediaPreview, setMediaPreview] = useState<{ file: File; url: string; type: string } | null>(null);
+  const [uploading, setUploading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const isVideo = file.type.startsWith("video/");
+    const isImage = file.type.startsWith("image/");
+    if (!isVideo && !isImage) {
+      toast.error("শুধুমাত্র ইমেজ বা ভিডিও পাঠানো যাবে");
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("ফাইল সাইজ ২০MB এর বেশি হতে পারবে না");
+      return;
+    }
+    setMediaPreview({ file, url: URL.createObjectURL(file), type: isVideo ? "video" : "image" });
+    e.target.value = "";
+  };
+
+  const clearMediaPreview = () => {
+    if (mediaPreview) URL.revokeObjectURL(mediaPreview.url);
+    setMediaPreview(null);
+  };
+
   const handleSend = async () => {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed && !mediaPreview) return;
+
+    let mediaUrl = "";
+    let mediaType = "text";
+
+    if (mediaPreview) {
+      setUploading(true);
+      const ext = mediaPreview.file.name.split(".").pop();
+      const path = `messages/${conversationId}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("media").upload(path, mediaPreview.file);
+      if (error) {
+        toast.error("মিডিয়া আপলোড ব্যর্থ হয়েছে");
+        setUploading(false);
+        return;
+      }
+      const { data: pub } = supabase.storage.from("media").getPublicUrl(path);
+      mediaUrl = pub.publicUrl;
+      mediaType = mediaPreview.type;
+      clearMediaPreview();
+      setUploading(false);
+    }
+
     setText("");
-    await sendMessage(trimmed);
+    await sendMessage(trimmed, mediaUrl || undefined, mediaType);
     inputRef.current?.focus();
   };
 
