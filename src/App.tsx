@@ -28,6 +28,7 @@ const App = () => (
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/create" element={<CreatePost />} />
+          <Route path="/create-story" element={<CreateStory />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
