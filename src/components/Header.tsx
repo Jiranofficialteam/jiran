@@ -13,7 +13,7 @@ const Header = () => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (!user) { setUnreadCount(0); setUnreadMessages(0); return; }
+    if (!user) { setUnreadCount(0); setUnreadMessages(0); setIsAdmin(false); return; }
 
     const fetchCounts = async () => {
       const { count: notifCount } = await db
