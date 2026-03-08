@@ -65,6 +65,17 @@ export function useFeed() {
       (likeCounts || []).forEach((l: any) => { likeMap[l.post_id] = (likeMap[l.post_id] || 0) + 1; });
       (commentCounts || []).forEach((c: any) => { commentMap[c.post_id] = (commentMap[c.post_id] || 0) + 1; });
 
+      // Fetch active boost campaigns
+      const { data: activeCampaigns } = await db
+        .from("ad_campaigns")
+        .select("post_id, boost_likes, boost_views")
+        .in("status", ["approved", "active"]);
+
+      const boostMap: Record<string, { likes: number; views: number }> = {};
+      (activeCampaigns || []).forEach((c: any) => {
+        boostMap[c.post_id] = { likes: (boostMap[c.post_id]?.likes || 0) + c.boost_likes, views: (boostMap[c.post_id]?.views || 0) + c.boost_views };
+      });
+
       const feedPosts: FeedPost[] = posts.map((p: any) => ({
         id: p.id,
         user_id: p.user_id,
@@ -76,22 +87,11 @@ export function useFeed() {
         created_at: p.created_at,
         hashtags: p.hashtags || [],
         profile: p.profiles,
-        likes_count: likeMap[p.id] || 0,
+        likes_count: (likeMap[p.id] || 0) + (boostMap[p.id]?.likes || 0),
         comments_count: commentMap[p.id] || 0,
         user_liked: userLikes.includes(p.id),
         user_saved: userSaves.includes(p.id),
       }));
-
-      // Fetch active boost campaigns for boosted post scoring
-      const { data: activeCampaigns } = await db
-        .from("ad_campaigns")
-        .select("post_id, boost_likes, boost_views")
-        .in("status", ["approved", "active"]);
-
-      const boostMap: Record<string, { likes: number; views: number }> = {};
-      (activeCampaigns || []).forEach((c: any) => {
-        boostMap[c.post_id] = { likes: (boostMap[c.post_id]?.likes || 0) + c.boost_likes, views: (boostMap[c.post_id]?.views || 0) + c.boost_views };
-      });
 
       const now = Date.now();
       feedPosts.sort((a, b) => feedScore(b, now, boostMap) - feedScore(a, now, boostMap));
