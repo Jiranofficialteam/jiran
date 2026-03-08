@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, Grid3X3, Bookmark, Film, BadgeCheck } from "lucide-react";
+import { Settings, Grid3X3, Bookmark, Film, BadgeCheck, MessageCircle } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -153,17 +153,26 @@ const Profile = () => {
                   </button>
                 </>
               ) : (
-                <button
-                  onClick={toggleFollow}
-                  disabled={followLoading}
-                  className={`rounded-lg px-5 py-1.5 text-sm font-semibold transition-colors ${
-                    isFollowing
-                      ? "bg-secondary text-foreground hover:bg-secondary/80"
-                      : "bg-primary text-primary-foreground hover:bg-primary/90"
-                  }`}
-                >
-                  {isFollowing ? "Following" : "Follow"}
-                </button>
+                <>
+                  <button
+                    onClick={toggleFollow}
+                    disabled={followLoading}
+                    className={`rounded-lg px-5 py-1.5 text-sm font-semibold transition-colors ${
+                      isFollowing
+                        ? "bg-secondary text-foreground hover:bg-secondary/80"
+                        : "bg-primary text-primary-foreground hover:bg-primary/90"
+                    }`}
+                  >
+                    {isFollowing ? "Following" : "Follow"}
+                  </button>
+                  <button
+                    onClick={() => navigate("/messages", { state: { startChatWith: profileData } })}
+                    className="rounded-lg bg-secondary px-4 py-1.5 text-sm font-semibold transition-colors hover:bg-secondary/80 flex items-center gap-1.5"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    Message
+                  </button>
+                </>
               )}
             </div>
 
