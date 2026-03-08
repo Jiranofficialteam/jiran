@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Edit, Search, BadgeCheck, Phone, Video, Info, ArrowLeft } from "lucide-react";
+import { useLocation } from "react-router-dom";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import ChatView from "@/components/ChatView";
@@ -11,11 +12,22 @@ import { formatDistanceToNowStrict } from "date-fns";
 
 const Messages = () => {
   const { user, profile } = useAuth();
+  const location = useLocation();
   const { conversations, loading, fetchConversations, startConversation } = useConversations();
   const [search, setSearch] = useState("");
   const [activeChat, setActiveChat] = useState<{ conversationId: string; otherUser: any } | null>(null);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
+
+  // Handle startChatWith from profile page navigation
+  useEffect(() => {
+    const startChatWith = (location.state as any)?.startChatWith;
+    if (startChatWith && user) {
+      handleStartChat(startChatWith);
+      // Clear the state so it doesn't re-trigger
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, user]);
 
   useEffect(() => {
     const q = search.trim();
