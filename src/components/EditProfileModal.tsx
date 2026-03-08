@@ -1,11 +1,12 @@
 import { useState, useRef } from "react";
-import { X, Camera, Loader2 } from "lucide-react";
+import { X, Camera, Loader2, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, Profile } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 
 const db = supabase as any;
 
@@ -23,6 +24,7 @@ const EditProfileModal = ({ open, onClose, onSaved }: Props) => {
   const [username, setUsername] = useState(profile?.username || "");
   const [bio, setBio] = useState(profile?.bio || "");
   const [website, setWebsite] = useState(profile?.website || "");
+  const [isPrivate, setIsPrivate] = useState(profile?.is_private || false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState(profile?.avatar_url || "");
   const [saving, setSaving] = useState(false);
@@ -56,6 +58,7 @@ const EditProfileModal = ({ open, onClose, onSaved }: Props) => {
         bio,
         website,
         avatar_url: avatarUrl,
+        is_private: isPrivate,
       }).eq("id", user.id);
 
       if (error) throw error;
@@ -72,7 +75,7 @@ const EditProfileModal = ({ open, onClose, onSaved }: Props) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md rounded-2xl bg-card border border-border p-6 space-y-5">
+      <div className="w-full max-w-md rounded-2xl bg-card border border-border p-6 space-y-5 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-foreground">Edit Profile</h2>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
@@ -111,6 +114,18 @@ const EditProfileModal = ({ open, onClose, onSaved }: Props) => {
           <div>
             <label className="text-xs font-medium text-muted-foreground">Website</label>
             <Input value={website} onChange={(e) => setWebsite(e.target.value)} className="bg-background" />
+          </div>
+
+          {/* Private Account Toggle */}
+          <div className="flex items-center justify-between rounded-xl bg-background p-3 border border-border">
+            <div className="flex items-center gap-2.5">
+              <Lock className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Private Account</p>
+                <p className="text-[11px] text-muted-foreground">Only approved followers can see your posts</p>
+              </div>
+            </div>
+            <Switch checked={isPrivate} onCheckedChange={setIsPrivate} />
           </div>
         </div>
 
