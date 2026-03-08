@@ -23,6 +23,10 @@ const Header = () => {
         .eq("read", false);
       setUnreadCount(notifCount || 0);
 
+      // Check admin role
+      const { data: roles } = await db.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin");
+      setIsAdmin(roles && roles.length > 0);
+
       // Unread messages: messages in user's conversations not read by user
       const { data: memberships } = await db
         .from("conversation_members")
