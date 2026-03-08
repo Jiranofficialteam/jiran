@@ -37,7 +37,8 @@ interface PostData {
 }
 
 const Profile = () => {
-  const { username } = useParams();
+  const { username: rawUsername } = useParams();
+  const username = rawUsername?.trim();
   const navigate = useNavigate();
   const { user, profile: authProfile } = useAuth();
   const [activeTab, setActiveTab] = useState("posts");
@@ -52,14 +53,14 @@ const Profile = () => {
 
   const { isFollowing, followerCount, followingCount, toggleFollow, loading: followLoading } = useFollow(profileData?.id ?? null);
 
-  const isOwnProfile = !username || (authProfile && authProfile.username === username) || (!username && !!user);
+  const isOwnProfile = !username || (authProfile && authProfile.username?.trim() === username) || (!username && !!user);
 
   const fetchProfile = async () => {
     setLoading(true);
     try {
       let profileResult;
       if (username) {
-        const { data } = await db.from("profiles").select("*").eq("username", username).single();
+        const { data } = await db.from("profiles").select("*").ilike("username", username).single();
         profileResult = data;
       } else if (user) {
         const { data } = await db.from("profiles").select("*").eq("id", user.id).single();
