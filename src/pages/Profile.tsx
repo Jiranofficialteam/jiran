@@ -47,6 +47,8 @@ const Profile = () => {
   const [postCount, setPostCount] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [followListType, setFollowListType] = useState<"followers" | "following" | null>(null);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
   const { isFollowing, followerCount, followingCount, toggleFollow, loading: followLoading } = useFollow(profileData?.id ?? null);
 
