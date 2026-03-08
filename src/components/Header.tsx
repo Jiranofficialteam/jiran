@@ -1,5 +1,5 @@
-import { Heart, MessageCircle, PlusSquare, LogIn, LogOut, Shield } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Heart, MessageCircle, PlusSquare, LogIn, LogOut, Shield, Compass } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,7 @@ const db = supabase as any;
 
 const Header = () => {
   const { user, profile, signOut } = useAuth();
+  const { pathname } = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -23,11 +24,9 @@ const Header = () => {
         .eq("read", false);
       setUnreadCount(notifCount || 0);
 
-      // Check admin role
       const { data: roles } = await db.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin");
       setIsAdmin(roles && roles.length > 0);
 
-      // Unread messages: messages in user's conversations not read by user
       const { data: memberships } = await db
         .from("conversation_members")
         .select("conversation_id")
@@ -46,7 +45,6 @@ const Header = () => {
 
     fetchCounts();
 
-    // Realtime for notifications
     const channel = supabase
       .channel("header-badges")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, () => fetchCounts())
@@ -57,53 +55,76 @@ const Header = () => {
   }, [user?.id]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
-      <div className="mx-auto flex h-14 max-w-[935px] items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-1">
-          <span className="font-display text-2xl font-bold gradient-text">Jiran</span>
+    <header className="sticky top-0 z-50 border-b border-border glass">
+      <div className="mx-auto flex h-[56px] max-w-[935px] items-center justify-between px-4">
+        <Link to="/" className="flex items-center gap-1 select-none">
+          <span className="font-display text-[26px] font-bold gradient-text tracking-tight">Jiran</span>
         </Link>
 
-        <div className="flex items-center gap-5">
+        <nav className="flex items-center gap-1">
           {user ? (
             <>
-              <Link to="/create" className="text-foreground transition-opacity hover:opacity-60">
-                <PlusSquare className="h-6 w-6" />
-              </Link>
+              <NavBtn to="/explore" active={pathname === "/explore"} label="Explore">
+                <Compass className="h-[22px] w-[22px]" />
+              </NavBtn>
+              <NavBtn to="/create" active={pathname === "/create"} label="Create">
+                <PlusSquare className="h-[22px] w-[22px]" />
+              </NavBtn>
               {isAdmin && (
-                <Link to="/admin" className="text-primary transition-opacity hover:opacity-60" title="Admin Panel">
-                  <Shield className="h-5 w-5" />
-                </Link>
+                <NavBtn to="/admin" active={pathname === "/admin"} label="Admin" highlight>
+                  <Shield className="h-[20px] w-[20px]" />
+                </NavBtn>
               )}
-              <Link to="/notifications" className="relative text-foreground transition-opacity hover:opacity-60">
-                <Heart className="h-6 w-6" />
-                {unreadCount > 0 && (
-                  <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full gradient-brand text-[10px] font-bold text-primary-foreground">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                )}
-              </Link>
-              <Link to="/messages" className="relative text-foreground transition-opacity hover:opacity-60">
-                <MessageCircle className="h-6 w-6" />
-                {unreadMessages > 0 && (
-                  <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full gradient-brand text-[10px] font-bold text-primary-foreground">
-                    {unreadMessages > 9 ? "9+" : unreadMessages}
-                  </span>
-                )}
-              </Link>
-              <button onClick={signOut} className="text-muted-foreground transition-opacity hover:opacity-60" title="Log out">
-                <LogOut className="h-5 w-5" />
+              <NavBtn to="/notifications" active={pathname === "/notifications"} label="Activity" badge={unreadCount}>
+                <Heart className="h-[22px] w-[22px]" />
+              </NavBtn>
+              <NavBtn to="/messages" active={pathname === "/messages"} label="Messages" badge={unreadMessages}>
+                <MessageCircle className="h-[22px] w-[22px]" />
+              </NavBtn>
+              <button
+                onClick={signOut}
+                className="ml-1 flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95"
+                title="Log out"
+              >
+                <LogOut className="h-[18px] w-[18px]" />
               </button>
             </>
           ) : (
-            <Link to="/auth" className="flex items-center gap-1.5 rounded-lg gradient-brand px-4 py-1.5 text-xs font-semibold text-primary-foreground">
+            <Link to="/auth" className="flex items-center gap-1.5 rounded-full gradient-brand px-5 py-2 text-xs font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 active:scale-95">
               <LogIn className="h-4 w-4" />
               Log In
             </Link>
           )}
-        </div>
+        </nav>
       </div>
     </header>
   );
 };
+
+function NavBtn({ to, active, label, badge, highlight, children }: {
+  to: string; active: boolean; label: string; badge?: number; highlight?: boolean; children: React.ReactNode;
+}) {
+  return (
+    <Link
+      to={to}
+      className={`relative flex h-10 w-10 items-center justify-center rounded-full transition-all active:scale-90 ${
+        active
+          ? "text-foreground bg-secondary"
+          : highlight
+          ? "text-primary hover:bg-primary/10"
+          : "text-foreground/70 hover:bg-secondary hover:text-foreground"
+      }`}
+      aria-label={label}
+      title={label}
+    >
+      {children}
+      {(badge ?? 0) > 0 && (
+        <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full gradient-brand px-1 text-[10px] font-bold text-primary-foreground shadow-sm">
+          {badge! > 9 ? "9+" : badge}
+        </span>
+      )}
+    </Link>
+  );
+}
 
 export default Header;
