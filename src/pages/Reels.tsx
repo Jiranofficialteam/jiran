@@ -266,6 +266,23 @@ const Reels = () => {
           </div>
         ))}
       </div>
+
+      {/* Comment modal */}
+      {commentPostId && (
+        <ReelComments
+          postId={commentPostId}
+          onClose={() => setCommentPostId(null)}
+          onCommentCountChange={(delta) => {
+            setReels((prev) =>
+              prev.map((r) =>
+                r.id === commentPostId
+                  ? { ...r, comment_count: r.comment_count + delta }
+                  : r
+              )
+            );
+          }}
+        />
+      )}
     </div>
   );
 };
