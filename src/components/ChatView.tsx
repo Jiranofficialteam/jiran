@@ -308,10 +308,42 @@ const ChatView = ({ conversationId, otherUser, onBack }: ChatViewProps) => {
         )}
       </div>
 
+      {/* Media Preview */}
+      {mediaPreview && (
+        <div className="px-3 py-2 bg-secondary/50 border-t border-border">
+          <div className="relative inline-block">
+            {mediaPreview.type === "image" ? (
+              <img src={mediaPreview.url} alt="" className="h-20 w-20 rounded-lg object-cover" />
+            ) : (
+              <div className="h-20 w-20 rounded-lg bg-muted flex items-center justify-center">
+                <Play className="h-8 w-8 text-muted-foreground" />
+              </div>
+            )}
+            <button
+              onClick={clearMediaPreview}
+              className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Input - Messenger style */}
       <div className="px-3 py-2 bg-background">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*,video/*"
+          className="hidden"
+          onChange={handleFileSelect}
+        />
         <div className="flex items-end gap-2">
-          <button className="h-9 w-9 flex-shrink-0 rounded-full flex items-center justify-center text-primary hover:bg-secondary transition-colors">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="h-9 w-9 flex-shrink-0 rounded-full flex items-center justify-center text-primary hover:bg-secondary transition-colors disabled:opacity-50"
+          >
             <Image className="h-5 w-5" />
           </button>
           <div className="flex-1 flex items-center bg-secondary rounded-full px-4 py-2 min-h-[36px]">
@@ -327,12 +359,17 @@ const ChatView = ({ conversationId, otherUser, onBack }: ChatViewProps) => {
               <Smile className="h-5 w-5" />
             </button>
           </div>
-          {text.trim() ? (
+          {text.trim() || mediaPreview ? (
             <button
               onClick={handleSend}
-              className="h-9 w-9 flex-shrink-0 rounded-full bg-primary flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors active:scale-95"
+              disabled={uploading}
+              className="h-9 w-9 flex-shrink-0 rounded-full bg-primary flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors active:scale-95 disabled:opacity-50"
             >
-              <Send className="h-4 w-4" />
+              {uploading ? (
+                <div className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </button>
           ) : (
             <button className="h-9 w-9 flex-shrink-0 rounded-full flex items-center justify-center text-primary hover:bg-secondary transition-colors">
