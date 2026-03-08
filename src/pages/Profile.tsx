@@ -72,13 +72,9 @@ const Profile = () => {
         .limit(30);
       setPosts(postsData || []);
 
-      // Fetch stats
-      const [{ count: postCount }, { count: followerCount }, { count: followingCount }] = await Promise.all([
-        db.from("posts").select("*", { count: "exact", head: true }).eq("user_id", profileResult.id),
-        db.from("follows").select("*", { count: "exact", head: true }).eq("following_id", profileResult.id),
-        db.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", profileResult.id),
-      ]);
-      setStats({ posts: postCount || 0, followers: followerCount || 0, following: followingCount || 0 });
+      // Fetch post count
+      const { count: pc } = await db.from("posts").select("*", { count: "exact", head: true }).eq("user_id", profileResult.id);
+      setPostCount(pc || 0);
     } catch (e) {
       console.error(e);
     }
