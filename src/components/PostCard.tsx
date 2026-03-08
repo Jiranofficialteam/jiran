@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, BadgeCheck } from "lucide-react";
-import { Post } from "@/data/mockData";
+import { useState, useRef } from "react";
+import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, BadgeCheck, Smile } from "lucide-react";
+import { Post, Comment, currentUser } from "@/data/mockData";
 import { Link } from "react-router-dom";
 
 interface PostCardProps {
@@ -12,6 +12,27 @@ const PostCard = ({ post }: PostCardProps) => {
   const [saved, setSaved] = useState(post.saved);
   const [likes, setLikes] = useState(post.likes);
   const [showHeart, setShowHeart] = useState(false);
+  const [comments, setComments] = useState<Comment[]>(post.comments);
+  const [showAllComments, setShowAllComments] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleAddComment = () => {
+    if (!commentText.trim()) return;
+    const newComment: Comment = {
+      id: `c-new-${Date.now()}`,
+      user: currentUser,
+      text: commentText.trim(),
+      timestamp: "now",
+      likes: 0,
+    };
+    setComments((prev) => [...prev, newComment]);
+    setCommentText("");
+  };
+
+  const focusComment = () => {
+    inputRef.current?.focus();
+  };
 
   const handleLike = () => {
     setLiked(!liked);
