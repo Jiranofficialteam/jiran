@@ -3,6 +3,7 @@ import { Settings, Grid3X3, Bookmark, Film, BadgeCheck } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFollow } from "@/hooks/useFollow";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import EditProfileModal from "@/components/EditProfileModal";
@@ -40,9 +41,11 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState("posts");
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [posts, setPosts] = useState<PostData[]>([]);
-  const [stats, setStats] = useState({ posts: 0, followers: 0, following: 0 });
+  const [postCount, setPostCount] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const { isFollowing, followerCount, followingCount, toggleFollow, loading: followLoading } = useFollow(profileData?.id ?? null);
 
   const isOwnProfile = !username || (authProfile && authProfile.username === username) || (!username && !!user);
 
@@ -69,13 +72,9 @@ const Profile = () => {
         .limit(30);
       setPosts(postsData || []);
 
-      // Fetch stats
-      const [{ count: postCount }, { count: followerCount }, { count: followingCount }] = await Promise.all([
-        db.from("posts").select("*", { count: "exact", head: true }).eq("user_id", profileResult.id),
-        db.from("follows").select("*", { count: "exact", head: true }).eq("following_id", profileResult.id),
-        db.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", profileResult.id),
-      ]);
-      setStats({ posts: postCount || 0, followers: followerCount || 0, following: followingCount || 0 });
+      // Fetch post count
+      const { count: pc } = await db.from("posts").select("*", { count: "exact", head: true }).eq("user_id", profileResult.id);
+      setPostCount(pc || 0);
     } catch (e) {
       console.error(e);
     }
@@ -142,16 +141,24 @@ const Profile = () => {
                   </button>
                 </>
               ) : (
-                <button className="rounded-lg bg-primary px-5 py-1.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
-                  Follow
+                <button
+                  onClick={toggleFollow}
+                  disabled={followLoading}
+                  className={`rounded-lg px-5 py-1.5 text-sm font-semibold transition-colors ${
+                    isFollowing
+                      ? "bg-secondary text-foreground hover:bg-secondary/80"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  }`}
+                >
+                  {isFollowing ? "Following" : "Follow"}
                 </button>
               )}
             </div>
 
             <div className="mt-5 hidden gap-8 md:flex">
-              <span><strong>{stats.posts}</strong> posts</span>
-              <button><strong>{stats.followers.toLocaleString()}</strong> followers</button>
-              <button><strong>{stats.following}</strong> following</button>
+              <span><strong>{postCount}</strong> posts</span>
+              <button><strong>{followerCount.toLocaleString()}</strong> followers</button>
+              <button><strong>{followingCount}</strong> following</button>
             </div>
 
             <div className="mt-4 hidden md:block">
@@ -175,9 +182,9 @@ const Profile = () => {
         {/* Mobile stats */}
         <div className="mt-3 flex border-t border-b border-border py-3 md:hidden">
           {[
-            { label: "posts", value: stats.posts },
-            { label: "followers", value: stats.followers.toLocaleString() },
-            { label: "following", value: stats.following },
+            { label: "posts", value: postCount },
+            { label: "followers", value: followerCount.toLocaleString() },
+            { label: "following", value: followingCount },
           ].map((stat) => (
             <button key={stat.label} className="flex-1 text-center">
               <span className="block text-sm font-semibold">{stat.value}</span>
