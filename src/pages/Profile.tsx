@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Settings, Grid3X3, Bookmark, Film, BadgeCheck } from "lucide-react";
+import { useParams } from "react-router-dom";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
-import { currentUser, posts } from "@/data/mockData";
+import { currentUser, users, posts } from "@/data/mockData";
 
 const tabs = [
   { id: "posts", icon: Grid3X3, label: "Posts" },
@@ -11,8 +12,15 @@ const tabs = [
 ];
 
 const Profile = () => {
+  const { username } = useParams();
   const [activeTab, setActiveTab] = useState("posts");
-  const userPosts = posts.slice(0, 9);
+
+  const profileUser = username
+    ? users.find((u) => u.username === username) ?? currentUser
+    : currentUser;
+
+  const isOwnProfile = profileUser.id === currentUser.id;
+  const userPosts = posts.filter((p) => p.user.id === profileUser.id).slice(0, 9);
 
   return (
     <div className="min-h-screen bg-background">
