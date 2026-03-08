@@ -10,16 +10,25 @@ export interface User {
   posts: number;
 }
 
+export type PostType = "photo" | "video" | "carousel" | "reel";
+
 export interface Post {
   id: string;
   user: User;
+  type: PostType;
   imageUrl: string;
+  images?: string[]; // for carousel
+  videoUrl?: string; // for video/reel
   caption: string;
   likes: number;
   comments: Comment[];
   timestamp: string;
   liked: boolean;
   saved: boolean;
+  shares: number;
+  // algorithm scoring
+  engagementScore: number;
+  createdAt: number; // epoch ms for sorting
 }
 
 export interface Comment {
@@ -97,6 +106,26 @@ const postImages = [
   "https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=600&h=600&fit=crop",
 ];
 
+const carouselSets = [
+  [
+    "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&h=600&fit=crop",
+  ],
+  [
+    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600&h=600&fit=crop",
+  ],
+];
+
+// Sample videos (free stock)
+const sampleVideos = [
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+];
+
 const captions = [
   "✨ Chasing sunsets and making memories",
   "🌊 The ocean heals everything",
@@ -106,36 +135,70 @@ const captions = [
   "🌿 Finding peace in nature",
   "📚 Lost in a good book today",
   "🎨 New art piece just dropped!",
+  "🔥 Quick workout routine for busy mornings",
+  "🎬 Behind the scenes of today's shoot",
 ];
 
-export const posts: Post[] = users.flatMap((user, ui) =>
-  [0, 1].map((pi) => ({
-    id: `p${ui}-${pi}`,
-    user,
-    imageUrl: postImages[(ui * 2 + pi) % postImages.length],
-    caption: captions[(ui * 2 + pi) % captions.length],
-    likes: Math.floor(Math.random() * 5000) + 100,
-    comments: [
-      {
-        id: `c${ui}-${pi}-1`,
-        user: users[(ui + 1) % users.length],
-        text: "Amazing! 🔥",
-        timestamp: "2h",
-        likes: 12,
-      },
-      {
-        id: `c${ui}-${pi}-2`,
-        user: users[(ui + 2) % users.length],
-        text: "Love this so much ❤️",
-        timestamp: "1h",
-        likes: 5,
-      },
-    ],
-    timestamp: `${Math.floor(Math.random() * 23) + 1}h`,
-    liked: Math.random() > 0.5,
-    saved: Math.random() > 0.7,
-  }))
+const now = Date.now();
+
+const makeComments = (ui: number, pi: number): Comment[] => [
+  {
+    id: `c${ui}-${pi}-1`,
+    user: users[(ui + 1) % users.length],
+    text: "Amazing! 🔥",
+    timestamp: "2h",
+    likes: 12,
+  },
+  {
+    id: `c${ui}-${pi}-2`,
+    user: users[(ui + 2) % users.length],
+    text: "Love this so much ❤️",
+    timestamp: "1h",
+    likes: 5,
+  },
+];
+
+// Assign post types in a pattern: photo, carousel, photo, video, photo, reel, ...
+const typePattern: PostType[] = ["photo", "carousel", "photo", "video", "photo", "reel", "photo", "photo", "carousel", "video", "reel", "photo"];
+
+const rawPosts: Post[] = users.flatMap((user, ui) =>
+  [0, 1].map((pi) => {
+    const idx = ui * 2 + pi;
+    const type = typePattern[idx % typePattern.length];
+    const likes = Math.floor(Math.random() * 5000) + 100;
+    const commentsArr = makeComments(ui, pi);
+    const hoursAgo = Math.floor(Math.random() * 48) + 1;
+
+    return {
+      id: `p${ui}-${pi}`,
+      user,
+      type,
+      imageUrl: postImages[idx % postImages.length],
+      images: type === "carousel" ? carouselSets[idx % carouselSets.length] : undefined,
+      videoUrl: type === "video" || type === "reel" ? sampleVideos[idx % sampleVideos.length] : undefined,
+      caption: captions[idx % captions.length],
+      likes,
+      comments: commentsArr,
+      timestamp: `${hoursAgo}h`,
+      liked: Math.random() > 0.5,
+      saved: Math.random() > 0.7,
+      shares: Math.floor(Math.random() * 200),
+      engagementScore: likes * 1 + commentsArr.length * 3 + Math.floor(Math.random() * 200) * 2,
+      createdAt: now - hoursAgo * 3600 * 1000,
+    };
+  })
 );
+
+// Algorithm: weighted score of recency + engagement + relevance
+function feedScore(post: Post): number {
+  const hoursAgo = (now - post.createdAt) / (3600 * 1000);
+  const recencyScore = Math.max(0, 100 - hoursAgo * 2); // newer = higher
+  const engagementNorm = Math.min(post.engagementScore / 100, 100);
+  // Weight: 40% recency, 45% engagement, 15% random relevance
+  return recencyScore * 0.4 + engagementNorm * 0.45 + Math.random() * 15;
+}
+
+export const posts: Post[] = [...rawPosts].sort((a, b) => feedScore(b) - feedScore(a));
 
 export const exploreImages = [
   "https://images.unsplash.com/photo-1682695796954-bad0d0f59ff1?w=400&h=400&fit=crop",
