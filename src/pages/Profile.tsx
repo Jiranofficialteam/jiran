@@ -241,7 +241,7 @@ const Profile = () => {
           {activeTab === "saved" ? (
             savedPosts.length > 0 ? (
               savedPosts.map((post) => (
-                <button key={post.id} className="relative aspect-square overflow-hidden group">
+                <button key={post.id} onClick={() => setSelectedPostId(post.id)} className="relative aspect-square overflow-hidden group">
                   <img src={post.image_url || post.images?.[0] || "/placeholder.svg"} alt="" className="h-full w-full object-cover" loading="lazy" />
                   <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
                 </button>
