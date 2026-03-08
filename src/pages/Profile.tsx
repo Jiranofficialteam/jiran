@@ -156,9 +156,10 @@ const Profile = () => {
             </div>
 
             <div className="mt-5 hidden gap-8 md:flex">
-              <span><strong>{stats.posts}</strong> posts</span>
-              <button><strong>{stats.followers.toLocaleString()}</strong> followers</button>
-              <button><strong>{stats.following}</strong> following</button>
+              <span><strong>{postCount}</strong> posts</span>
+              <button><strong>{followerCount.toLocaleString()}</strong> followers</button>
+              <button><strong>{followingCount}</strong> following</button>
+            </div>
             </div>
 
             <div className="mt-4 hidden md:block">
