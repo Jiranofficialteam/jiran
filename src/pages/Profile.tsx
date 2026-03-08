@@ -37,7 +37,8 @@ interface PostData {
 }
 
 const Profile = () => {
-  const { username } = useParams();
+  const { username: rawUsername } = useParams();
+  const username = rawUsername?.trim();
   const navigate = useNavigate();
   const { user, profile: authProfile } = useAuth();
   const [activeTab, setActiveTab] = useState("posts");
