@@ -10,6 +10,7 @@ const Header = () => {
   const { user, profile, signOut } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (!user) { setUnreadCount(0); setUnreadMessages(0); return; }
