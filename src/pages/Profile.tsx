@@ -30,26 +30,34 @@ const Profile = () => {
         <div className="flex items-start gap-6 md:gap-20 md:px-12">
           <div className="story-ring flex-shrink-0">
             <div className="rounded-full bg-background p-[3px]">
-              <img src={currentUser.avatar} alt="" className="h-20 w-20 rounded-full object-cover md:h-36 md:w-36" />
+              <img src={profileUser.avatar} alt="" className="h-20 w-20 rounded-full object-cover md:h-36 md:w-36" />
             </div>
           </div>
 
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-xl font-normal">{currentUser.username}</h1>
-              {currentUser.verified && <BadgeCheck className="h-5 w-5 fill-primary text-primary-foreground" />}
-              <button className="rounded-lg bg-secondary px-5 py-1.5 text-sm font-semibold transition-colors hover:bg-secondary/80">
-                Edit profile
-              </button>
-              <button className="text-foreground">
-                <Settings className="h-6 w-6" />
-              </button>
+              <h1 className="text-xl font-normal">{profileUser.username}</h1>
+              {profileUser.verified && <BadgeCheck className="h-5 w-5 fill-primary text-primary-foreground" />}
+              {isOwnProfile ? (
+                <>
+                  <button className="rounded-lg bg-secondary px-5 py-1.5 text-sm font-semibold transition-colors hover:bg-secondary/80">
+                    Edit profile
+                  </button>
+                  <button className="text-foreground">
+                    <Settings className="h-6 w-6" />
+                  </button>
+                </>
+              ) : (
+                <button className="rounded-lg bg-primary px-5 py-1.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+                  Follow
+                </button>
+              )}
             </div>
 
             <div className="mt-5 hidden gap-8 md:flex">
-              <span><strong>{currentUser.posts}</strong> posts</span>
-              <button><strong>{currentUser.followers.toLocaleString()}</strong> followers</button>
-              <button><strong>{currentUser.following}</strong> following</button>
+              <span><strong>{profileUser.posts}</strong> posts</span>
+              <button><strong>{profileUser.followers.toLocaleString()}</strong> followers</button>
+              <button><strong>{profileUser.following}</strong> following</button>
             </div>
 
             <div className="mt-4 hidden md:block">
