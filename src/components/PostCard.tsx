@@ -204,6 +204,19 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
   const handleShare = () => toast.success("Share link copied!", { duration: 2000 });
   const focusComment = () => inputRef.current?.focus();
 
+  const handleDeletePost = async () => {
+    if (!isDB) return;
+    setMenuOpen(false);
+    await Promise.all([
+      db.from("likes").delete().eq("post_id", postId),
+      db.from("comments").delete().eq("post_id", postId),
+      db.from("saves").delete().eq("post_id", postId),
+    ]);
+    await db.from("posts").delete().eq("id", postId);
+    setDeleted(true);
+    toast.success("Post deleted");
+  };
+
   const renderMedia = () => {
     switch (postType) {
       case "carousel":
@@ -221,9 +234,12 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
     }
   };
 
+  if (deleted) return null;
+
   return (
     <article className="animate-fade-in border-b border-border bg-background">
       {isDB && <BoostPostModal postId={postId} open={boostOpen} onClose={() => setBoostOpen(false)} />}
+      {isOwnPost && <EditPostModal open={editOpen} onClose={() => setEditOpen(false)} postId={postId} initialCaption={currentCaption} initialLocation={currentLocation} onUpdated={(c, l) => { setCurrentCaption(c); setCurrentLocation(l); }} />}
       <div className="flex items-center justify-between px-3 py-2.5">
         <Link to={`/profile/${username}`} className="flex items-center gap-2.5">
           <div className="story-ring">
