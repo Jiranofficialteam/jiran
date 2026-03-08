@@ -141,8 +141,16 @@ const Profile = () => {
                   </button>
                 </>
               ) : (
-                <button className="rounded-lg bg-primary px-5 py-1.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
-                  Follow
+                <button
+                  onClick={toggleFollow}
+                  disabled={followLoading}
+                  className={`rounded-lg px-5 py-1.5 text-sm font-semibold transition-colors ${
+                    isFollowing
+                      ? "bg-secondary text-foreground hover:bg-secondary/80"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  }`}
+                >
+                  {isFollowing ? "Following" : "Follow"}
                 </button>
               )}
             </div>
