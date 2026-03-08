@@ -231,9 +231,16 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
             )}
           </div>
         </Link>
-        <button className="text-foreground transition-opacity hover:opacity-60">
-          <MoreHorizontal className="h-5 w-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          {isOwnPost && (
+            <button onClick={() => setBoostOpen(true)} className="flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/20">
+              <Rocket className="h-3 w-3" /> Boost
+            </button>
+          )}
+          <button className="text-foreground transition-opacity hover:opacity-60">
+            <MoreHorizontal className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
       <div className="relative">
