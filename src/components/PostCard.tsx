@@ -2,16 +2,17 @@ import { useState, useRef, useEffect } from "react";
 import {
   Heart, MessageCircle, Send, Bookmark, MoreHorizontal,
   BadgeCheck, Smile, ChevronLeft, ChevronRight, Play, Pause,
-  Volume2, VolumeX, Film, Images, Copy, Rocket
+  Volume2, VolumeX, Film, Images, Copy, Rocket, Pencil, Trash2, Flag
 } from "lucide-react";
 import { Post, Comment, currentUser } from "@/data/mockData";
 import { FeedPost } from "@/hooks/useFeed";
 import { useToggleLike, useToggleSave, useAddComment } from "@/hooks/usePostInteractions";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import BoostPostModal from "./BoostPostModal";
+import EditPostModal from "./EditPostModal";
 
 const db = supabase as any;
 
