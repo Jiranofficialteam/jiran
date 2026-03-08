@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+const db = supabase as any;
+
 export interface FeedPost {
   id: string;
   user_id: string;
@@ -12,7 +14,6 @@ export interface FeedPost {
   video_url: string;
   created_at: string;
   hashtags: string[];
-  // joined
   profile: {
     id: string;
     username: string;
@@ -32,13 +33,9 @@ export function useFeed() {
   return useQuery({
     queryKey: ["feed", user?.id],
     queryFn: async (): Promise<FeedPost[]> => {
-      // Get posts with profile info
-      const { data: posts, error } = await supabase
+      const { data: posts, error } = await db
         .from("posts")
-        .select(`
-          *,
-          profiles!posts_user_id_fkey (id, username, full_name, avatar_url, verified)
-        `)
+        .select(`*, profiles!posts_user_id_fkey (id, username, full_name, avatar_url, verified)`)
         .order("created_at", { ascending: false })
         .limit(50);
 
@@ -47,38 +44,22 @@ export function useFeed() {
 
       const postIds = posts.map((p: any) => p.id);
 
-      // Get like counts
-      const { data: likeCounts } = await supabase
-        .from("likes")
-        .select("post_id")
-        .in("post_id", postIds);
+      const [{ data: likeCounts }, { data: commentCounts }] = await Promise.all([
+        db.from("likes").select("post_id").in("post_id", postIds),
+        db.from("comments").select("post_id").in("post_id", postIds),
+      ]);
 
-      // Get comment counts
-      const { data: commentCounts } = await supabase
-        .from("comments")
-        .select("post_id")
-        .in("post_id", postIds);
-
-      // Get user's likes & saves
       let userLikes: string[] = [];
       let userSaves: string[] = [];
       if (user) {
-        const { data: ul } = await supabase
-          .from("likes")
-          .select("post_id")
-          .eq("user_id", user.id)
-          .in("post_id", postIds);
+        const [{ data: ul }, { data: us }] = await Promise.all([
+          db.from("likes").select("post_id").eq("user_id", user.id).in("post_id", postIds),
+          db.from("saves").select("post_id").eq("user_id", user.id).in("post_id", postIds),
+        ]);
         userLikes = (ul || []).map((l: any) => l.post_id);
-
-        const { data: us } = await supabase
-          .from("saves")
-          .select("post_id")
-          .eq("user_id", user.id)
-          .in("post_id", postIds);
         userSaves = (us || []).map((s: any) => s.post_id);
       }
 
-      // Count by post_id
       const likeMap: Record<string, number> = {};
       const commentMap: Record<string, number> = {};
       (likeCounts || []).forEach((l: any) => { likeMap[l.post_id] = (likeMap[l.post_id] || 0) + 1; });
@@ -101,14 +82,8 @@ export function useFeed() {
         user_saved: userSaves.includes(p.id),
       }));
 
-      // Algorithm: recency (40%) + engagement (45%) + relevance (15%)
       const now = Date.now();
-      feedPosts.sort((a, b) => {
-        const scoreA = feedScore(a, now);
-        const scoreB = feedScore(b, now);
-        return scoreB - scoreA;
-      });
-
+      feedPosts.sort((a, b) => feedScore(b, now) - feedScore(a, now));
       return feedPosts;
     },
     enabled: !!user,
