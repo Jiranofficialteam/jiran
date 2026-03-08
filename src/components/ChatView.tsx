@@ -253,7 +253,23 @@ const ChatView = ({ conversationId, otherUser, onBack }: ChatViewProps) => {
                               }`
                         }`}
                       >
-                        {msg.text}
+                        {/* Media content */}
+                        {msg.media_url && msg.media_type === "image" && (
+                          <img
+                            src={msg.media_url}
+                            alt=""
+                            className="max-w-full rounded-xl mb-1 max-h-60 object-cover cursor-pointer"
+                            onClick={() => window.open(msg.media_url!, "_blank")}
+                          />
+                        )}
+                        {msg.media_url && msg.media_type === "video" && (
+                          <video
+                            src={msg.media_url}
+                            controls
+                            className="max-w-full rounded-xl mb-1 max-h-60"
+                          />
+                        )}
+                        {msg.text && <span>{msg.text}</span>}
                       </div>
 
                       {/* Time + status - only on last in group */}
