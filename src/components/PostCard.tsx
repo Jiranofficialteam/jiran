@@ -207,6 +207,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
 
   const handleDeletePost = async () => {
     if (!isDB) return;
+    setConfirmDelete(false);
     setMenuOpen(false);
     await Promise.all([
       db.from("likes").delete().eq("post_id", postId),
