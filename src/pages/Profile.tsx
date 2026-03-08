@@ -160,7 +160,6 @@ const Profile = () => {
               <button><strong>{followerCount.toLocaleString()}</strong> followers</button>
               <button><strong>{followingCount}</strong> following</button>
             </div>
-            </div>
 
             <div className="mt-4 hidden md:block">
               <p className="text-sm font-semibold">{profileData.full_name}</p>
