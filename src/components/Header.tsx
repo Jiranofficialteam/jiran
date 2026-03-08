@@ -69,6 +69,11 @@ const Header = () => {
               <Link to="/create" className="text-foreground transition-opacity hover:opacity-60">
                 <PlusSquare className="h-6 w-6" />
               </Link>
+              {isAdmin && (
+                <Link to="/admin" className="text-primary transition-opacity hover:opacity-60" title="Admin Panel">
+                  <Shield className="h-5 w-5" />
+                </Link>
+              )}
               <Link to="/notifications" className="relative text-foreground transition-opacity hover:opacity-60">
                 <Heart className="h-6 w-6" />
                 {unreadCount > 0 && (
