@@ -2,16 +2,17 @@ import { useState, useRef, useEffect } from "react";
 import {
   Heart, MessageCircle, Send, Bookmark, MoreHorizontal,
   BadgeCheck, Smile, ChevronLeft, ChevronRight, Play, Pause,
-  Volume2, VolumeX, Film, Images, Copy, Rocket
+  Volume2, VolumeX, Film, Images, Copy, Rocket, Pencil, Trash2, Flag
 } from "lucide-react";
 import { Post, Comment, currentUser } from "@/data/mockData";
 import { FeedPost } from "@/hooks/useFeed";
 import { useToggleLike, useToggleSave, useAddComment } from "@/hooks/usePostInteractions";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import BoostPostModal from "./BoostPostModal";
+import EditPostModal from "./EditPostModal";
 
 const db = supabase as any;
 
@@ -123,6 +124,12 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
   const [showAllComments, setShowAllComments] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [boostOpen, setBoostOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [currentCaption, setCurrentCaption] = useState(caption);
+  const [currentLocation, setCurrentLocation] = useState("");
+  const [deleted, setDeleted] = useState(false);
+  const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const commentsCount = feedPost?.comments_count || mockComments.length;
   const isOwnPost = isDB && user && feedPost?.user_id === user.id;
@@ -197,6 +204,19 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
   const handleShare = () => toast.success("Share link copied!", { duration: 2000 });
   const focusComment = () => inputRef.current?.focus();
 
+  const handleDeletePost = async () => {
+    if (!isDB) return;
+    setMenuOpen(false);
+    await Promise.all([
+      db.from("likes").delete().eq("post_id", postId),
+      db.from("comments").delete().eq("post_id", postId),
+      db.from("saves").delete().eq("post_id", postId),
+    ]);
+    await db.from("posts").delete().eq("id", postId);
+    setDeleted(true);
+    toast.success("Post deleted");
+  };
+
   const renderMedia = () => {
     switch (postType) {
       case "carousel":
@@ -214,9 +234,12 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
     }
   };
 
+  if (deleted) return null;
+
   return (
     <article className="animate-fade-in border-b border-border bg-background">
       {isDB && <BoostPostModal postId={postId} open={boostOpen} onClose={() => setBoostOpen(false)} />}
+      {isOwnPost && <EditPostModal open={editOpen} onClose={() => setEditOpen(false)} postId={postId} initialCaption={currentCaption} initialLocation={currentLocation} onUpdated={(c, l) => { setCurrentCaption(c); setCurrentLocation(l); }} />}
       <div className="flex items-center justify-between px-3 py-2.5">
         <Link to={`/profile/${username}`} className="flex items-center gap-2.5">
           <div className="story-ring">
@@ -238,9 +261,36 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
               <Rocket className="h-3 w-3" /> Boost
             </button>
           )}
-          <button className="text-foreground transition-opacity hover:opacity-60">
-            <MoreHorizontal className="h-5 w-5" />
-          </button>
+          <div className="relative">
+            <button onClick={() => setMenuOpen(!menuOpen)} className="text-foreground transition-opacity hover:opacity-60">
+              <MoreHorizontal className="h-5 w-5" />
+            </button>
+            {menuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                <div className="absolute right-0 top-8 z-50 w-44 overflow-hidden rounded-xl border border-border bg-card shadow-lg">
+                  {isOwnPost && (
+                    <>
+                      <button onClick={() => { setMenuOpen(false); setEditOpen(true); }} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-foreground hover:bg-secondary">
+                        <Pencil className="h-4 w-4" /> Edit Post
+                      </button>
+                      <button onClick={handleDeletePost} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10">
+                        <Trash2 className="h-4 w-4" /> Delete Post
+                      </button>
+                    </>
+                  )}
+                  <button onClick={() => { setMenuOpen(false); handleShare(); }} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-foreground hover:bg-secondary">
+                    <Copy className="h-4 w-4" /> Copy Link
+                  </button>
+                  {!isOwnPost && (
+                    <button onClick={() => { setMenuOpen(false); toast.info("Post reported"); }} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10">
+                      <Flag className="h-4 w-4" /> Report
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -274,7 +324,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
         <p className="text-sm font-semibold">{likes.toLocaleString()} likes</p>
         <p className="mt-1 text-sm">
           <Link to={`/profile/${username}`} className="font-semibold">{username}</Link>{" "}
-          {caption}
+          {currentCaption}
         </p>
 
         {commentsCount > 0 && !showAllComments && (
