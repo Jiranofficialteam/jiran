@@ -41,8 +41,11 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState("posts");
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [posts, setPosts] = useState<PostData[]>([]);
-  const [stats, setStats] = useState({ posts: 0, followers: 0, following: 0 });
+  const [postCount, setPostCount] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const { isFollowing, followerCount, followingCount, toggleFollow, loading: followLoading } = useFollow(profileData?.id ?? null);
   const [loading, setLoading] = useState(true);
 
   const isOwnProfile = !username || (authProfile && authProfile.username === username) || (!username && !!user);
