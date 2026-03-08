@@ -276,7 +276,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
                       <button onClick={() => { setMenuOpen(false); setEditOpen(true); }} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-foreground hover:bg-secondary">
                         <Pencil className="h-4 w-4" /> Edit Post
                       </button>
-                      <button onClick={handleDeletePost} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10">
+                      <button onClick={() => { setMenuOpen(false); setConfirmDelete(true); }} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10">
                         <Trash2 className="h-4 w-4" /> Delete Post
                       </button>
                     </>
