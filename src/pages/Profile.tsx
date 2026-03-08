@@ -61,24 +61,24 @@ const Profile = () => {
             </div>
 
             <div className="mt-4 hidden md:block">
-              <p className="text-sm font-semibold">{currentUser.displayName}</p>
-              <p className="text-sm whitespace-pre-line">{currentUser.bio}</p>
+              <p className="text-sm font-semibold">{profileUser.displayName}</p>
+              <p className="text-sm whitespace-pre-line">{profileUser.bio}</p>
             </div>
           </div>
         </div>
 
         {/* Mobile bio */}
         <div className="mt-3 md:hidden">
-          <p className="text-sm font-semibold">{currentUser.displayName}</p>
-          <p className="text-sm whitespace-pre-line">{currentUser.bio}</p>
+          <p className="text-sm font-semibold">{profileUser.displayName}</p>
+          <p className="text-sm whitespace-pre-line">{profileUser.bio}</p>
         </div>
 
         {/* Mobile stats */}
         <div className="mt-3 flex border-t border-b border-border py-3 md:hidden">
           {[
-            { label: "posts", value: currentUser.posts },
-            { label: "followers", value: currentUser.followers.toLocaleString() },
-            { label: "following", value: currentUser.following },
+            { label: "posts", value: profileUser.posts },
+            { label: "followers", value: profileUser.followers.toLocaleString() },
+            { label: "following", value: profileUser.following },
           ].map((stat) => (
             <button key={stat.label} className="flex-1 text-center">
               <span className="block text-sm font-semibold">{stat.value}</span>
