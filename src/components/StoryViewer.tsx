@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { X, ChevronLeft, ChevronRight, BadgeCheck, Send, Heart } from "lucide-react";
 import { DbStoryGroup, DbStoryItem } from "@/hooks/useStories";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+
+const db = supabase as any;
 
 interface StoryViewerProps {
   storyGroups: DbStoryGroup[];
@@ -91,18 +96,113 @@ const StorySlide = ({ item }: { item: DbStoryItem }) => (
   </div>
 );
 
+/* ─── Helper: find or create conversation ─── */
+async function getOrCreateConversation(myId: string, targetId: string): Promise<string | null> {
+  // Find existing 1:1 conversation
+  const { data: myConvos } = await db
+    .from("conversation_members")
+    .select("conversation_id")
+    .eq("user_id", myId);
+
+  if (myConvos && myConvos.length > 0) {
+    const convIds = myConvos.map((c: any) => c.conversation_id);
+    const { data: theirMemberships } = await db
+      .from("conversation_members")
+      .select("conversation_id")
+      .eq("user_id", targetId)
+      .in("conversation_id", convIds);
+
+    if (theirMemberships && theirMemberships.length > 0) {
+      // Check if it's a 1:1 (not group)
+      for (const m of theirMemberships) {
+        const { data: conv } = await db
+          .from("conversations")
+          .select("id, is_group")
+          .eq("id", m.conversation_id)
+          .eq("is_group", false)
+          .single();
+        if (conv) return conv.id;
+      }
+    }
+  }
+
+  // Create new conversation
+  const { data: newConv } = await db
+    .from("conversations")
+    .insert({ is_group: false, name: "" })
+    .select("id")
+    .single();
+
+  if (!newConv) return null;
+
+  await db.from("conversation_members").insert([
+    { conversation_id: newConv.id, user_id: myId },
+    { conversation_id: newConv.id, user_id: targetId },
+  ]);
+
+  return newConv.id;
+}
+
 /* ─── Main viewer ─── */
 const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) => {
+  const { user } = useAuth();
   const [groupIdx, setGroupIdx] = useState(initialIndex);
   const [itemIdx, setItemIdx] = useState(0);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
   const [replyText, setReplyText] = useState("");
+  const [liked, setLiked] = useState(false);
+  const [sending, setSending] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
 
   const group = storyGroups[groupIdx];
   const item = group?.items[itemIdx];
   const duration = 5000;
+
+  // Reset liked state when story changes
+  useEffect(() => {
+    setLiked(false);
+    setReplyText("");
+  }, [groupIdx, itemIdx]);
+
+  const sendStoryReaction = async (text: string) => {
+    if (!user || !group || sending) return;
+    if (group.userId === user.id) return; // Can't react to own story
+
+    setSending(true);
+    try {
+      const convId = await getOrCreateConversation(user.id, group.userId);
+      if (!convId) throw new Error("Could not create conversation");
+
+      await db.from("messages").insert({
+        conversation_id: convId,
+        sender_id: user.id,
+        text,
+        media_url: item?.media_url || "",
+        media_type: "story_reply",
+        read_by: [user.id],
+      });
+
+      toast.success("Reply sent to inbox!");
+    } catch (e) {
+      console.error("Story reply error:", e);
+      toast.error("Failed to send reply");
+    }
+    setSending(false);
+  };
+
+  const handleLike = async () => {
+    if (liked) return;
+    setLiked(true);
+    await sendStoryReaction("❤️ Reacted to your story");
+  };
+
+  const handleReply = async () => {
+    if (!replyText.trim()) return;
+    const text = `💬 Replied to your story: "${replyText.trim()}"`;
+    await sendStoryReaction(text);
+    setReplyText("");
+  };
 
   const goNext = useCallback(() => {
     if (!group) return;
@@ -156,6 +256,7 @@ const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) =
 
   const hoursAgo = Math.round((Date.now() - new Date(item.created_at).getTime()) / (3600 * 1000));
   const timeLabel = hoursAgo < 1 ? "Just now" : `${hoursAgo}h ago`;
+  const isOwnStory = user?.id === group.userId;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95">
@@ -213,19 +314,49 @@ const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) =
 
         <StorySlide item={item} />
 
+        {/* Like animation */}
+        {liked && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+            <Heart className="h-20 w-20 fill-red-500 text-red-500 animate-heart-pop drop-shadow-lg" />
+          </div>
+        )}
+
         {/* Reply bar */}
-        <div className="absolute bottom-0 left-0 right-0 z-30 flex items-center gap-2 bg-gradient-to-t from-black/60 px-3 pb-4 pt-8">
-          <input
-            type="text"
-            placeholder="Reply to story..."
-            value={replyText}
-            onChange={(e) => setReplyText(e.target.value)}
-            className="flex-1 rounded-full border border-white/30 bg-white/10 px-4 py-2 text-sm text-white placeholder:text-white/50 outline-none backdrop-blur-sm focus:border-white/50"
-            onClick={(e) => e.stopPropagation()}
-          />
-          <button className="rounded-full bg-white/10 p-2 backdrop-blur-sm"><Heart className="h-5 w-5 text-white" /></button>
-          <button className="rounded-full bg-white/10 p-2 backdrop-blur-sm"><Send className="h-5 w-5 text-white" /></button>
-        </div>
+        {!isOwnStory && user ? (
+          <div className="absolute bottom-0 left-0 right-0 z-30 flex items-center gap-2 bg-gradient-to-t from-black/60 px-3 pb-4 pt-8">
+            <input
+              type="text"
+              placeholder="Reply to story..."
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleReply(); }}
+              onFocus={() => setPaused(true)}
+              onBlur={() => setPaused(false)}
+              className="flex-1 rounded-full border border-white/30 bg-white/10 px-4 py-2 text-sm text-white placeholder:text-white/50 outline-none backdrop-blur-sm focus:border-white/50"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <button
+              onClick={(e) => { e.stopPropagation(); handleLike(); }}
+              disabled={liked || sending}
+              className={`rounded-full p-2 backdrop-blur-sm transition-all ${liked ? "bg-red-500/30" : "bg-white/10 hover:bg-white/20"}`}
+            >
+              <Heart className={`h-5 w-5 ${liked ? "fill-red-500 text-red-500" : "text-white"}`} />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleReply(); }}
+              disabled={!replyText.trim() || sending}
+              className="rounded-full bg-white/10 p-2 backdrop-blur-sm hover:bg-white/20 disabled:opacity-40"
+            >
+              <Send className="h-5 w-5 text-white" />
+            </button>
+          </div>
+        ) : (
+          <div className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black/60 px-3 pb-4 pt-8">
+            <p className="text-center text-xs text-white/50">
+              {isOwnStory ? "Your story" : "Log in to reply"}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
