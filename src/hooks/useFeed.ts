@@ -82,8 +82,19 @@ export function useFeed() {
         user_saved: userSaves.includes(p.id),
       }));
 
+      // Fetch active boost campaigns for boosted post scoring
+      const { data: activeCampaigns } = await db
+        .from("ad_campaigns")
+        .select("post_id, boost_likes, boost_views")
+        .in("status", ["approved", "active"]);
+
+      const boostMap: Record<string, { likes: number; views: number }> = {};
+      (activeCampaigns || []).forEach((c: any) => {
+        boostMap[c.post_id] = { likes: (boostMap[c.post_id]?.likes || 0) + c.boost_likes, views: (boostMap[c.post_id]?.views || 0) + c.boost_views };
+      });
+
       const now = Date.now();
-      feedPosts.sort((a, b) => feedScore(b, now) - feedScore(a, now));
+      feedPosts.sort((a, b) => feedScore(b, now, boostMap) - feedScore(a, now, boostMap));
       return feedPosts;
     },
     enabled: !!user,
@@ -91,9 +102,10 @@ export function useFeed() {
   });
 }
 
-function feedScore(post: FeedPost, now: number): number {
+function feedScore(post: FeedPost, now: number, boostMap: Record<string, { likes: number; views: number }>): number {
   const hoursAgo = (now - new Date(post.created_at).getTime()) / (3600 * 1000);
   const recency = Math.max(0, 100 - hoursAgo * 2);
   const engagement = Math.min((post.likes_count + post.comments_count * 3) / 10, 100);
-  return recency * 0.4 + engagement * 0.45 + Math.random() * 15;
+  const boost = boostMap[post.id] ? Math.min((boostMap[post.id].likes + boostMap[post.id].views) / 100, 50) : 0;
+  return recency * 0.35 + engagement * 0.4 + boost * 0.15 + Math.random() * 10;
 }

@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, PlusSquare, LogIn, LogOut } from "lucide-react";
+import { Heart, MessageCircle, PlusSquare, LogIn, LogOut, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
@@ -10,9 +10,10 @@ const Header = () => {
   const { user, profile, signOut } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (!user) { setUnreadCount(0); setUnreadMessages(0); return; }
+    if (!user) { setUnreadCount(0); setUnreadMessages(0); setIsAdmin(false); return; }
 
     const fetchCounts = async () => {
       const { count: notifCount } = await db
@@ -21,6 +22,10 @@ const Header = () => {
         .eq("user_id", user.id)
         .eq("read", false);
       setUnreadCount(notifCount || 0);
+
+      // Check admin role
+      const { data: roles } = await db.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin");
+      setIsAdmin(roles && roles.length > 0);
 
       // Unread messages: messages in user's conversations not read by user
       const { data: memberships } = await db
@@ -64,6 +69,11 @@ const Header = () => {
               <Link to="/create" className="text-foreground transition-opacity hover:opacity-60">
                 <PlusSquare className="h-6 w-6" />
               </Link>
+              {isAdmin && (
+                <Link to="/admin" className="text-primary transition-opacity hover:opacity-60" title="Admin Panel">
+                  <Shield className="h-5 w-5" />
+                </Link>
+              )}
               <Link to="/notifications" className="relative text-foreground transition-opacity hover:opacity-60">
                 <Heart className="h-6 w-6" />
                 {unreadCount > 0 && (

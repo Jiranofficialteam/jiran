@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import {
   Heart, MessageCircle, Send, Bookmark, MoreHorizontal,
   BadgeCheck, Smile, ChevronLeft, ChevronRight, Play, Pause,
-  Volume2, VolumeX, Film, Images, Copy
+  Volume2, VolumeX, Film, Images, Copy, Rocket
 } from "lucide-react";
 import { Post, Comment, currentUser } from "@/data/mockData";
 import { FeedPost } from "@/hooks/useFeed";
@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import BoostPostModal from "./BoostPostModal";
 
 const db = supabase as any;
 
@@ -121,8 +122,10 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
   const [dbComments, setDbComments] = useState<DBComment[]>([]);
   const [showAllComments, setShowAllComments] = useState(false);
   const [commentText, setCommentText] = useState("");
+  const [boostOpen, setBoostOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const commentsCount = feedPost?.comments_count || mockComments.length;
+  const isOwnPost = isDB && user && feedPost?.user_id === user.id;
 
   // Fetch real comments when expanded for DB posts
   useEffect(() => {
@@ -213,6 +216,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
 
   return (
     <article className="animate-fade-in border-b border-border bg-background">
+      {isDB && <BoostPostModal postId={postId} open={boostOpen} onClose={() => setBoostOpen(false)} />}
       <div className="flex items-center justify-between px-3 py-2.5">
         <Link to={`/profile/${username}`} className="flex items-center gap-2.5">
           <div className="story-ring">
@@ -228,9 +232,16 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
             )}
           </div>
         </Link>
-        <button className="text-foreground transition-opacity hover:opacity-60">
-          <MoreHorizontal className="h-5 w-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          {isOwnPost && (
+            <button onClick={() => setBoostOpen(true)} className="flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/20">
+              <Rocket className="h-3 w-3" /> Boost
+            </button>
+          )}
+          <button className="text-foreground transition-opacity hover:opacity-60">
+            <MoreHorizontal className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
       <div className="relative">
