@@ -1,5 +1,8 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/hooks/use-toast";
 import {
   ArrowLeft, Type, Sticker, BarChart3, Palette,
   RotateCcw, Check, Plus, X
@@ -34,6 +37,7 @@ interface PlacedElement {
 
 const CreateStory = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [bgIdx, setBgIdx] = useState(0);
   const [activeTool, setActiveTool] = useState<StoryTool>("none");
   const [elements, setElements] = useState<PlacedElement[]>([]);
@@ -105,9 +109,41 @@ const CreateStory = () => {
     setElements((prev) => prev.filter((el) => el.id !== id));
   };
 
-  const handleShare = () => {
-    // In real app, would save to backend
-    navigate("/");
+  const handleShare = async () => {
+    if (!user) { navigate("/auth"); return; }
+    try {
+      // Upload a placeholder image for background-only stories
+      const bgClass = bgColors[bgIdx];
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      
+      // Create a canvas-rendered placeholder or use a simple data URL
+      const placeholderUrl = `https://placehold.co/600x1067/333/fff?text=Story`;
+      
+      const storyElements = elements.map((el) => ({
+        type: el.type,
+        content: el.content,
+        x: el.x,
+        y: el.y,
+        color: el.color,
+        fontSize: el.fontSize,
+        pollQuestion: el.pollQuestion,
+        pollOptions: el.pollOptions,
+      }));
+
+      const { error } = await (supabase as any).from("stories").insert({
+        user_id: user.id,
+        media_url: placeholderUrl,
+        media_type: "image",
+        background: bgClass,
+        expires_at: expiresAt,
+        elements: storyElements,
+      });
+      if (error) throw error;
+      toast({ title: "স্টোরি শেয়ার হয়েছে! ✨" });
+      navigate("/");
+    } catch (err: any) {
+      toast({ title: "ত্রুটি", description: err.message, variant: "destructive" });
+    }
   };
 
   return (

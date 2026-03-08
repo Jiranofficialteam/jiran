@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Settings, Grid3X3, Bookmark, Film, BadgeCheck } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
-import { currentUser, users, posts } from "@/data/mockData";
+import EditProfileModal from "@/components/EditProfileModal";
+
+const db = supabase as any;
 
 const tabs = [
   { id: "posts", icon: Grid3X3, label: "Posts" },
@@ -11,16 +15,103 @@ const tabs = [
   { id: "saved", icon: Bookmark, label: "Saved" },
 ];
 
+interface ProfileData {
+  id: string;
+  username: string;
+  full_name: string;
+  avatar_url: string;
+  bio: string;
+  website: string;
+  is_private: boolean;
+  verified: boolean;
+}
+
+interface PostData {
+  id: string;
+  image_url: string;
+  images: string[];
+  type: string;
+}
+
 const Profile = () => {
   const { username } = useParams();
+  const navigate = useNavigate();
+  const { user, profile: authProfile } = useAuth();
   const [activeTab, setActiveTab] = useState("posts");
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [posts, setPosts] = useState<PostData[]>([]);
+  const [stats, setStats] = useState({ posts: 0, followers: 0, following: 0 });
+  const [editOpen, setEditOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const profileUser = username
-    ? users.find((u) => u.username === username) ?? currentUser
-    : currentUser;
+  const isOwnProfile = !username || (authProfile && authProfile.username === username) || (!username && !!user);
 
-  const isOwnProfile = profileUser.id === currentUser.id;
-  const userPosts = posts.filter((p) => p.user.id === profileUser.id).slice(0, 9);
+  const fetchProfile = async () => {
+    setLoading(true);
+    try {
+      let profileResult;
+      if (username) {
+        const { data } = await db.from("profiles").select("*").eq("username", username).single();
+        profileResult = data;
+      } else if (user) {
+        const { data } = await db.from("profiles").select("*").eq("id", user.id).single();
+        profileResult = data;
+      }
+      if (!profileResult) { setLoading(false); return; }
+      setProfileData(profileResult);
+
+      // Fetch posts
+      const { data: postsData } = await db
+        .from("posts")
+        .select("id, image_url, images, type")
+        .eq("user_id", profileResult.id)
+        .order("created_at", { ascending: false })
+        .limit(30);
+      setPosts(postsData || []);
+
+      // Fetch stats
+      const [{ count: postCount }, { count: followerCount }, { count: followingCount }] = await Promise.all([
+        db.from("posts").select("*", { count: "exact", head: true }).eq("user_id", profileResult.id),
+        db.from("follows").select("*", { count: "exact", head: true }).eq("following_id", profileResult.id),
+        db.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", profileResult.id),
+      ]);
+      setStats({ posts: postCount || 0, followers: followerCount || 0, following: followingCount || 0 });
+    } catch (e) {
+      console.error(e);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchProfile(); }, [username, user?.id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center py-20">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
+
+  if (!profileData) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+          <p className="text-lg">Profile not found</p>
+          {!user && (
+            <button onClick={() => navigate("/auth")} className="mt-4 rounded-lg gradient-brand px-6 py-2 text-sm font-semibold text-primary-foreground">
+              Log In
+            </button>
+          )}
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -30,17 +121,20 @@ const Profile = () => {
         <div className="flex items-start gap-6 md:gap-20 md:px-12">
           <div className="story-ring flex-shrink-0">
             <div className="rounded-full bg-background p-[3px]">
-              <img src={profileUser.avatar} alt="" className="h-20 w-20 rounded-full object-cover md:h-36 md:w-36" />
+              <img src={profileData.avatar_url || "/placeholder.svg"} alt="" className="h-20 w-20 rounded-full object-cover md:h-36 md:w-36" />
             </div>
           </div>
 
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-xl font-normal">{profileUser.username}</h1>
-              {profileUser.verified && <BadgeCheck className="h-5 w-5 fill-primary text-primary-foreground" />}
+              <h1 className="text-xl font-normal">{profileData.username}</h1>
+              {profileData.verified && <BadgeCheck className="h-5 w-5 fill-primary text-primary-foreground" />}
               {isOwnProfile ? (
                 <>
-                  <button className="rounded-lg bg-secondary px-5 py-1.5 text-sm font-semibold transition-colors hover:bg-secondary/80">
+                  <button
+                    onClick={() => setEditOpen(true)}
+                    className="rounded-lg bg-secondary px-5 py-1.5 text-sm font-semibold transition-colors hover:bg-secondary/80"
+                  >
                     Edit profile
                   </button>
                   <button className="text-foreground">
@@ -55,30 +149,35 @@ const Profile = () => {
             </div>
 
             <div className="mt-5 hidden gap-8 md:flex">
-              <span><strong>{profileUser.posts}</strong> posts</span>
-              <button><strong>{profileUser.followers.toLocaleString()}</strong> followers</button>
-              <button><strong>{profileUser.following}</strong> following</button>
+              <span><strong>{stats.posts}</strong> posts</span>
+              <button><strong>{stats.followers.toLocaleString()}</strong> followers</button>
+              <button><strong>{stats.following}</strong> following</button>
             </div>
 
             <div className="mt-4 hidden md:block">
-              <p className="text-sm font-semibold">{profileUser.displayName}</p>
-              <p className="text-sm whitespace-pre-line">{profileUser.bio}</p>
+              <p className="text-sm font-semibold">{profileData.full_name}</p>
+              <p className="text-sm whitespace-pre-line">{profileData.bio}</p>
+              {profileData.website && (
+                <a href={profileData.website} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-primary hover:underline">
+                  {profileData.website}
+                </a>
+              )}
             </div>
           </div>
         </div>
 
         {/* Mobile bio */}
         <div className="mt-3 md:hidden">
-          <p className="text-sm font-semibold">{profileUser.displayName}</p>
-          <p className="text-sm whitespace-pre-line">{profileUser.bio}</p>
+          <p className="text-sm font-semibold">{profileData.full_name}</p>
+          <p className="text-sm whitespace-pre-line">{profileData.bio}</p>
         </div>
 
         {/* Mobile stats */}
         <div className="mt-3 flex border-t border-b border-border py-3 md:hidden">
           {[
-            { label: "posts", value: profileUser.posts },
-            { label: "followers", value: profileUser.followers.toLocaleString() },
-            { label: "following", value: profileUser.following },
+            { label: "posts", value: stats.posts },
+            { label: "followers", value: stats.followers.toLocaleString() },
+            { label: "following", value: stats.following },
           ].map((stat) => (
             <button key={stat.label} className="flex-1 text-center">
               <span className="block text-sm font-semibold">{stat.value}</span>
@@ -107,21 +206,21 @@ const Profile = () => {
 
         {/* Grid */}
         <div className="grid grid-cols-3 gap-0.5 pb-20 md:gap-1">
-          {userPosts.map((post) => (
+          {posts.map((post) => (
             <button key={post.id} className="relative aspect-square overflow-hidden group">
-              <img src={post.imageUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
-              <div className="absolute inset-0 flex items-center justify-center gap-4 bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100">
-                <span className="flex items-center gap-1 text-sm font-semibold text-primary-foreground">
-                  ❤ {post.likes}
-                </span>
-                <span className="flex items-center gap-1 text-sm font-semibold text-primary-foreground">
-                  💬 {post.comments.length}
-                </span>
-              </div>
+              <img src={post.image_url || post.images?.[0] || "/placeholder.svg"} alt="" className="h-full w-full object-cover" loading="lazy" />
+              <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
             </button>
           ))}
+          {posts.length === 0 && (
+            <div className="col-span-3 py-16 text-center text-muted-foreground">
+              <p className="text-lg">No posts yet</p>
+            </div>
+          )}
         </div>
       </div>
+
+      <EditProfileModal open={editOpen} onClose={() => setEditOpen(false)} onSaved={fetchProfile} />
       <BottomNav />
     </div>
   );

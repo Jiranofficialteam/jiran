@@ -1,9 +1,10 @@
 import { Home, Search, PlusSquare, Heart, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { currentUser } from "@/data/mockData";
+import { useAuth } from "@/contexts/AuthContext";
 
 const BottomNav = () => {
   const { pathname } = useLocation();
+  const { user, profile } = useAuth();
 
   const links = [
     { to: "/", icon: Home, label: "Home" },
@@ -17,7 +18,7 @@ const BottomNav = () => {
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/80 backdrop-blur-lg md:hidden">
       <div className="flex h-12 items-center justify-around">
         {links.map(({ to, icon: Icon, label, isProfile }) => {
-          const active = pathname === to;
+          const active = pathname === to || (isProfile && pathname.startsWith("/profile"));
           return (
             <Link
               key={to}
@@ -27,7 +28,7 @@ const BottomNav = () => {
             >
               {isProfile ? (
                 <div className={`h-7 w-7 overflow-hidden rounded-full ${active ? "ring-2 ring-foreground" : ""}`}>
-                  <img src={currentUser.avatar} alt="" className="h-full w-full object-cover" />
+                  <img src={profile?.avatar_url || "/placeholder.svg"} alt="" className="h-full w-full object-cover" />
                 </div>
               ) : (
                 <Icon className="h-6 w-6" strokeWidth={active ? 2.5 : 1.5} />
