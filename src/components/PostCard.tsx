@@ -126,6 +126,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
   const [boostOpen, setBoostOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [currentCaption, setCurrentCaption] = useState(caption);
   const [currentLocation, setCurrentLocation] = useState("");
   const [deleted, setDeleted] = useState(false);
@@ -206,6 +207,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
 
   const handleDeletePost = async () => {
     if (!isDB) return;
+    setConfirmDelete(false);
     setMenuOpen(false);
     await Promise.all([
       db.from("likes").delete().eq("post_id", postId),
@@ -240,6 +242,19 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
     <article className="animate-fade-in border-b border-border bg-background">
       {isDB && <BoostPostModal postId={postId} open={boostOpen} onClose={() => setBoostOpen(false)} />}
       {isOwnPost && <EditPostModal open={editOpen} onClose={() => setEditOpen(false)} postId={postId} initialCaption={currentCaption} initialLocation={currentLocation} onUpdated={(c, l) => { setCurrentCaption(c); setCurrentLocation(l); }} />}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setConfirmDelete(false)}>
+          <div className="mx-4 w-full max-w-xs rounded-2xl bg-card p-5 text-center shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <Trash2 className="mx-auto mb-3 h-10 w-10 text-destructive" />
+            <h3 className="text-base font-bold text-foreground">Delete Post?</h3>
+            <p className="mt-1 text-sm text-muted-foreground">এই পোস্টটি চিরতরে মুছে যাবে। এটি undo করা যাবে না।</p>
+            <div className="mt-4 flex gap-2">
+              <button onClick={() => setConfirmDelete(false)} className="flex-1 rounded-xl border border-border py-2.5 text-sm font-semibold text-foreground hover:bg-secondary">Cancel</button>
+              <button onClick={handleDeletePost} className="flex-1 rounded-xl bg-destructive py-2.5 text-sm font-semibold text-destructive-foreground">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between px-3 py-2.5">
         <Link to={`/profile/${username}`} className="flex items-center gap-2.5">
           <div className="story-ring">
@@ -274,7 +289,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
                       <button onClick={() => { setMenuOpen(false); setEditOpen(true); }} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-foreground hover:bg-secondary">
                         <Pencil className="h-4 w-4" /> Edit Post
                       </button>
-                      <button onClick={handleDeletePost} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10">
+                      <button onClick={() => { setMenuOpen(false); setConfirmDelete(true); }} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10">
                         <Trash2 className="h-4 w-4" /> Delete Post
                       </button>
                     </>
