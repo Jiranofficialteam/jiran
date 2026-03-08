@@ -127,9 +127,10 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
   const [editOpen, setEditOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [currentCaption, setCurrentCaption] = useState(caption);
-  const [currentLocation, setCurrentLocation] = useState(feedPost?.location || "");
+  const [currentLocation, setCurrentLocation] = useState("");
   const [deleted, setDeleted] = useState(false);
   const navigate = useNavigate();
+  const inputRef = useRef<HTMLInputElement>(null);
   const commentsCount = feedPost?.comments_count || mockComments.length;
   const isOwnPost = isDB && user && feedPost?.user_id === user.id;
 
