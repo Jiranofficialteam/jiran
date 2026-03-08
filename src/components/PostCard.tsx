@@ -105,7 +105,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
 
   const isDB = !!feedPost;
   const postId = feedPost?.id || post?.id || "";
-  const username = feedPost?.profile?.username || post?.user?.username || "";
+  const username = (feedPost?.profile?.username || post?.user?.username || "").trim();
   const avatar = feedPost?.profile?.avatar_url || post?.user?.avatar || "";
   const verified = feedPost?.profile?.verified || post?.user?.verified || false;
   const postType = feedPost?.type || post?.type || "photo";
