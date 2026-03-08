@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, Send, Image, BadgeCheck, Check, CheckCheck, Smile, Mic, ThumbsUp } from "lucide-react";
+import { ArrowLeft, Send, Image, BadgeCheck, Check, CheckCheck, Smile, Mic, ThumbsUp, X, Play } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMessages, Message } from "@/hooks/useMessages";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatDistanceToNowStrict, format, isToday, isYesterday } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface ChatViewProps {
   conversationId: string;
@@ -21,18 +23,64 @@ const ChatView = ({ conversationId, otherUser, onBack }: ChatViewProps) => {
   const { user } = useAuth();
   const { messages, loading, sendMessage } = useMessages(conversationId);
   const [text, setText] = useState("");
+  const [mediaPreview, setMediaPreview] = useState<{ file: File; url: string; type: string } | null>(null);
+  const [uploading, setUploading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const isVideo = file.type.startsWith("video/");
+    const isImage = file.type.startsWith("image/");
+    if (!isVideo && !isImage) {
+      toast.error("শুধুমাত্র ইমেজ বা ভিডিও পাঠানো যাবে");
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("ফাইল সাইজ ২০MB এর বেশি হতে পারবে না");
+      return;
+    }
+    setMediaPreview({ file, url: URL.createObjectURL(file), type: isVideo ? "video" : "image" });
+    e.target.value = "";
+  };
+
+  const clearMediaPreview = () => {
+    if (mediaPreview) URL.revokeObjectURL(mediaPreview.url);
+    setMediaPreview(null);
+  };
+
   const handleSend = async () => {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed && !mediaPreview) return;
+
+    let mediaUrl = "";
+    let mediaType = "text";
+
+    if (mediaPreview) {
+      setUploading(true);
+      const ext = mediaPreview.file.name.split(".").pop();
+      const path = `messages/${conversationId}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("media").upload(path, mediaPreview.file);
+      if (error) {
+        toast.error("মিডিয়া আপলোড ব্যর্থ হয়েছে");
+        setUploading(false);
+        return;
+      }
+      const { data: pub } = supabase.storage.from("media").getPublicUrl(path);
+      mediaUrl = pub.publicUrl;
+      mediaType = mediaPreview.type;
+      clearMediaPreview();
+      setUploading(false);
+    }
+
     setText("");
-    await sendMessage(trimmed);
+    await sendMessage(trimmed, mediaUrl || undefined, mediaType);
     inputRef.current?.focus();
   };
 
@@ -205,7 +253,23 @@ const ChatView = ({ conversationId, otherUser, onBack }: ChatViewProps) => {
                               }`
                         }`}
                       >
-                        {msg.text}
+                        {/* Media content */}
+                        {msg.media_url && msg.media_type === "image" && (
+                          <img
+                            src={msg.media_url}
+                            alt=""
+                            className="max-w-full rounded-xl mb-1 max-h-60 object-cover cursor-pointer"
+                            onClick={() => window.open(msg.media_url!, "_blank")}
+                          />
+                        )}
+                        {msg.media_url && msg.media_type === "video" && (
+                          <video
+                            src={msg.media_url}
+                            controls
+                            className="max-w-full rounded-xl mb-1 max-h-60"
+                          />
+                        )}
+                        {msg.text && <span>{msg.text}</span>}
                       </div>
 
                       {/* Time + status - only on last in group */}
@@ -244,10 +308,42 @@ const ChatView = ({ conversationId, otherUser, onBack }: ChatViewProps) => {
         )}
       </div>
 
+      {/* Media Preview */}
+      {mediaPreview && (
+        <div className="px-3 py-2 bg-secondary/50 border-t border-border">
+          <div className="relative inline-block">
+            {mediaPreview.type === "image" ? (
+              <img src={mediaPreview.url} alt="" className="h-20 w-20 rounded-lg object-cover" />
+            ) : (
+              <div className="h-20 w-20 rounded-lg bg-muted flex items-center justify-center">
+                <Play className="h-8 w-8 text-muted-foreground" />
+              </div>
+            )}
+            <button
+              onClick={clearMediaPreview}
+              className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Input - Messenger style */}
       <div className="px-3 py-2 bg-background">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*,video/*"
+          className="hidden"
+          onChange={handleFileSelect}
+        />
         <div className="flex items-end gap-2">
-          <button className="h-9 w-9 flex-shrink-0 rounded-full flex items-center justify-center text-primary hover:bg-secondary transition-colors">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="h-9 w-9 flex-shrink-0 rounded-full flex items-center justify-center text-primary hover:bg-secondary transition-colors disabled:opacity-50"
+          >
             <Image className="h-5 w-5" />
           </button>
           <div className="flex-1 flex items-center bg-secondary rounded-full px-4 py-2 min-h-[36px]">
@@ -263,12 +359,17 @@ const ChatView = ({ conversationId, otherUser, onBack }: ChatViewProps) => {
               <Smile className="h-5 w-5" />
             </button>
           </div>
-          {text.trim() ? (
+          {text.trim() || mediaPreview ? (
             <button
               onClick={handleSend}
-              className="h-9 w-9 flex-shrink-0 rounded-full bg-primary flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors active:scale-95"
+              disabled={uploading}
+              className="h-9 w-9 flex-shrink-0 rounded-full bg-primary flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors active:scale-95 disabled:opacity-50"
             >
-              <Send className="h-4 w-4" />
+              {uploading ? (
+                <div className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </button>
           ) : (
             <button className="h-9 w-9 flex-shrink-0 rounded-full flex items-center justify-center text-primary hover:bg-secondary transition-colors">
