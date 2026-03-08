@@ -1,12 +1,160 @@
 import { useState, useRef } from "react";
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, BadgeCheck, Smile } from "lucide-react";
+import {
+  Heart, MessageCircle, Send, Bookmark, MoreHorizontal,
+  BadgeCheck, Smile, ChevronLeft, ChevronRight, Play, Pause,
+  Volume2, VolumeX, Film, Images, Copy
+} from "lucide-react";
 import { Post, Comment, currentUser } from "@/data/mockData";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 interface PostCardProps {
   post: Post;
 }
 
+/* ─── Carousel Media ─── */
+const CarouselMedia = ({ images, onDoubleTap }: { images: string[]; onDoubleTap: () => void }) => {
+  const [current, setCurrent] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const prev = () => setCurrent((c) => Math.max(0, c - 1));
+  const next = () => setCurrent((c) => Math.min(images.length - 1, c + 1));
+
+  return (
+    <div className="relative overflow-hidden" onDoubleClick={onDoubleTap}>
+      <div
+        ref={containerRef}
+        className="flex transition-transform duration-300 ease-out"
+        style={{ transform: `translateX(-${current * 100}%)` }}
+      >
+        {images.map((img, i) => (
+          <img
+            key={i}
+            src={img}
+            alt=""
+            className="w-full flex-shrink-0 object-cover"
+            style={{ maxHeight: 585 }}
+            loading="lazy"
+          />
+        ))}
+      </div>
+
+      {/* Nav arrows */}
+      {current > 0 && (
+        <button
+          onClick={prev}
+          className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-1.5 shadow-md backdrop-blur-sm transition-opacity hover:bg-background"
+        >
+          <ChevronLeft className="h-4 w-4 text-foreground" />
+        </button>
+      )}
+      {current < images.length - 1 && (
+        <button
+          onClick={next}
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-1.5 shadow-md backdrop-blur-sm transition-opacity hover:bg-background"
+        >
+          <ChevronRight className="h-4 w-4 text-foreground" />
+        </button>
+      )}
+
+      {/* Dots */}
+      <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1">
+        {images.map((_, i) => (
+          <span
+            key={i}
+            className={`h-1.5 w-1.5 rounded-full transition-colors ${
+              i === current ? "bg-primary" : "bg-foreground/30"
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Badge */}
+      <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-background/70 px-2 py-1 text-[11px] font-medium text-foreground backdrop-blur-sm">
+        <Images className="h-3 w-3" />
+        {current + 1}/{images.length}
+      </div>
+    </div>
+  );
+};
+
+/* ─── Video Media ─── */
+const VideoMedia = ({
+  videoUrl,
+  poster,
+  isReel,
+  onDoubleTap,
+}: {
+  videoUrl: string;
+  poster: string;
+  isReel: boolean;
+  onDoubleTap: () => void;
+}) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(true);
+
+  const togglePlay = () => {
+    if (!videoRef.current) return;
+    if (playing) {
+      videoRef.current.pause();
+    } else {
+      videoRef.current.play();
+    }
+    setPlaying(!playing);
+  };
+
+  return (
+    <div
+      className="relative cursor-pointer"
+      onDoubleClick={onDoubleTap}
+      onClick={togglePlay}
+    >
+      <video
+        ref={videoRef}
+        src={videoUrl}
+        poster={poster}
+        muted={muted}
+        loop
+        playsInline
+        className="w-full object-cover"
+        style={{ maxHeight: isReel ? 680 : 585 }}
+      />
+
+      {/* Play/pause overlay */}
+      {!playing && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="rounded-full bg-background/60 p-4 backdrop-blur-sm">
+            <Play className="h-8 w-8 fill-foreground text-foreground" />
+          </div>
+        </div>
+      )}
+
+      {/* Mute button */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setMuted(!muted);
+        }}
+        className="absolute bottom-3 right-3 rounded-full bg-background/70 p-2 backdrop-blur-sm transition-opacity hover:bg-background"
+      >
+        {muted ? (
+          <VolumeX className="h-3.5 w-3.5 text-foreground" />
+        ) : (
+          <Volume2 className="h-3.5 w-3.5 text-foreground" />
+        )}
+      </button>
+
+      {/* Type badge */}
+      <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-background/70 px-2 py-1 text-[11px] font-medium text-foreground backdrop-blur-sm">
+        <Film className="h-3 w-3" />
+        {isReel ? "Reel" : "Video"}
+      </div>
+    </div>
+  );
+};
+
+/* ─── PostCard ─── */
 const PostCard = ({ post }: PostCardProps) => {
   const [liked, setLiked] = useState(post.liked);
   const [saved, setSaved] = useState(post.saved);
@@ -30,9 +178,7 @@ const PostCard = ({ post }: PostCardProps) => {
     setCommentText("");
   };
 
-  const focusComment = () => {
-    inputRef.current?.focus();
-  };
+  const focusComment = () => inputRef.current?.focus();
 
   const handleLike = () => {
     setLiked(!liked);
@@ -48,6 +194,53 @@ const PostCard = ({ post }: PostCardProps) => {
     setTimeout(() => setShowHeart(false), 600);
   };
 
+  const handleShare = () => {
+    toast.success("Share link copied!", { duration: 2000 });
+  };
+
+  /* ─── Render media by type ─── */
+  const renderMedia = () => {
+    switch (post.type) {
+      case "carousel":
+        return (
+          <CarouselMedia
+            images={post.images ?? [post.imageUrl]}
+            onDoubleTap={handleDoubleTap}
+          />
+        );
+      case "video":
+        return (
+          <VideoMedia
+            videoUrl={post.videoUrl!}
+            poster={post.imageUrl}
+            isReel={false}
+            onDoubleTap={handleDoubleTap}
+          />
+        );
+      case "reel":
+        return (
+          <VideoMedia
+            videoUrl={post.videoUrl!}
+            poster={post.imageUrl}
+            isReel={true}
+            onDoubleTap={handleDoubleTap}
+          />
+        );
+      default: // photo
+        return (
+          <div className="relative" onDoubleClick={handleDoubleTap}>
+            <img
+              src={post.imageUrl}
+              alt=""
+              className="w-full object-cover"
+              style={{ maxHeight: 585 }}
+              loading="lazy"
+            />
+          </div>
+        );
+    }
+  };
+
   return (
     <article className="animate-fade-in border-b border-border bg-background">
       {/* Header */}
@@ -61,6 +254,11 @@ const PostCard = ({ post }: PostCardProps) => {
           <div className="flex items-center gap-1">
             <span className="text-sm font-semibold">{post.user.username}</span>
             {post.user.verified && <BadgeCheck className="h-3.5 w-3.5 fill-primary text-primary-foreground" />}
+            {post.type !== "photo" && (
+              <span className="ml-1 text-[10px] font-medium uppercase text-muted-foreground">
+                • {post.type}
+              </span>
+            )}
           </div>
         </Link>
         <button className="text-foreground transition-opacity hover:opacity-60">
@@ -68,9 +266,9 @@ const PostCard = ({ post }: PostCardProps) => {
         </button>
       </div>
 
-      {/* Image */}
-      <div className="relative" onDoubleClick={handleDoubleTap}>
-        <img src={post.imageUrl} alt="" className="w-full object-cover" style={{ maxHeight: 585 }} loading="lazy" />
+      {/* Media */}
+      <div className="relative">
+        {renderMedia()}
         {showHeart && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <Heart className="h-24 w-24 animate-heart-pop fill-primary-foreground text-primary-foreground drop-shadow-lg" />
@@ -89,7 +287,7 @@ const PostCard = ({ post }: PostCardProps) => {
           <button onClick={focusComment} className="text-foreground transition-opacity hover:opacity-60">
             <MessageCircle className="h-6 w-6" />
           </button>
-          <button className="text-foreground transition-opacity hover:opacity-60">
+          <button onClick={handleShare} className="text-foreground transition-opacity hover:opacity-60">
             <Send className="h-6 w-6" />
           </button>
         </div>
@@ -107,6 +305,7 @@ const PostCard = ({ post }: PostCardProps) => {
           </Link>{" "}
           {post.caption}
         </p>
+
         {comments.length > 0 && !showAllComments && (
           <button
             onClick={() => setShowAllComments(true)}
@@ -116,7 +315,6 @@ const PostCard = ({ post }: PostCardProps) => {
           </button>
         )}
 
-        {/* Comments list */}
         {showAllComments && (
           <div className="mt-2 space-y-2">
             {comments.map((comment) => (
@@ -150,6 +348,9 @@ const PostCard = ({ post }: PostCardProps) => {
           </div>
         )}
 
+        {post.shares > 0 && (
+          <p className="mt-0.5 text-[11px] text-muted-foreground">{post.shares} shares</p>
+        )}
         <p className="mt-1 text-[11px] uppercase text-muted-foreground">{post.timestamp} ago</p>
 
         {/* Comment input */}
