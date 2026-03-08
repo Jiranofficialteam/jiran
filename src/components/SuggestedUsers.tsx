@@ -84,7 +84,7 @@ const SuggestedUsers = () => {
                 </Link>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1">
-                    <Link to={`/profile/${u.username}`} className="text-[13px] font-bold truncate hover:underline">{u.username}</Link>
+                    <Link to={`/profile/${u.username.trim()}`} className="text-[13px] font-bold truncate hover:underline">{u.username.trim()}</Link>
                     {u.verified && <BadgeCheck className="h-3.5 w-3.5 flex-shrink-0 fill-primary text-primary-foreground" />}
                   </div>
                   <p className="text-[11px] text-muted-foreground truncate">{u.full_name || "Suggested for you"}</p>
