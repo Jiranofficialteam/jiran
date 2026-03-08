@@ -7,6 +7,8 @@ import { useFollow } from "@/hooks/useFollow";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import EditProfileModal from "@/components/EditProfileModal";
+import FollowListModal from "@/components/FollowListModal";
+import PostDetailModal from "@/components/PostDetailModal";
 
 const db = supabase as any;
 
@@ -45,6 +47,8 @@ const Profile = () => {
   const [postCount, setPostCount] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [followListType, setFollowListType] = useState<"followers" | "following" | null>(null);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
   const { isFollowing, followerCount, followingCount, toggleFollow, loading: followLoading } = useFollow(profileData?.id ?? null);
 
@@ -178,8 +182,8 @@ const Profile = () => {
 
             <div className="mt-5 hidden gap-8 md:flex">
               <span><strong>{postCount}</strong> posts</span>
-              <button><strong>{followerCount.toLocaleString()}</strong> followers</button>
-              <button><strong>{followingCount}</strong> following</button>
+              <button onClick={() => setFollowListType("followers")}><strong>{followerCount.toLocaleString()}</strong> followers</button>
+              <button onClick={() => setFollowListType("following")}><strong>{followingCount}</strong> following</button>
             </div>
 
             <div className="mt-4 hidden md:block">
@@ -203,11 +207,11 @@ const Profile = () => {
         {/* Mobile stats */}
         <div className="mt-3 flex border-t border-b border-border py-3 md:hidden">
           {[
-            { label: "posts", value: postCount },
-            { label: "followers", value: followerCount.toLocaleString() },
-            { label: "following", value: followingCount },
+            { label: "posts", value: postCount, action: undefined },
+            { label: "followers", value: followerCount.toLocaleString(), action: () => setFollowListType("followers") },
+            { label: "following", value: followingCount, action: () => setFollowListType("following") },
           ].map((stat) => (
-            <button key={stat.label} className="flex-1 text-center">
+            <button key={stat.label} className="flex-1 text-center" onClick={stat.action}>
               <span className="block text-sm font-semibold">{stat.value}</span>
               <span className="text-xs text-muted-foreground">{stat.label}</span>
             </button>
@@ -237,7 +241,7 @@ const Profile = () => {
           {activeTab === "saved" ? (
             savedPosts.length > 0 ? (
               savedPosts.map((post) => (
-                <button key={post.id} className="relative aspect-square overflow-hidden group">
+                <button key={post.id} onClick={() => setSelectedPostId(post.id)} className="relative aspect-square overflow-hidden group">
                   <img src={post.image_url || post.images?.[0] || "/placeholder.svg"} alt="" className="h-full w-full object-cover" loading="lazy" />
                   <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
                 </button>
@@ -250,7 +254,7 @@ const Profile = () => {
           ) : (
             <>
               {posts.filter((p) => activeTab === "reels" ? p.type === "reel" : true).map((post) => (
-                <button key={post.id} className="relative aspect-square overflow-hidden group">
+                <button key={post.id} onClick={() => setSelectedPostId(post.id)} className="relative aspect-square overflow-hidden group">
                   <img src={post.image_url || post.images?.[0] || "/placeholder.svg"} alt="" className="h-full w-full object-cover" loading="lazy" />
                   <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
                 </button>
@@ -266,6 +270,20 @@ const Profile = () => {
       </div>
 
       <EditProfileModal open={editOpen} onClose={() => setEditOpen(false)} onSaved={fetchProfile} />
+      <FollowListModal
+        open={!!followListType}
+        onClose={() => setFollowListType(null)}
+        userId={profileData?.id || ""}
+        type={followListType || "followers"}
+      />
+      {selectedPostId && (
+        <PostDetailModal
+          open={!!selectedPostId}
+          onClose={() => setSelectedPostId(null)}
+          postId={selectedPostId}
+          profileData={profileData ? { username: profileData.username, avatar_url: profileData.avatar_url, verified: profileData.verified } : undefined}
+        />
+      )}
       <BottomNav />
     </div>
   );
