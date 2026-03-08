@@ -1,12 +1,28 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import Header from "@/components/Header";
+import BottomNav from "@/components/BottomNav";
+import StoryBar from "@/components/StoryBar";
+import PostCard from "@/components/PostCard";
+import SuggestedUsers from "@/components/SuggestedUsers";
+import { posts } from "@/data/mockData";
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="mx-auto flex max-w-[935px] justify-center">
+        <main className="w-full max-w-[470px]">
+          <StoryBar />
+          <div>
+            {posts.map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
+          </div>
+        </main>
+        <SuggestedUsers />
       </div>
+      <BottomNav />
+      {/* spacer for bottom nav on mobile */}
+      <div className="h-14 md:hidden" />
     </div>
   );
 };
