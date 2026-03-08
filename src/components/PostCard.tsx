@@ -122,8 +122,10 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
   const [dbComments, setDbComments] = useState<DBComment[]>([]);
   const [showAllComments, setShowAllComments] = useState(false);
   const [commentText, setCommentText] = useState("");
+  const [boostOpen, setBoostOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const commentsCount = feedPost?.comments_count || mockComments.length;
+  const isOwnPost = isDB && user && feedPost?.user_id === user.id;
 
   // Fetch real comments when expanded for DB posts
   useEffect(() => {
