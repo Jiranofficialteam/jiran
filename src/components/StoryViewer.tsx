@@ -1,0 +1,254 @@
+import { useState, useEffect, useCallback, useRef } from "react";
+import { X, ChevronLeft, ChevronRight, BadgeCheck, Send, Heart } from "lucide-react";
+import { Story, StoryElement } from "@/data/mockData";
+
+interface StoryViewerProps {
+  stories: Story[];
+  initialIndex: number;
+  onClose: () => void;
+}
+
+/* ─── Poll widget ─── */
+const PollWidget = ({ element }: { element: StoryElement }) => {
+  const [voted, setVoted] = useState<number | null>(null);
+  const poll = element.poll!;
+  const totalVotes = poll.options.reduce((s, o) => s + o.votes, 0) + (voted !== null ? 1 : 0);
+
+  return (
+    <div className="w-64 rounded-2xl bg-background/90 p-4 backdrop-blur-md shadow-lg">
+      <p className="mb-3 text-center text-sm font-bold text-foreground">{poll.question}</p>
+      <div className="space-y-2">
+        {poll.options.map((opt, oi) => {
+          const votes = opt.votes + (voted === oi ? 1 : 0);
+          const pct = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
+          return (
+            <button
+              key={oi}
+              onClick={() => voted === null && setVoted(oi)}
+              disabled={voted !== null}
+              className={`relative w-full overflow-hidden rounded-xl border px-4 py-2.5 text-left text-sm font-medium transition-all ${
+                voted === oi
+                  ? "border-primary bg-primary/10 text-foreground"
+                  : voted !== null
+                  ? "border-border text-muted-foreground"
+                  : "border-border text-foreground hover:border-primary/50 active:scale-[0.98]"
+              }`}
+            >
+              {voted !== null && (
+                <div
+                  className="absolute inset-y-0 left-0 bg-primary/15 transition-all duration-500"
+                  style={{ width: `${pct}%` }}
+                />
+              )}
+              <span className="relative z-10 flex items-center justify-between">
+                <span>{opt.text}</span>
+                {voted !== null && <span className="text-xs text-muted-foreground">{pct}%</span>}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+/* ─── Single story slide ─── */
+const StorySlide = ({ item, elements }: { item: { imageUrl: string }; elements: StoryElement[] }) => (
+  <div className="absolute inset-0">
+    <img src={item.imageUrl} alt="" className="h-full w-full object-cover" />
+    <div className="absolute inset-0 bg-black/20" />
+    {elements.map((el, i) => (
+      <div
+        key={i}
+        className="absolute"
+        style={{
+          left: `${el.x}%`,
+          top: `${el.y}%`,
+          transform: `translate(-50%, -50%) rotate(${el.rotation ?? 0}deg)`,
+        }}
+      >
+        {el.type === "text" && (
+          <p
+            className="whitespace-nowrap font-bold drop-shadow-lg"
+            style={{
+              fontSize: el.fontSize ?? 20,
+              color: el.color ?? "#ffffff",
+              textShadow: "0 2px 8px rgba(0,0,0,0.5)",
+            }}
+          >
+            {el.content}
+          </p>
+        )}
+        {el.type === "sticker" && (
+          <span className="text-4xl drop-shadow-lg" style={{ fontSize: el.fontSize ?? 40 }}>
+            {el.content}
+          </span>
+        )}
+        {el.type === "poll" && <PollWidget element={el} />}
+      </div>
+    ))}
+  </div>
+);
+
+/* ─── Main viewer ─── */
+const StoryViewer = ({ stories, initialIndex, onClose }: StoryViewerProps) => {
+  const [storyIdx, setStoryIdx] = useState(initialIndex);
+  const [itemIdx, setItemIdx] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const timerRef = useRef<ReturnType<typeof setInterval>>();
+
+  const story = stories[storyIdx];
+  const item = story?.items[itemIdx];
+  const duration = (item?.duration ?? 5) * 1000;
+
+  const goNext = useCallback(() => {
+    if (itemIdx < story.items.length - 1) {
+      setItemIdx((p) => p + 1);
+      setProgress(0);
+    } else if (storyIdx < stories.length - 1) {
+      setStoryIdx((p) => p + 1);
+      setItemIdx(0);
+      setProgress(0);
+    } else {
+      onClose();
+    }
+  }, [itemIdx, storyIdx, story, stories, onClose]);
+
+  const goPrev = useCallback(() => {
+    if (itemIdx > 0) {
+      setItemIdx((p) => p - 1);
+      setProgress(0);
+    } else if (storyIdx > 0) {
+      setStoryIdx((p) => p - 1);
+      setItemIdx(0);
+      setProgress(0);
+    }
+  }, [itemIdx, storyIdx]);
+
+  // Progress timer
+  useEffect(() => {
+    if (paused) return;
+    const interval = 50;
+    const step = (interval / duration) * 100;
+    timerRef.current = setInterval(() => {
+      setProgress((p) => {
+        if (p >= 100) {
+          goNext();
+          return 0;
+        }
+        return p + step;
+      });
+    }, interval);
+    return () => clearInterval(timerRef.current);
+  }, [duration, paused, goNext]);
+
+  // Keyboard
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") goNext();
+      if (e.key === "ArrowLeft") goPrev();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [goNext, goPrev, onClose]);
+
+  if (!story || !item) return null;
+
+  const hoursAgo = Math.round((Date.now() - item.createdAt) / (3600 * 1000));
+  const timeLabel = hoursAgo < 1 ? "Just now" : `${hoursAgo}h ago`;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95">
+      {/* Close */}
+      <button onClick={onClose} className="absolute right-4 top-4 z-50 text-white/80 hover:text-white">
+        <X className="h-7 w-7" />
+      </button>
+
+      {/* Prev story button */}
+      {(storyIdx > 0 || itemIdx > 0) && (
+        <button
+          onClick={goPrev}
+          className="absolute left-2 top-1/2 z-50 -translate-y-1/2 rounded-full bg-white/10 p-2 backdrop-blur-sm hover:bg-white/20 md:left-4"
+        >
+          <ChevronLeft className="h-5 w-5 text-white" />
+        </button>
+      )}
+
+      {/* Next story button */}
+      <button
+        onClick={goNext}
+        className="absolute right-2 top-1/2 z-50 -translate-y-1/2 rounded-full bg-white/10 p-2 backdrop-blur-sm hover:bg-white/20 md:right-4"
+      >
+        <ChevronRight className="h-5 w-5 text-white" />
+      </button>
+
+      {/* Story card */}
+      <div
+        className="relative h-[85vh] max-h-[780px] w-full max-w-[440px] overflow-hidden rounded-2xl bg-black"
+        onMouseDown={() => setPaused(true)}
+        onMouseUp={() => setPaused(false)}
+        onTouchStart={() => setPaused(true)}
+        onTouchEnd={() => setPaused(false)}
+      >
+        {/* Progress bars */}
+        <div className="absolute left-0 right-0 top-0 z-30 flex gap-1 px-2 pt-2">
+          {story.items.map((_, i) => (
+            <div key={i} className="h-0.5 flex-1 overflow-hidden rounded-full bg-white/30">
+              <div
+                className="h-full rounded-full bg-white transition-all duration-100 ease-linear"
+                style={{
+                  width: i < itemIdx ? "100%" : i === itemIdx ? `${Math.min(progress, 100)}%` : "0%",
+                }}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Header */}
+        <div className="absolute left-0 right-0 top-0 z-20 flex items-center gap-3 px-3 pt-5">
+          <img src={story.user.avatar} alt="" className="h-9 w-9 rounded-full border-2 border-white/50 object-cover" />
+          <div className="flex-1">
+            <div className="flex items-center gap-1">
+              <span className="text-sm font-semibold text-white">{story.user.username}</span>
+              {story.user.verified && <BadgeCheck className="h-3.5 w-3.5 fill-blue-500 text-white" />}
+            </div>
+            <span className="text-[11px] text-white/60">{timeLabel}</span>
+          </div>
+        </div>
+
+        {/* Tap zones */}
+        <div className="absolute inset-0 z-10 flex">
+          <div className="w-1/3" onClick={goPrev} />
+          <div className="w-1/3" />
+          <div className="w-1/3" onClick={goNext} />
+        </div>
+
+        {/* Content */}
+        <StorySlide item={item} elements={item.elements} />
+
+        {/* Reply bar */}
+        <div className="absolute bottom-0 left-0 right-0 z-30 flex items-center gap-2 bg-gradient-to-t from-black/60 px-3 pb-4 pt-8">
+          <input
+            type="text"
+            placeholder="Reply to story..."
+            value={replyText}
+            onChange={(e) => setReplyText(e.target.value)}
+            className="flex-1 rounded-full border border-white/30 bg-white/10 px-4 py-2 text-sm text-white placeholder:text-white/50 outline-none backdrop-blur-sm focus:border-white/50"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button className="rounded-full bg-white/10 p-2 backdrop-blur-sm">
+            <Heart className="h-5 w-5 text-white" />
+          </button>
+          <button className="rounded-full bg-white/10 p-2 backdrop-blur-sm">
+            <Send className="h-5 w-5 text-white" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default StoryViewer;
