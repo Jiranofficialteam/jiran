@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Settings, Grid3X3, Bookmark, Film, BadgeCheck, MessageCircle } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFollow } from "@/hooks/useFollow";
