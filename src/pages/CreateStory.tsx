@@ -37,6 +37,7 @@ interface PlacedElement {
 
 const CreateStory = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [bgIdx, setBgIdx] = useState(0);
   const [activeTool, setActiveTool] = useState<StoryTool>("none");
   const [elements, setElements] = useState<PlacedElement[]>([]);
