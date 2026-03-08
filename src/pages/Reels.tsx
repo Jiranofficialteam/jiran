@@ -28,6 +28,7 @@ const Reels = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [muted, setMuted] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [commentPostId, setCommentPostId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
