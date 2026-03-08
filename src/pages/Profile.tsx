@@ -214,16 +214,33 @@ const Profile = () => {
 
         {/* Grid */}
         <div className="grid grid-cols-3 gap-0.5 pb-20 md:gap-1">
-          {posts.map((post) => (
-            <button key={post.id} className="relative aspect-square overflow-hidden group">
-              <img src={post.image_url || post.images?.[0] || "/placeholder.svg"} alt="" className="h-full w-full object-cover" loading="lazy" />
-              <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
-            </button>
-          ))}
-          {posts.length === 0 && (
-            <div className="col-span-3 py-16 text-center text-muted-foreground">
-              <p className="text-lg">No posts yet</p>
-            </div>
+          {activeTab === "saved" ? (
+            savedPosts.length > 0 ? (
+              savedPosts.map((post) => (
+                <button key={post.id} className="relative aspect-square overflow-hidden group">
+                  <img src={post.image_url || post.images?.[0] || "/placeholder.svg"} alt="" className="h-full w-full object-cover" loading="lazy" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
+                </button>
+              ))
+            ) : (
+              <div className="col-span-3 py-16 text-center text-muted-foreground">
+                <p className="text-lg">No saved posts</p>
+              </div>
+            )
+          ) : (
+            <>
+              {posts.filter((p) => activeTab === "reels" ? p.type === "reel" : true).map((post) => (
+                <button key={post.id} className="relative aspect-square overflow-hidden group">
+                  <img src={post.image_url || post.images?.[0] || "/placeholder.svg"} alt="" className="h-full w-full object-cover" loading="lazy" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
+                </button>
+              ))}
+              {posts.filter((p) => activeTab === "reels" ? p.type === "reel" : true).length === 0 && (
+                <div className="col-span-3 py-16 text-center text-muted-foreground">
+                  <p className="text-lg">{activeTab === "reels" ? "No reels yet" : "No posts yet"}</p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
