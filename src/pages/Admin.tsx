@@ -389,8 +389,8 @@ const CampaignsTab = () => {
           {c.target_audience && <p className="mt-2 text-[11px] text-muted-foreground">🎯 {c.target_audience}</p>}
           {c.status === "pending" && (
             <div className="mt-3 flex gap-2">
-              <button onClick={() => updateStatus(c.id, "approved")} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-primary py-2 text-xs font-semibold text-primary-foreground">
-                <Check className="h-3.5 w-3.5" /> Approve
+              <button onClick={() => updateStatus(c.id, "active")} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-primary py-2 text-xs font-semibold text-primary-foreground">
+                <Check className="h-3.5 w-3.5" /> Approve & Activate
               </button>
               <button onClick={() => updateStatus(c.id, "rejected")} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-destructive py-2 text-xs font-semibold text-destructive-foreground">
                 <X className="h-3.5 w-3.5" /> Reject
