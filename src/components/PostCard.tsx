@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, BadgeCheck } from "lucide-react";
-import { Post } from "@/data/mockData";
+import { useState, useRef } from "react";
+import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, BadgeCheck, Smile } from "lucide-react";
+import { Post, Comment, currentUser } from "@/data/mockData";
 import { Link } from "react-router-dom";
 
 interface PostCardProps {
@@ -12,6 +12,27 @@ const PostCard = ({ post }: PostCardProps) => {
   const [saved, setSaved] = useState(post.saved);
   const [likes, setLikes] = useState(post.likes);
   const [showHeart, setShowHeart] = useState(false);
+  const [comments, setComments] = useState<Comment[]>(post.comments);
+  const [showAllComments, setShowAllComments] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleAddComment = () => {
+    if (!commentText.trim()) return;
+    const newComment: Comment = {
+      id: `c-new-${Date.now()}`,
+      user: currentUser,
+      text: commentText.trim(),
+      timestamp: "now",
+      likes: 0,
+    };
+    setComments((prev) => [...prev, newComment]);
+    setCommentText("");
+  };
+
+  const focusComment = () => {
+    inputRef.current?.focus();
+  };
 
   const handleLike = () => {
     setLiked(!liked);
@@ -65,7 +86,7 @@ const PostCard = ({ post }: PostCardProps) => {
               className={`h-6 w-6 transition-colors ${liked ? "fill-primary text-primary animate-heart-pop" : "text-foreground"}`}
             />
           </button>
-          <button className="text-foreground transition-opacity hover:opacity-60">
+          <button onClick={focusComment} className="text-foreground transition-opacity hover:opacity-60">
             <MessageCircle className="h-6 w-6" />
           </button>
           <button className="text-foreground transition-opacity hover:opacity-60">
@@ -86,12 +107,71 @@ const PostCard = ({ post }: PostCardProps) => {
           </Link>{" "}
           {post.caption}
         </p>
-        {post.comments.length > 0 && (
-          <button className="mt-1 text-sm text-muted-foreground">
-            View all {post.comments.length} comments
+        {comments.length > 0 && !showAllComments && (
+          <button
+            onClick={() => setShowAllComments(true)}
+            className="mt-1 text-sm text-muted-foreground"
+          >
+            View all {comments.length} comments
           </button>
         )}
+
+        {/* Comments list */}
+        {showAllComments && (
+          <div className="mt-2 space-y-2">
+            {comments.map((comment) => (
+              <div key={comment.id} className="flex items-start gap-2">
+                <img
+                  src={comment.user.avatar}
+                  alt=""
+                  className="mt-0.5 h-6 w-6 rounded-full object-cover"
+                />
+                <div className="flex-1">
+                  <p className="text-sm">
+                    <Link to={`/profile/${comment.user.username}`} className="font-semibold">
+                      {comment.user.username}
+                    </Link>{" "}
+                    {comment.text}
+                  </p>
+                  <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
+                    <span>{comment.timestamp}</span>
+                    <button className="font-semibold">Like</button>
+                    <button className="font-semibold">Reply</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            <button
+              onClick={() => setShowAllComments(false)}
+              className="text-sm text-muted-foreground"
+            >
+              Hide comments
+            </button>
+          </div>
+        )}
+
         <p className="mt-1 text-[11px] uppercase text-muted-foreground">{post.timestamp} ago</p>
+
+        {/* Comment input */}
+        <div className="mt-2 flex items-center gap-2 border-t border-border pt-2">
+          <Smile className="h-5 w-5 text-muted-foreground" />
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Add a comment..."
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
+            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          />
+          <button
+            onClick={handleAddComment}
+            disabled={!commentText.trim()}
+            className="text-sm font-semibold text-primary disabled:opacity-40"
+          >
+            Post
+          </button>
+        </div>
       </div>
     </article>
   );
