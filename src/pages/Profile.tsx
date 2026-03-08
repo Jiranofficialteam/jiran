@@ -207,11 +207,11 @@ const Profile = () => {
         {/* Mobile stats */}
         <div className="mt-3 flex border-t border-b border-border py-3 md:hidden">
           {[
-            { label: "posts", value: postCount },
-            { label: "followers", value: followerCount.toLocaleString() },
-            { label: "following", value: followingCount },
+            { label: "posts", value: postCount, action: undefined },
+            { label: "followers", value: followerCount.toLocaleString(), action: () => setFollowListType("followers") },
+            { label: "following", value: followingCount, action: () => setFollowListType("following") },
           ].map((stat) => (
-            <button key={stat.label} className="flex-1 text-center">
+            <button key={stat.label} className="flex-1 text-center" onClick={stat.action}>
               <span className="block text-sm font-semibold">{stat.value}</span>
               <span className="text-xs text-muted-foreground">{stat.label}</span>
             </button>
