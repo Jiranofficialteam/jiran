@@ -216,6 +216,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
 
   return (
     <article className="animate-fade-in border-b border-border bg-background">
+      {isDB && <BoostPostModal postId={postId} open={boostOpen} onClose={() => setBoostOpen(false)} />}
       <div className="flex items-center justify-between px-3 py-2.5">
         <Link to={`/profile/${username}`} className="flex items-center gap-2.5">
           <div className="story-ring">

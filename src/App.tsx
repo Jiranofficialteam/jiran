@@ -36,6 +36,7 @@ const App = () => (
             <Route path="/create" element={<CreatePost />} />
             <Route path="/create-story" element={<CreateStory />} />
             <Route path="/reels" element={<Reels />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
