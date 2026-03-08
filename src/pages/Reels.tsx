@@ -227,7 +227,7 @@ const Reels = () => {
                 <span className="text-xs font-semibold text-white drop-shadow">{reel.like_count || ""}</span>
               </button>
 
-              <button className="flex flex-col items-center gap-1">
+              <button onClick={() => setCommentPostId(reel.id)} className="flex flex-col items-center gap-1">
                 <MessageCircle className="h-7 w-7 text-white drop-shadow-lg" />
                 <span className="text-xs font-semibold text-white drop-shadow">{reel.comment_count || ""}</span>
               </button>
