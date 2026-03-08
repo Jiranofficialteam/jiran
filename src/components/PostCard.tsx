@@ -86,7 +86,7 @@ const PostCard = ({ post }: PostCardProps) => {
               className={`h-6 w-6 transition-colors ${liked ? "fill-primary text-primary animate-heart-pop" : "text-foreground"}`}
             />
           </button>
-          <button className="text-foreground transition-opacity hover:opacity-60">
+          <button onClick={focusComment} className="text-foreground transition-opacity hover:opacity-60">
             <MessageCircle className="h-6 w-6" />
           </button>
           <button className="text-foreground transition-opacity hover:opacity-60">
