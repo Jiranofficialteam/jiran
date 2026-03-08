@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Heart, MessageCircle, Send, Bookmark, Music2, BadgeCheck, Volume2, VolumeX, ChevronLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import ReelComments from "@/components/ReelComments";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -27,6 +28,7 @@ const Reels = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [muted, setMuted] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [commentPostId, setCommentPostId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
@@ -225,7 +227,7 @@ const Reels = () => {
                 <span className="text-xs font-semibold text-white drop-shadow">{reel.like_count || ""}</span>
               </button>
 
-              <button className="flex flex-col items-center gap-1">
+              <button onClick={() => setCommentPostId(reel.id)} className="flex flex-col items-center gap-1">
                 <MessageCircle className="h-7 w-7 text-white drop-shadow-lg" />
                 <span className="text-xs font-semibold text-white drop-shadow">{reel.comment_count || ""}</span>
               </button>
@@ -264,6 +266,23 @@ const Reels = () => {
           </div>
         ))}
       </div>
+
+      {/* Comment modal */}
+      {commentPostId && (
+        <ReelComments
+          postId={commentPostId}
+          onClose={() => setCommentPostId(null)}
+          onCommentCountChange={(delta) => {
+            setReels((prev) =>
+              prev.map((r) =>
+                r.id === commentPostId
+                  ? { ...r, comment_count: r.comment_count + delta }
+                  : r
+              )
+            );
+          }}
+        />
+      )}
     </div>
   );
 };
