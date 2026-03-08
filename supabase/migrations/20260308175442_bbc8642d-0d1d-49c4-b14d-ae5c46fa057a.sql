@@ -1,0 +1,1 @@
+UPDATE public.profiles SET username = TRIM(username) WHERE username != TRIM(username);
