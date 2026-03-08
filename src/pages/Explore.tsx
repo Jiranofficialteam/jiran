@@ -167,7 +167,7 @@ const Explore = () => {
             {users.length > 0 && (
               <div className="space-y-2">
                 {users.map((u) => (
-                  <Link key={u.id} to={`/profile/${u.username}`} className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-secondary">
+                  <Link key={u.id} to={`/profile/${u.username.trim()}`} className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-secondary">
                     <img src={u.avatar_url || "/placeholder.svg"} alt="" className="h-11 w-11 rounded-full object-cover" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1">
