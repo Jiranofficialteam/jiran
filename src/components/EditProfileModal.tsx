@@ -19,6 +19,7 @@ interface Props {
 const EditProfileModal = ({ open, onClose, onSaved }: Props) => {
   const { user, profile } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
+  const coverRef = useRef<HTMLInputElement>(null);
 
   const [fullName, setFullName] = useState(profile?.full_name || "");
   const [username, setUsername] = useState(profile?.username || "");
@@ -27,6 +28,8 @@ const EditProfileModal = ({ open, onClose, onSaved }: Props) => {
   const [isPrivate, setIsPrivate] = useState(profile?.is_private || false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState(profile?.avatar_url || "");
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState(profile?.cover_url || "");
   const [saving, setSaving] = useState(false);
 
   if (!open || !user) return null;
