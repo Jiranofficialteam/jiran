@@ -184,8 +184,8 @@ const Profile = () => {
 
             <div className="mt-5 hidden gap-8 md:flex">
               <span><strong>{postCount}</strong> posts</span>
-              <button onClick={() => setFollowListType("followers")}><strong>{followerCount.toLocaleString()}</strong> followers</button>
-              <button onClick={() => setFollowListType("following")}><strong>{followingCount}</strong> following</button>
+              <button onClick={() => setFollowListType("followers")}><strong>{formatCount(followerCount)}</strong> followers</button>
+              <button onClick={() => setFollowListType("following")}><strong>{formatCount(followingCount)}</strong> following</button>
             </div>
 
             <div className="mt-4 hidden md:block">
