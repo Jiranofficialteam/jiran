@@ -287,8 +287,6 @@ const Profile = () => {
                   <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
                 </button>
               ))}
-                </button>
-              ))}
               {posts.filter((p) => activeTab === "reels" ? p.type === "reel" : true).length === 0 && (
                 <div className="col-span-3 py-16 text-center text-muted-foreground">
                   <p className="text-lg">{activeTab === "reels" ? "No reels yet" : "No posts yet"}</p>
