@@ -89,6 +89,14 @@ const Profile = () => {
       const { count: pc } = await db.from("posts").select("*", { count: "exact", head: true }).eq("user_id", profileResult.id);
       setPostCount(pc || 0);
 
+      // Fetch boosted post IDs
+      const { data: campaigns } = await db
+        .from("ad_campaigns")
+        .select("post_id, status")
+        .eq("user_id", profileResult.id)
+        .in("status", ["active", "approved", "pending", "completed"]);
+      setBoostedPostIds(new Set((campaigns || []).map((c: any) => c.post_id)));
+
       if (user && profileResult.id === user.id) {
         const { data: saves } = await db
           .from("saves")
