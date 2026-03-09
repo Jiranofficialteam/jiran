@@ -71,6 +71,21 @@ const Reels = () => {
     const likedSet = new Set((userLikes?.data || []).map((l: any) => l.post_id));
     const savedSet = new Set((userSaves?.data || []).map((s: any) => s.post_id));
 
+    // Fetch boost data from ad_campaigns
+    const { data: boostData } = await db
+      .from("ad_campaigns")
+      .select("post_id, boost_likes, boost_views")
+      .in("post_id", postIds)
+      .in("status", ["approved", "active"]);
+
+    const boostMap: Record<string, { likes: number; views: number }> = {};
+    (boostData || []).forEach((b: any) => {
+      boostMap[b.post_id] = {
+        likes: (boostMap[b.post_id]?.likes || 0) + b.boost_likes,
+        views: (boostMap[b.post_id]?.views || 0) + b.boost_views,
+      };
+    });
+
     const enriched: Reel[] = postsData.map((p: any) => ({
       id: p.id,
       video_url: p.video_url,
@@ -79,7 +94,7 @@ const Reels = () => {
       username: profileMap[p.user_id]?.username || "user",
       avatar_url: profileMap[p.user_id]?.avatar_url || "",
       verified: profileMap[p.user_id]?.verified || false,
-      like_count: likeCounts[p.id] || 0,
+      like_count: (likeCounts[p.id] || 0) + (boostMap[p.id]?.likes || 0),
       comment_count: commentCounts[p.id] || 0,
       is_liked: likedSet.has(p.id),
       is_saved: savedSet.has(p.id),

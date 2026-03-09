@@ -9,17 +9,20 @@ export function useFollow(targetUserId: string | null) {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [followerBoost, setFollowerBoost] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const fetchState = useCallback(async () => {
     if (!targetUserId) return;
 
-    const [followersRes, followingRes] = await Promise.all([
+    const [followersRes, followingRes, profileRes] = await Promise.all([
       db.from("follows").select("*", { count: "exact", head: true }).eq("following_id", targetUserId),
       db.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", targetUserId),
+      db.from("profiles").select("follower_boost").eq("id", targetUserId).single(),
     ]);
     setFollowerCount(followersRes.count || 0);
     setFollowingCount(followingRes.count || 0);
+    setFollowerBoost(profileRes.data?.follower_boost || 0);
 
     if (user && user.id !== targetUserId) {
       const { data } = await db
@@ -71,5 +74,5 @@ export function useFollow(targetUserId: string | null) {
     setLoading(false);
   }, [user, targetUserId, isFollowing, loading, fetchState]);
 
-  return { isFollowing, followerCount, followingCount, toggleFollow, loading };
+  return { isFollowing, followerCount: followerCount + followerBoost, followingCount, toggleFollow, loading };
 }

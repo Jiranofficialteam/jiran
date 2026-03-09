@@ -414,6 +414,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          follower_boost: number
           full_name: string
           id: string
           is_private: boolean
@@ -426,6 +427,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          follower_boost?: number
           full_name?: string
           id: string
           is_private?: boolean
@@ -438,6 +440,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          follower_boost?: number
           full_name?: string
           id?: string
           is_private?: boolean
