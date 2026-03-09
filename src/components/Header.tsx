@@ -12,6 +12,19 @@ const Header = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains("dark"));
+
+  const toggleTheme = useCallback(() => {
+    const html = document.documentElement;
+    if (darkMode) {
+      html.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    } else {
+      html.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    }
+    setDarkMode(!darkMode);
+  }, [darkMode]);
 
   useEffect(() => {
     if (!user) { setUnreadCount(0); setUnreadMessages(0); setIsAdmin(false); return; }
