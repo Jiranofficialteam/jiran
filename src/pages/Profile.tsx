@@ -248,6 +248,13 @@ const Profile = () => {
                 Edit profile
               </button>
               <button
+                onClick={() => setVisitorsOpen(true)}
+                className="rounded-xl bg-secondary p-2 text-foreground transition-all hover:bg-secondary/80 hover:shadow-md active:scale-[0.98]"
+                title="Profile Visitors"
+              >
+                <Eye className="h-5 w-5" />
+              </button>
+              <button
                 onClick={() => navigate("/settings")}
                 className="rounded-xl bg-secondary p-2 text-foreground transition-all hover:bg-secondary/80 hover:shadow-md active:scale-[0.98]"
               >
@@ -274,6 +281,34 @@ const Profile = () => {
                 <MessageCircle className="h-4 w-4" />
                 Message
               </button>
+              {/* More menu */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowMoreMenu(!showMoreMenu)}
+                  className="rounded-xl bg-secondary p-2 text-foreground transition-all hover:bg-secondary/80 active:scale-[0.98]"
+                >
+                  <MoreHorizontal className="h-5 w-5" />
+                </button>
+                {showMoreMenu && (
+                  <div className="absolute right-0 top-full mt-1 z-50 w-44 rounded-xl border border-border bg-card shadow-xl overflow-hidden animate-scale-in">
+                    <button
+                      onClick={() => { toggleBlock(); setShowMoreMenu(false); }}
+                      disabled={blockLoading}
+                      className="flex w-full items-center gap-2.5 px-4 py-3 text-sm font-medium text-foreground hover:bg-secondary transition-colors"
+                    >
+                      <Ban className="h-4 w-4" />
+                      {isBlocked ? "Unblock" : "Block"}
+                    </button>
+                    <button
+                      onClick={() => { setReportOpen(true); setShowMoreMenu(false); }}
+                      className="flex w-full items-center gap-2.5 px-4 py-3 text-sm font-medium text-destructive hover:bg-secondary transition-colors"
+                    >
+                      <Flag className="h-4 w-4" />
+                      Report
+                    </button>
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>
