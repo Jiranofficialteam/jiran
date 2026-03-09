@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { formatCount } from "@/lib/utils";
-import { Settings as SettingsIcon, Grid3X3, Bookmark, Film, BadgeCheck, MessageCircle, BarChart2, Rocket } from "lucide-react";
+import { Settings as SettingsIcon, Grid3X3, Bookmark, Film, BadgeCheck, MessageCircle, BarChart2, Rocket, Heart, Eye } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,6 +30,10 @@ interface PostData {
   image_url: string;
   images: string[];
   type: string;
+  likesCount?: number;
+  commentsCount?: number;
+  boostLikes?: number;
+  boostViews?: number;
 }
 
 const Profile = () => {
@@ -85,6 +89,36 @@ const Profile = () => {
         .order("created_at", { ascending: false })
         .limit(30);
       setPosts(postsData || []);
+
+      // Fetch like & comment counts per post + boost data
+      if (postsData && postsData.length > 0) {
+        const postIds = postsData.map((p: any) => p.id);
+        const [{ data: likeCounts }, { data: commentCounts }, { data: boostData }] = await Promise.all([
+          db.from("likes").select("post_id").in("post_id", postIds),
+          db.from("comments").select("post_id").in("post_id", postIds),
+          db.from("ad_campaigns").select("post_id, boost_likes, boost_views").eq("user_id", profileResult.id),
+        ]);
+
+        const likeMap: Record<string, number> = {};
+        const commentMap: Record<string, number> = {};
+        const boostLikesMap: Record<string, number> = {};
+        const boostViewsMap: Record<string, number> = {};
+
+        (likeCounts || []).forEach((l: any) => { likeMap[l.post_id] = (likeMap[l.post_id] || 0) + 1; });
+        (commentCounts || []).forEach((c: any) => { commentMap[c.post_id] = (commentMap[c.post_id] || 0) + 1; });
+        (boostData || []).forEach((b: any) => {
+          boostLikesMap[b.post_id] = (boostLikesMap[b.post_id] || 0) + (b.boost_likes || 0);
+          boostViewsMap[b.post_id] = (boostViewsMap[b.post_id] || 0) + (b.boost_views || 0);
+        });
+
+        setPosts(postsData.map((p: any) => ({
+          ...p,
+          likesCount: (likeMap[p.id] || 0) + (boostLikesMap[p.id] || 0),
+          commentsCount: commentMap[p.id] || 0,
+          boostLikes: boostLikesMap[p.id] || 0,
+          boostViews: boostViewsMap[p.id] || 0,
+        })));
+      }
 
       const { count: pc } = await db.from("posts").select("*", { count: "exact", head: true }).eq("user_id", profileResult.id);
       setPostCount(pc || 0);
@@ -284,7 +318,16 @@ const Profile = () => {
                       <span className="text-[10px] font-bold text-white">Boosted</span>
                     </div>
                   )}
-                  <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
+                  <div className="absolute inset-0 flex items-center justify-center gap-5 bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100">
+                    <span className="flex items-center gap-1 text-white font-bold text-sm">
+                      <Heart className="h-5 w-5 fill-white text-white" />
+                      {formatCount(post.likesCount || 0)}
+                    </span>
+                    <span className="flex items-center gap-1 text-white font-bold text-sm">
+                      <MessageCircle className="h-5 w-5 fill-white text-white" />
+                      {formatCount(post.commentsCount || 0)}
+                    </span>
+                  </div>
                 </button>
               ))}
               {posts.filter((p) => activeTab === "reels" ? p.type === "reel" : true).length === 0 && (

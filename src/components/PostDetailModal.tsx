@@ -52,14 +52,16 @@ const PostDetailModal = ({ open, onClose, postId, profileData }: Props) => {
   useEffect(() => {
     if (!open || !postId) return;
     const fetchAll = async () => {
-      const [{ data: p }, { data: c }, { count }] = await Promise.all([
+      const [{ data: p }, { data: c }, { count }, { data: boostData }] = await Promise.all([
         db.from("posts").select("*").eq("id", postId).single(),
         db.from("comments").select("id, text, created_at, profiles!comments_user_id_fkey (username, avatar_url, verified)").eq("post_id", postId).order("created_at", { ascending: true }).limit(50),
         db.from("likes").select("*", { count: "exact", head: true }).eq("post_id", postId),
+        db.from("ad_campaigns").select("boost_likes, boost_views").eq("post_id", postId),
       ]);
       if (p) setPost(p);
       setComments(c || []);
-      setLikesCount(count || 0);
+      const boostLikes = (boostData || []).reduce((s: number, b: any) => s + (b.boost_likes || 0), 0);
+      setLikesCount((count || 0) + boostLikes);
 
       if (user) {
         const [{ data: likeD }, { data: saveD }] = await Promise.all([
