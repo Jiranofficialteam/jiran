@@ -465,11 +465,11 @@ const ChatView = ({ conversationId, otherUser, onBack }: ChatViewProps) => {
                           {msgReactions.map(([emoji, count]) => (
                             <button
                               key={emoji}
-                              onClick={() => handleReact(msg.id, emoji)}
+                              onClick={(e) => { e.stopPropagation(); handleReact(msg.id, emoji as string); }}
                               className="flex items-center gap-0.5 rounded-full border border-border bg-card px-1.5 py-0.5 text-xs shadow-sm hover:bg-secondary transition-colors"
                             >
-                              <span>{emoji}</span>
-                              {count > 1 && <span className="text-muted-foreground font-medium">{count}</span>}
+                              <span>{emoji as string}</span>
+                              {(count as number) > 1 && <span className="text-muted-foreground font-medium">{count as number}</span>}
                             </button>
                           ))}
                         </div>
