@@ -9,6 +9,7 @@ export function useFollow(targetUserId: string | null) {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [followerBoost, setFollowerBoost] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const fetchState = useCallback(async () => {
