@@ -5,12 +5,15 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFollow } from "@/hooks/useFollow";
+import { useBlock } from "@/hooks/useBlock";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import EditProfileModal from "@/components/EditProfileModal";
 import FollowListModal from "@/components/FollowListModal";
 import PostDetailModal from "@/components/PostDetailModal";
 import ProfileAnalytics from "@/components/ProfileAnalytics";
+import ReportModal from "@/components/ReportModal";
+import ProfileVisitors from "@/components/ProfileVisitors";
 
 const db = supabase as any;
 
