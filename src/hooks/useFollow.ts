@@ -15,12 +15,14 @@ export function useFollow(targetUserId: string | null) {
   const fetchState = useCallback(async () => {
     if (!targetUserId) return;
 
-    const [followersRes, followingRes] = await Promise.all([
+    const [followersRes, followingRes, profileRes] = await Promise.all([
       db.from("follows").select("*", { count: "exact", head: true }).eq("following_id", targetUserId),
       db.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", targetUserId),
+      db.from("profiles").select("follower_boost").eq("id", targetUserId).single(),
     ]);
     setFollowerCount(followersRes.count || 0);
     setFollowingCount(followingRes.count || 0);
+    setFollowerBoost(profileRes.data?.follower_boost || 0);
 
     if (user && user.id !== targetUserId) {
       const { data } = await db
