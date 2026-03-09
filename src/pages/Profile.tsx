@@ -318,7 +318,16 @@ const Profile = () => {
                       <span className="text-[10px] font-bold text-white">Boosted</span>
                     </div>
                   )}
-                  <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
+                  <div className="absolute inset-0 flex items-center justify-center gap-5 bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100">
+                    <span className="flex items-center gap-1 text-white font-bold text-sm">
+                      <Heart className="h-5 w-5 fill-white text-white" />
+                      {formatCount(post.likesCount || 0)}
+                    </span>
+                    <span className="flex items-center gap-1 text-white font-bold text-sm">
+                      <MessageCircle className="h-5 w-5 fill-white text-white" />
+                      {formatCount(post.commentsCount || 0)}
+                    </span>
+                  </div>
                 </button>
               ))}
               {posts.filter((p) => activeTab === "reels" ? p.type === "reel" : true).length === 0 && (
