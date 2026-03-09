@@ -16,6 +16,9 @@ interface Stats {
   totalComments: number;
   totalPosts: number;
   avgLikesPerPost: number;
+  boostLikes: number;
+  boostViews: number;
+  activeCampaigns: number;
 }
 
 const ProfileAnalytics = ({ profileId }: ProfileAnalyticsProps) => {
