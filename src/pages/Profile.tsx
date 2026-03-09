@@ -61,6 +61,7 @@ const Profile = () => {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   const { isFollowing, followerCount, followingCount, toggleFollow, loading: followLoading } = useFollow(profileData?.id ?? null);
+  const { isBlocked, toggleBlock, loading: blockLoading } = useBlock(profileData?.id ?? null);
 
   const isOwnProfile = !username || (authProfile && authProfile.username?.trim() === username) || (!username && !!user);
 
