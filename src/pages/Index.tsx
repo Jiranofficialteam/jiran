@@ -5,6 +5,7 @@ import PostCard from "@/components/PostCard";
 import SuggestedUsers from "@/components/SuggestedUsers";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFeed } from "@/hooks/useFeed";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { posts as mockPosts } from "@/data/mockData";
 import { Link } from "react-router-dom";
 import { Camera } from "lucide-react";
@@ -12,6 +13,7 @@ import { Camera } from "lucide-react";
 const Index = () => {
   const { user, loading } = useAuth();
   const { data: feedPosts, isLoading: feedLoading } = useFeed();
+  useOnlineStatus(); // Update last_seen while on home page
 
   return (
     <div className="min-h-screen bg-background">
