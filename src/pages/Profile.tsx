@@ -185,48 +185,48 @@ const Profile = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      {/* Cover Photo / Gradient banner */}
-      <div className="relative h-36 md:h-52 w-full overflow-hidden">
-        {profileData.cover_url ? (
-          <img src={profileData.cover_url} alt="Cover" className="h-full w-full object-cover" />
-        ) : (
-          <div className="h-full w-full gradient-brand opacity-80" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
-        {isOwnProfile && (
-          <button
-            onClick={() => setEditOpen(true)}
-            className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-xl bg-background/80 backdrop-blur-sm px-3 py-1.5 text-xs font-semibold text-foreground border border-border hover:bg-background transition-all active:scale-95"
-          >
-            <Camera className="h-3.5 w-3.5" />
-            {profileData.cover_url ? "Change Cover" : "Add Cover"}
-          </button>
-        )}
-      </div>
+      {/* Cover Photo — Facebook style */}
+      <div className="mx-auto max-w-[935px]">
+        <div className="relative h-44 md:h-64 w-full overflow-hidden rounded-b-2xl md:rounded-b-3xl">
+          {profileData.cover_url ? (
+            <img src={profileData.cover_url} alt="Cover" className="h-full w-full object-cover" />
+          ) : (
+            <div className="h-full w-full gradient-brand opacity-80" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+          {isOwnProfile && (
+            <button
+              onClick={() => setEditOpen(true)}
+              className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-xl bg-background/80 backdrop-blur-sm px-3 py-1.5 text-xs font-semibold text-foreground border border-border hover:bg-background transition-all active:scale-95"
+            >
+              <Camera className="h-3.5 w-3.5" />
+              {profileData.cover_url ? "Change Cover" : "Add Cover"}
+            </button>
+          )}
+        </div>
 
-      <div className="mx-auto max-w-[935px] px-4">
-        {/* Profile header — overlapping the banner */}
-        <div className="flex items-end gap-5 md:gap-10 -mt-12 md:-mt-16 md:px-8">
-          <div className="story-ring flex-shrink-0 shadow-xl">
-            <div className="rounded-full bg-background p-[3px]">
+        {/* Profile avatar overlapping cover */}
+        <div className="relative px-4 md:px-8">
+          <div className="flex items-end gap-5 md:gap-10 -mt-16 md:-mt-20">
+            <div className="flex-shrink-0 shadow-xl rounded-full ring-4 ring-background">
               <img
                 src={profileData.avatar_url || "/placeholder.svg"}
                 alt={profileData.username}
-                className="h-24 w-24 rounded-full object-cover md:h-36 md:w-36 ring-4 ring-background"
+                className="h-28 w-28 rounded-full object-cover md:h-40 md:w-40 border-4 border-background"
               />
             </div>
-          </div>
 
-          <div className="flex-1 pb-1">
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight">{profileData.username}</h1>
-              {profileData.verified && (
-                <BadgeCheck className="h-5 w-5 fill-primary text-primary-foreground animate-scale-in" />
+            <div className="flex-1 pb-2">
+              <div className="flex flex-wrap items-center gap-3">
+                <h1 className="text-xl md:text-2xl font-bold tracking-tight">{profileData.username}</h1>
+                {profileData.verified && (
+                  <BadgeCheck className="h-5 w-5 fill-primary text-primary-foreground animate-scale-in" />
+                )}
+              </div>
+              {profileData.full_name && (
+                <p className="text-sm text-muted-foreground font-medium mt-0.5">{profileData.full_name}</p>
               )}
             </div>
-            {profileData.full_name && (
-              <p className="text-sm text-muted-foreground font-medium mt-0.5">{profileData.full_name}</p>
-            )}
           </div>
         </div>
 
