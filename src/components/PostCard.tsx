@@ -245,6 +245,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
     <article className="animate-fade-in border-b border-border bg-background">
       {isDB && <BoostPostModal postId={postId} open={boostOpen} onClose={() => setBoostOpen(false)} />}
       {isOwnPost && <EditPostModal open={editOpen} onClose={() => setEditOpen(false)} postId={postId} initialCaption={currentCaption} initialLocation={currentLocation} onUpdated={(c, l) => { setCurrentCaption(c); setCurrentLocation(l); }} />}
+      {isDB && <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} postId={postId} caption={currentCaption} />}
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setConfirmDelete(false)}>
           <div className="mx-4 w-full max-w-xs rounded-2xl bg-card p-5 text-center shadow-xl" onClick={(e) => e.stopPropagation()}>
