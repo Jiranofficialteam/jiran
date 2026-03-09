@@ -41,6 +41,13 @@ const EditProfileModal = ({ open, onClose, onSaved }: Props) => {
     setAvatarPreview(URL.createObjectURL(file));
   };
 
+  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCoverFile(file);
+    setCoverPreview(URL.createObjectURL(file));
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
