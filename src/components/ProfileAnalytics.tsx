@@ -35,10 +35,12 @@ const ProfileAnalytics = ({ profileId }: ProfileAnalyticsProps) => {
           { count: totalVisits },
           { count: visitsThisWeek },
           { data: posts },
+          { data: campaigns },
         ] = await Promise.all([
           db.from("profile_visits").select("*", { count: "exact", head: true }).eq("profile_id", profileId),
           db.from("profile_visits").select("*", { count: "exact", head: true }).eq("profile_id", profileId).gte("visited_at", weekAgo),
           db.from("posts").select("id").eq("user_id", profileId),
+          db.from("ad_campaigns").select("boost_likes, boost_views, status").eq("user_id", profileId),
         ]);
 
         let totalLikes = 0;
@@ -54,13 +56,20 @@ const ProfileAnalytics = ({ profileId }: ProfileAnalyticsProps) => {
           totalComments = cc || 0;
         }
 
+        const boostLikes = (campaigns || []).reduce((s: number, c: any) => s + (c.boost_likes || 0), 0);
+        const boostViews = (campaigns || []).reduce((s: number, c: any) => s + (c.boost_views || 0), 0);
+        const activeCampaigns = (campaigns || []).filter((c: any) => c.status === "active" || c.status === "approved").length;
+
         setStats({
-          totalVisits: totalVisits || 0,
+          totalVisits: (totalVisits || 0) + boostViews,
           visitsThisWeek: visitsThisWeek || 0,
-          totalLikes,
+          totalLikes: totalLikes + boostLikes,
           totalComments,
           totalPosts: posts?.length || 0,
-          avgLikesPerPost: posts?.length ? Math.round(totalLikes / posts.length) : 0,
+          avgLikesPerPost: posts?.length ? Math.round((totalLikes + boostLikes) / posts.length) : 0,
+          boostLikes,
+          boostViews,
+          activeCampaigns,
         });
       } catch (e) {
         console.error(e);
