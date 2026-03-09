@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatCount } from "@/lib/utils";
 import { Settings, Grid3X3, Bookmark, Film, BadgeCheck, MessageCircle } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
