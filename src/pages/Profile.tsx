@@ -272,7 +272,7 @@ const Profile = () => {
         </div>
 
         {/* Bio card */}
-        <div className="mt-4 md:px-8">
+        <div className="mt-4 px-4 md:px-8">
           <div className="rounded-2xl border border-border bg-card/50 p-4 space-y-2">
             {profileData.bio && (
               <p className="text-sm whitespace-pre-line leading-relaxed">{profileData.bio}</p>
