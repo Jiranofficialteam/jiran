@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { formatCount } from "@/lib/utils";
-import { Settings as SettingsIcon, Grid3X3, Bookmark, Film, BadgeCheck, MessageCircle, BarChart2, Rocket, Heart, Eye } from "lucide-react";
+import { Settings as SettingsIcon, Grid3X3, Bookmark, Film, BadgeCheck, MessageCircle, BarChart2, Rocket, Heart, Eye, LinkIcon, MapPin, Calendar, Sparkles } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +23,7 @@ interface ProfileData {
   website: string;
   is_private: boolean;
   verified: boolean;
+  created_at?: string;
 }
 
 interface PostData {
@@ -177,106 +178,140 @@ const Profile = () => {
     );
   }
 
+  const joinDate = profileData.created_at ? new Date(profileData.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : null;
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="mx-auto max-w-[935px] px-4 pt-4 md:pt-8">
-        {/* Profile header */}
-        <div className="flex items-start gap-6 md:gap-20 md:px-12">
-          <div className="story-ring flex-shrink-0">
+
+      {/* Gradient banner */}
+      <div className="h-24 md:h-32 w-full gradient-brand opacity-80" />
+
+      <div className="mx-auto max-w-[935px] px-4">
+        {/* Profile header — overlapping the banner */}
+        <div className="flex items-end gap-5 md:gap-10 -mt-12 md:-mt-16 md:px-8">
+          <div className="story-ring flex-shrink-0 shadow-xl">
             <div className="rounded-full bg-background p-[3px]">
-              <img src={profileData.avatar_url || "/placeholder.svg"} alt="" className="h-20 w-20 rounded-full object-cover md:h-36 md:w-36" />
+              <img
+                src={profileData.avatar_url || "/placeholder.svg"}
+                alt={profileData.username}
+                className="h-24 w-24 rounded-full object-cover md:h-36 md:w-36 ring-4 ring-background"
+              />
             </div>
           </div>
 
-          <div className="flex-1">
+          <div className="flex-1 pb-1">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-xl font-normal">{profileData.username}</h1>
-              {profileData.verified && <BadgeCheck className="h-5 w-5 fill-primary text-primary-foreground" />}
-              {isOwnProfile ? (
-                <>
-                  <button
-                    onClick={() => setEditOpen(true)}
-                    className="rounded-lg bg-secondary px-5 py-1.5 text-sm font-semibold transition-colors hover:bg-secondary/80"
-                  >
-                    Edit profile
-                  </button>
-                  <button onClick={() => navigate("/settings")} className="text-foreground">
-                    <SettingsIcon className="h-6 w-6" />
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={toggleFollow}
-                    disabled={followLoading}
-                    className={`rounded-lg px-5 py-1.5 text-sm font-semibold transition-colors ${
-                      isFollowing
-                        ? "bg-secondary text-foreground hover:bg-secondary/80"
-                        : "bg-primary text-primary-foreground hover:bg-primary/90"
-                    }`}
-                  >
-                    {isFollowing ? "Following" : "Follow"}
-                  </button>
-                  <button
-                    onClick={() => navigate("/messages", { state: { startChatWith: profileData } })}
-                    className="rounded-lg bg-secondary px-4 py-1.5 text-sm font-semibold transition-colors hover:bg-secondary/80 flex items-center gap-1.5"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    Message
-                  </button>
-                </>
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight">{profileData.username}</h1>
+              {profileData.verified && (
+                <BadgeCheck className="h-5 w-5 fill-primary text-primary-foreground animate-scale-in" />
               )}
             </div>
+            {profileData.full_name && (
+              <p className="text-sm text-muted-foreground font-medium mt-0.5">{profileData.full_name}</p>
+            )}
+          </div>
+        </div>
 
-            <div className="mt-5 hidden gap-8 md:flex">
-              <span><strong>{postCount}</strong> posts</span>
-              <button onClick={() => setFollowListType("followers")}><strong>{formatCount(followerCount)}</strong> followers</button>
-              <button onClick={() => setFollowListType("following")}><strong>{formatCount(followingCount)}</strong> following</button>
-            </div>
+        {/* Action buttons */}
+        <div className="flex items-center gap-2 mt-4 md:px-8">
+          {isOwnProfile ? (
+            <>
+              <button
+                onClick={() => setEditOpen(true)}
+                className="flex-1 md:flex-none rounded-xl bg-secondary px-6 py-2 text-sm font-semibold transition-all hover:bg-secondary/80 hover:shadow-md active:scale-[0.98]"
+              >
+                Edit profile
+              </button>
+              <button
+                onClick={() => navigate("/settings")}
+                className="rounded-xl bg-secondary p-2 text-foreground transition-all hover:bg-secondary/80 hover:shadow-md active:scale-[0.98]"
+              >
+                <SettingsIcon className="h-5 w-5" />
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={toggleFollow}
+                disabled={followLoading}
+                className={`flex-1 md:flex-none rounded-xl px-6 py-2 text-sm font-semibold transition-all active:scale-[0.98] ${
+                  isFollowing
+                    ? "bg-secondary text-foreground hover:bg-secondary/80"
+                    : "gradient-brand text-primary-foreground shadow-lg hover:shadow-xl hover:brightness-110"
+                }`}
+              >
+                {isFollowing ? "Following" : "Follow"}
+              </button>
+              <button
+                onClick={() => navigate("/messages", { state: { startChatWith: profileData } })}
+                className="flex-1 md:flex-none rounded-xl bg-secondary px-5 py-2 text-sm font-semibold transition-all hover:bg-secondary/80 hover:shadow-md active:scale-[0.98] flex items-center justify-center gap-1.5"
+              >
+                <MessageCircle className="h-4 w-4" />
+                Message
+              </button>
+            </>
+          )}
+        </div>
 
-            <div className="mt-4 hidden md:block">
-              <p className="text-sm font-semibold">{profileData.full_name}</p>
-              <p className="text-sm whitespace-pre-line">{profileData.bio}</p>
+        {/* Bio card */}
+        <div className="mt-4 md:px-8">
+          <div className="rounded-2xl border border-border bg-card/50 p-4 space-y-2">
+            {profileData.bio && (
+              <p className="text-sm whitespace-pre-line leading-relaxed">{profileData.bio}</p>
+            )}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
               {profileData.website && (
-                <a href={profileData.website} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-primary hover:underline">
-                  {profileData.website}
+                <a
+                  href={profileData.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-primary font-medium hover:underline"
+                >
+                  <LinkIcon className="h-3 w-3" />
+                  {profileData.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
                 </a>
               )}
+              {joinDate && (
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  Joined {joinDate}
+                </span>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Mobile bio */}
-        <div className="mt-3 md:hidden">
-          <p className="text-sm font-semibold">{profileData.full_name}</p>
-          <p className="text-sm whitespace-pre-line">{profileData.bio}</p>
-        </div>
-
-        {/* Mobile stats */}
-        <div className="mt-3 flex border-t border-b border-border py-3 md:hidden">
+        {/* Stats cards */}
+        <div className="mt-4 grid grid-cols-3 gap-2 md:px-8">
           {[
-            { label: "posts", value: postCount, action: undefined },
-            { label: "followers", value: formatCount(followerCount), action: () => setFollowListType("followers") },
-            { label: "following", value: formatCount(followingCount), action: () => setFollowListType("following") },
+            { label: "Posts", value: postCount, action: undefined, gradient: false },
+            { label: "Followers", value: formatCount(followerCount), action: () => setFollowListType("followers"), gradient: true },
+            { label: "Following", value: formatCount(followingCount), action: () => setFollowListType("following"), gradient: false },
           ].map((stat) => (
-            <button key={stat.label} className="flex-1 text-center" onClick={stat.action}>
-              <span className="block text-sm font-semibold">{stat.value}</span>
-              <span className="text-xs text-muted-foreground">{stat.label}</span>
+            <button
+              key={stat.label}
+              className={`rounded-2xl border border-border p-3 text-center transition-all hover:shadow-md active:scale-[0.98] ${
+                stat.gradient ? "gradient-subtle" : "bg-card/50"
+              }`}
+              onClick={stat.action}
+            >
+              <span className="block text-lg md:text-xl font-bold">{stat.value}</span>
+              <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">{stat.label}</span>
             </button>
           ))}
         </div>
 
         {/* Tabs */}
-        <div className="mt-4 flex border-t border-border md:mt-8">
+        <div className="mt-6 flex rounded-2xl border border-border bg-card/50 p-1 md:mx-8">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex flex-1 items-center justify-center gap-1.5 py-3 text-xs font-semibold uppercase tracking-wider transition-colors md:flex-none md:px-8 ${
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-semibold uppercase tracking-wider transition-all ${
                 activeTab === tab.id
-                  ? "border-t border-foreground text-foreground -mt-px"
-                  : "text-muted-foreground"
+                  ? "bg-foreground text-background shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <tab.icon className="h-3.5 w-3.5" />
@@ -286,44 +321,46 @@ const Profile = () => {
         </div>
 
         {/* Grid / Insights */}
-        <div className="grid grid-cols-3 gap-0.5 pb-20 md:gap-1">
+        <div className="grid grid-cols-3 gap-1 pb-20 mt-4 md:mx-8 md:gap-1.5">
           {activeTab === "insights" && isOwnProfile ? (
             <ProfileAnalytics profileId={profileData.id} />
           ) : activeTab === "saved" ? (
             savedPosts.length > 0 ? (
               savedPosts.map((post) => (
-                <button key={post.id} onClick={() => setSelectedPostId(post.id)} className="relative aspect-square overflow-hidden group">
-                  <img src={post.image_url || post.images?.[0] || "/placeholder.svg"} alt="" className="h-full w-full object-cover" loading="lazy" />
-                  <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
+                <button key={post.id} onClick={() => setSelectedPostId(post.id)} className="relative aspect-square overflow-hidden rounded-xl group">
+                  <img src={post.image_url || post.images?.[0] || "/placeholder.svg"} alt="" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100 rounded-xl" />
                 </button>
               ))
             ) : (
               <div className="col-span-3 py-16 text-center text-muted-foreground">
-                <p className="text-lg">No saved posts</p>
+                <Bookmark className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                <p className="text-lg font-medium">No saved posts</p>
+                <p className="text-sm mt-1">Posts you save will appear here</p>
               </div>
             )
           ) : (
             <>
               {posts.filter((p) => activeTab === "reels" ? p.type === "reel" : true).map((post) => (
-                <button key={post.id} onClick={() => setSelectedPostId(post.id)} className="relative aspect-square overflow-hidden group">
-                  <img src={post.image_url || post.images?.[0] || "/placeholder.svg"} alt="" className="h-full w-full object-cover" loading="lazy" />
+                <button key={post.id} onClick={() => setSelectedPostId(post.id)} className="relative aspect-square overflow-hidden rounded-xl group">
+                  <img src={post.image_url || post.images?.[0] || "/placeholder.svg"} alt="" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
                   {(post.type === "video" || post.type === "reel") && (
-                    <div className="absolute top-1.5 right-1.5">
-                      <Film className="h-4 w-4 text-white drop-shadow" />
+                    <div className="absolute top-2 right-2">
+                      <Film className="h-4 w-4 text-white drop-shadow-lg" />
                     </div>
                   )}
                   {boostedPostIds.has(post.id) && (
-                    <div className="absolute top-1.5 left-1.5 flex items-center gap-0.5 rounded-full bg-amber-500/90 px-1.5 py-0.5">
-                      <Rocket className="h-3 w-3 text-white" />
+                    <div className="absolute top-2 left-2 flex items-center gap-0.5 rounded-full gradient-brand px-2 py-0.5 shadow-lg">
+                      <Sparkles className="h-3 w-3 text-white" />
                       <span className="text-[10px] font-bold text-white">Boosted</span>
                     </div>
                   )}
-                  <div className="absolute inset-0 flex items-center justify-center gap-5 bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100">
-                    <span className="flex items-center gap-1 text-white font-bold text-sm">
+                  <div className="absolute inset-0 flex items-center justify-center gap-5 bg-foreground/40 opacity-0 transition-all duration-200 group-hover:opacity-100 rounded-xl backdrop-blur-[2px]">
+                    <span className="flex items-center gap-1.5 text-white font-bold text-sm drop-shadow-lg">
                       <Heart className="h-5 w-5 fill-white text-white" />
                       {formatCount(post.likesCount || 0)}
                     </span>
-                    <span className="flex items-center gap-1 text-white font-bold text-sm">
+                    <span className="flex items-center gap-1.5 text-white font-bold text-sm drop-shadow-lg">
                       <MessageCircle className="h-5 w-5 fill-white text-white" />
                       {formatCount(post.commentsCount || 0)}
                     </span>
@@ -332,7 +369,9 @@ const Profile = () => {
               ))}
               {posts.filter((p) => activeTab === "reels" ? p.type === "reel" : true).length === 0 && (
                 <div className="col-span-3 py-16 text-center text-muted-foreground">
-                  <p className="text-lg">{activeTab === "reels" ? "No reels yet" : "No posts yet"}</p>
+                  <Grid3X3 className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                  <p className="text-lg font-medium">{activeTab === "reels" ? "No reels yet" : "No posts yet"}</p>
+                  <p className="text-sm mt-1">{isOwnProfile ? "Share your first moment!" : "Nothing to see here yet"}</p>
                 </div>
               )}
             </>
