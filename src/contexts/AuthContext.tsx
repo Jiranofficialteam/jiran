@@ -7,6 +7,7 @@ export interface Profile {
   username: string;
   full_name: string;
   avatar_url: string;
+  cover_url: string;
   bio: string;
   website: string;
   is_private: boolean;

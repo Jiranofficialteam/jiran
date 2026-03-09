@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { X, Camera, Loader2, Lock } from "lucide-react";
+import { X, Camera, Loader2, Lock, ImagePlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, Profile } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
@@ -19,6 +19,7 @@ interface Props {
 const EditProfileModal = ({ open, onClose, onSaved }: Props) => {
   const { user, profile } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
+  const coverRef = useRef<HTMLInputElement>(null);
 
   const [fullName, setFullName] = useState(profile?.full_name || "");
   const [username, setUsername] = useState(profile?.username || "");
@@ -27,6 +28,8 @@ const EditProfileModal = ({ open, onClose, onSaved }: Props) => {
   const [isPrivate, setIsPrivate] = useState(profile?.is_private || false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState(profile?.avatar_url || "");
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState(profile?.cover_url || "");
   const [saving, setSaving] = useState(false);
 
   if (!open || !user) return null;
@@ -38,10 +41,18 @@ const EditProfileModal = ({ open, onClose, onSaved }: Props) => {
     setAvatarPreview(URL.createObjectURL(file));
   };
 
+  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCoverFile(file);
+    setCoverPreview(URL.createObjectURL(file));
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
       let avatarUrl = profile?.avatar_url || "";
+      let coverUrl = profile?.cover_url || "";
 
       if (avatarFile) {
         const ext = avatarFile.name.split(".").pop();
@@ -52,12 +63,22 @@ const EditProfileModal = ({ open, onClose, onSaved }: Props) => {
         avatarUrl = data.publicUrl;
       }
 
+      if (coverFile) {
+        const ext = coverFile.name.split(".").pop();
+        const path = `${user.id}/cover_${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("media").upload(path, coverFile, { upsert: true });
+        if (upErr) throw upErr;
+        const { data } = supabase.storage.from("media").getPublicUrl(path);
+        coverUrl = data.publicUrl;
+      }
+
       const { error } = await db.from("profiles").update({
         full_name: fullName,
         username,
         bio,
         website,
         avatar_url: avatarUrl,
+        cover_url: coverUrl,
         is_private: isPrivate,
       }).eq("id", user.id);
 
@@ -81,6 +102,22 @@ const EditProfileModal = ({ open, onClose, onSaved }: Props) => {
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
             <X className="h-5 w-5" />
           </button>
+        </div>
+
+        {/* Cover Photo */}
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Cover Photo</label>
+          <button onClick={() => coverRef.current?.click()} className="relative w-full h-28 rounded-xl overflow-hidden border border-border group">
+            {coverPreview ? (
+              <img src={coverPreview} alt="Cover" className="h-full w-full object-cover" />
+            ) : (
+              <div className="h-full w-full gradient-brand opacity-60" />
+            )}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+              <ImagePlus className="h-6 w-6 text-white" />
+            </div>
+          </button>
+          <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={handleCoverChange} />
         </div>
 
         {/* Avatar */}
