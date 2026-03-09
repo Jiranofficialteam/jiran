@@ -1,7 +1,7 @@
-import { Heart, MessageCircle, PlusSquare, LogIn, LogOut, Shield, Compass } from "lucide-react";
+import { Heart, MessageCircle, PlusSquare, LogIn, LogOut, Shield, Compass, Moon, Sun } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const db = supabase as any;
@@ -12,6 +12,19 @@ const Header = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains("dark"));
+
+  const toggleTheme = useCallback(() => {
+    const html = document.documentElement;
+    if (darkMode) {
+      html.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    } else {
+      html.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    }
+    setDarkMode(!darkMode);
+  }, [darkMode]);
 
   useEffect(() => {
     if (!user) { setUnreadCount(0); setUnreadMessages(0); setIsAdmin(false); return; }
@@ -82,8 +95,15 @@ const Header = () => {
                 <MessageCircle className="h-[22px] w-[22px]" />
               </NavBtn>
               <button
+                onClick={toggleTheme}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95"
+                title={darkMode ? "Light mode" : "Dark mode"}
+              >
+                {darkMode ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+              </button>
+              <button
                 onClick={signOut}
-                className="ml-1 flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95"
                 title="Log out"
               >
                 <LogOut className="h-[18px] w-[18px]" />
