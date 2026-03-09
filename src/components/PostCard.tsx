@@ -400,7 +400,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
 
         <p className="mt-1 text-[11px] uppercase text-muted-foreground">{timestamp} ago</p>
 
-        <div className="mt-2 flex items-center gap-2 border-t border-border pt-2">
+        <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
           <Smile className="h-5 w-5 text-muted-foreground" />
           <input
             ref={inputRef}
