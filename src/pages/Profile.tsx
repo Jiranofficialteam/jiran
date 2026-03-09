@@ -300,7 +300,7 @@ const Profile = () => {
         </div>
 
         {/* Stats cards */}
-        <div className="mt-4 grid grid-cols-3 gap-2 md:px-8">
+        <div className="mt-4 grid grid-cols-3 gap-2 px-4 md:px-8">
           {[
             { label: "Posts", value: postCount, action: undefined, gradient: false },
             { label: "Followers", value: formatCount(followerCount), action: () => setFollowListType("followers"), gradient: true },
