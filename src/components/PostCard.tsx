@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import BoostPostModal from "./BoostPostModal";
 import EditPostModal from "./EditPostModal";
+import ShareModal from "./ShareModal";
 
 const db = supabase as any;
 
