@@ -30,6 +30,10 @@ interface PostData {
   image_url: string;
   images: string[];
   type: string;
+  likesCount?: number;
+  commentsCount?: number;
+  boostLikes?: number;
+  boostViews?: number;
 }
 
 const Profile = () => {
