@@ -242,7 +242,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
   if (deleted) return null;
 
   return (
-    <article className="animate-fade-in border-b border-border bg-background">
+    <article className="mx-3 md:mx-0 rounded-2xl border border-border bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
       {isDB && <BoostPostModal postId={postId} open={boostOpen} onClose={() => setBoostOpen(false)} />}
       {isOwnPost && <EditPostModal open={editOpen} onClose={() => setEditOpen(false)} postId={postId} initialCaption={currentCaption} initialLocation={currentLocation} onUpdated={(c, l) => { setCurrentCaption(c); setCurrentLocation(l); }} />}
       {isDB && <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} postId={postId} caption={currentCaption} />}
@@ -259,7 +259,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
           </div>
         </div>
       )}
-      <div className="flex items-center justify-between px-3 py-2.5">
+      <div className="flex items-center justify-between px-4 py-3">
         <Link to={`/profile/${username}`} className="flex items-center gap-2.5">
           <div className="story-ring">
             <div className="rounded-full bg-background p-[2px]">
@@ -313,7 +313,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
         </div>
       </div>
 
-      <div className="relative">
+      <div className="relative rounded-none overflow-hidden">
         {renderMedia()}
         {showHeart && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -322,7 +322,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
         )}
       </div>
 
-      <div className="flex items-center justify-between px-3 pt-2.5">
+      <div className="flex items-center justify-between px-4 pt-3">
         <div className="flex items-center gap-4">
           <button onClick={handleLike} className="transition-transform active:scale-90">
             <Heart className={`h-6 w-6 transition-colors ${liked ? "fill-primary text-primary animate-heart-pop" : "text-foreground"}`} />
@@ -339,7 +339,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
         </button>
       </div>
 
-      <div className="px-3 pb-3 pt-1.5">
+      <div className="px-4 pb-4 pt-2">
         <p className="text-sm font-semibold">{formatCount(likes)} likes</p>
         <p className="mt-1 text-sm">
           <Link to={`/profile/${username}`} className="font-semibold">{username}</Link>{" "}
@@ -400,7 +400,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
 
         <p className="mt-1 text-[11px] uppercase text-muted-foreground">{timestamp} ago</p>
 
-        <div className="mt-2 flex items-center gap-2 border-t border-border pt-2">
+        <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
           <Smile className="h-5 w-5 text-muted-foreground" />
           <input
             ref={inputRef}

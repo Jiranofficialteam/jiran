@@ -8,12 +8,12 @@ import { useFeed } from "@/hooks/useFeed";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { posts as mockPosts } from "@/data/mockData";
 import { Link } from "react-router-dom";
-import { Camera } from "lucide-react";
+import { Camera, Sparkles } from "lucide-react";
 
 const Index = () => {
   const { user, loading } = useAuth();
   const { data: feedPosts, isLoading: feedLoading } = useFeed();
-  useOnlineStatus(); // Update last_seen while on home page
+  useOnlineStatus();
 
   return (
     <div className="min-h-screen bg-background">
@@ -23,36 +23,57 @@ const Index = () => {
           <StoryBar />
 
           {!user && !loading && (
-            <div className="border-b border-border bg-card px-4 py-8 text-center">
-              <Camera className="mx-auto h-10 w-10 text-muted-foreground/30 mb-3" />
-              <p className="text-sm font-medium text-foreground mb-1">See what's happening</p>
-              <p className="text-xs text-muted-foreground mb-4">Log in to see posts from people you follow</p>
-              <Link to="/auth" className="inline-block rounded-full gradient-brand px-8 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:opacity-90 active:scale-95">
+            <div className="mx-3 mt-4 rounded-2xl border border-border bg-card p-8 text-center animate-fade-in">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full gradient-subtle">
+                <Camera className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <p className="text-base font-bold text-foreground mb-1">See what's happening</p>
+              <p className="text-sm text-muted-foreground mb-5">Log in to see posts from people you follow</p>
+              <Link
+                to="/auth"
+                className="inline-block rounded-full gradient-brand px-8 py-2.5 text-sm font-bold text-primary-foreground shadow-lg transition-all hover:shadow-xl hover:brightness-110 active:scale-95"
+              >
                 Log In / Sign Up
               </Link>
             </div>
           )}
 
           {user && feedLoading && (
-            <div className="flex justify-center py-16">
-              <div className="flex flex-col items-center gap-3">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                <p className="text-xs text-muted-foreground">Loading your feed...</p>
+            <div className="flex justify-center py-20">
+              <div className="flex flex-col items-center gap-3 animate-fade-in">
+                <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-primary/30 border-t-primary" />
+                <p className="text-xs text-muted-foreground font-medium">Loading your feed...</p>
               </div>
             </div>
           )}
 
-          {user && feedPosts && feedPosts.length > 0 ? (
-            <div>
-              {feedPosts.map((fp) => (
-                <PostCard key={fp.id} feedPost={fp} />
-              ))}
-            </div>
-          ) : (
-            <div>
-              {mockPosts.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))}
+          <div className="space-y-4 py-3 px-0 md:px-0">
+            {user && feedPosts && feedPosts.length > 0 ? (
+              feedPosts.map((fp, i) => (
+                <div key={fp.id} className="animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
+                  <PostCard feedPost={fp} />
+                </div>
+              ))
+            ) : (
+              mockPosts.map((post, i) => (
+                <div key={post.id} className="animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
+                  <PostCard post={post} />
+                </div>
+              ))
+            )}
+          </div>
+
+          {user && feedPosts && feedPosts.length === 0 && !feedLoading && (
+            <div className="mx-3 mt-4 rounded-2xl border border-border bg-card p-10 text-center animate-fade-in">
+              <Sparkles className="mx-auto h-10 w-10 text-primary/40 mb-3" />
+              <p className="text-base font-bold">Your feed is empty</p>
+              <p className="text-sm text-muted-foreground mt-1">Follow people to see their posts here</p>
+              <Link
+                to="/explore"
+                className="mt-4 inline-block rounded-full gradient-brand px-6 py-2 text-sm font-bold text-primary-foreground shadow-lg hover:shadow-xl active:scale-95"
+              >
+                Discover People
+              </Link>
             </div>
           )}
         </main>
