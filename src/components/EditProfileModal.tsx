@@ -52,6 +52,7 @@ const EditProfileModal = ({ open, onClose, onSaved }: Props) => {
     setSaving(true);
     try {
       let avatarUrl = profile?.avatar_url || "";
+      let coverUrl = profile?.cover_url || "";
 
       if (avatarFile) {
         const ext = avatarFile.name.split(".").pop();
@@ -60,6 +61,15 @@ const EditProfileModal = ({ open, onClose, onSaved }: Props) => {
         if (upErr) throw upErr;
         const { data } = supabase.storage.from("media").getPublicUrl(path);
         avatarUrl = data.publicUrl;
+      }
+
+      if (coverFile) {
+        const ext = coverFile.name.split(".").pop();
+        const path = `${user.id}/cover_${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("media").upload(path, coverFile, { upsert: true });
+        if (upErr) throw upErr;
+        const { data } = supabase.storage.from("media").getPublicUrl(path);
+        coverUrl = data.publicUrl;
       }
 
       const { error } = await db.from("profiles").update({
