@@ -128,6 +128,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
   const [boostOpen, setBoostOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [currentCaption, setCurrentCaption] = useState(caption);
   const [currentLocation, setCurrentLocation] = useState("");
