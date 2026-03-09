@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { formatCount } from "@/lib/utils";
-import { Settings as SettingsIcon, Grid3X3, Bookmark, Film, BadgeCheck, MessageCircle } from "lucide-react";
+import { Settings as SettingsIcon, Grid3X3, Bookmark, Film, BadgeCheck, MessageCircle, BarChart2 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,14 +10,9 @@ import BottomNav from "@/components/BottomNav";
 import EditProfileModal from "@/components/EditProfileModal";
 import FollowListModal from "@/components/FollowListModal";
 import PostDetailModal from "@/components/PostDetailModal";
+import ProfileAnalytics from "@/components/ProfileAnalytics";
 
 const db = supabase as any;
-
-const tabs = [
-  { id: "posts", icon: Grid3X3, label: "Posts" },
-  { id: "reels", icon: Film, label: "Reels" },
-  { id: "saved", icon: Bookmark, label: "Saved" },
-];
 
 interface ProfileData {
   id: string;
@@ -56,6 +51,13 @@ const Profile = () => {
 
   const isOwnProfile = !username || (authProfile && authProfile.username?.trim() === username) || (!username && !!user);
 
+  const tabs = [
+    { id: "posts", icon: Grid3X3, label: "Posts" },
+    { id: "reels", icon: Film, label: "Reels" },
+    { id: "saved", icon: Bookmark, label: "Saved" },
+    ...(isOwnProfile ? [{ id: "insights", icon: BarChart2, label: "Insights" }] : []),
+  ];
+
   const fetchProfile = async () => {
     setLoading(true);
     try {
@@ -70,7 +72,11 @@ const Profile = () => {
       if (!profileResult) { setLoading(false); return; }
       setProfileData(profileResult);
 
-      // Fetch posts
+      // Record profile visit (only for other users' profiles)
+      if (user && profileResult.id !== user.id) {
+        db.from("profile_visits").insert({ profile_id: profileResult.id, visitor_id: user.id });
+      }
+
       const { data: postsData } = await db
         .from("posts")
         .select("id, image_url, images, type")
@@ -79,11 +85,9 @@ const Profile = () => {
         .limit(30);
       setPosts(postsData || []);
 
-      // Fetch post count
       const { count: pc } = await db.from("posts").select("*", { count: "exact", head: true }).eq("user_id", profileResult.id);
       setPostCount(pc || 0);
 
-      // Fetch saved posts (own profile only)
       if (user && profileResult.id === user.id) {
         const { data: saves } = await db
           .from("saves")
@@ -238,9 +242,11 @@ const Profile = () => {
           ))}
         </div>
 
-        {/* Grid */}
+        {/* Grid / Insights */}
         <div className="grid grid-cols-3 gap-0.5 pb-20 md:gap-1">
-          {activeTab === "saved" ? (
+          {activeTab === "insights" && isOwnProfile ? (
+            <ProfileAnalytics profileId={profileData.id} />
+          ) : activeTab === "saved" ? (
             savedPosts.length > 0 ? (
               savedPosts.map((post) => (
                 <button key={post.id} onClick={() => setSelectedPostId(post.id)} className="relative aspect-square overflow-hidden group">
@@ -258,6 +264,11 @@ const Profile = () => {
               {posts.filter((p) => activeTab === "reels" ? p.type === "reel" : true).map((post) => (
                 <button key={post.id} onClick={() => setSelectedPostId(post.id)} className="relative aspect-square overflow-hidden group">
                   <img src={post.image_url || post.images?.[0] || "/placeholder.svg"} alt="" className="h-full w-full object-cover" loading="lazy" />
+                  {(post.type === "video" || post.type === "reel") && (
+                    <div className="absolute top-1.5 right-1.5">
+                      <Film className="h-4 w-4 text-white drop-shadow" />
+                    </div>
+                  )}
                   <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
                 </button>
               ))}

@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import BoostPostModal from "./BoostPostModal";
 import EditPostModal from "./EditPostModal";
+import ShareModal from "./ShareModal";
 
 const db = supabase as any;
 
@@ -127,6 +128,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
   const [boostOpen, setBoostOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [currentCaption, setCurrentCaption] = useState(caption);
   const [currentLocation, setCurrentLocation] = useState("");
@@ -203,7 +205,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
     setCommentText("");
   };
 
-  const handleShare = () => toast.success("Share link copied!", { duration: 2000 });
+  const handleShare = () => setShareOpen(true);
   const focusComment = () => inputRef.current?.focus();
 
   const handleDeletePost = async () => {
@@ -243,6 +245,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
     <article className="animate-fade-in border-b border-border bg-background">
       {isDB && <BoostPostModal postId={postId} open={boostOpen} onClose={() => setBoostOpen(false)} />}
       {isOwnPost && <EditPostModal open={editOpen} onClose={() => setEditOpen(false)} postId={postId} initialCaption={currentCaption} initialLocation={currentLocation} onUpdated={(c, l) => { setCurrentCaption(c); setCurrentLocation(l); }} />}
+      {isDB && <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} postId={postId} caption={currentCaption} />}
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setConfirmDelete(false)}>
           <div className="mx-4 w-full max-w-xs rounded-2xl bg-card p-5 text-center shadow-xl" onClick={(e) => e.stopPropagation()}>
