@@ -90,6 +90,36 @@ const Profile = () => {
         .limit(30);
       setPosts(postsData || []);
 
+      // Fetch like & comment counts per post + boost data
+      if (postsData && postsData.length > 0) {
+        const postIds = postsData.map((p: any) => p.id);
+        const [{ data: likeCounts }, { data: commentCounts }, { data: boostData }] = await Promise.all([
+          db.from("likes").select("post_id").in("post_id", postIds),
+          db.from("comments").select("post_id").in("post_id", postIds),
+          db.from("ad_campaigns").select("post_id, boost_likes, boost_views").eq("user_id", profileResult.id),
+        ]);
+
+        const likeMap: Record<string, number> = {};
+        const commentMap: Record<string, number> = {};
+        const boostLikesMap: Record<string, number> = {};
+        const boostViewsMap: Record<string, number> = {};
+
+        (likeCounts || []).forEach((l: any) => { likeMap[l.post_id] = (likeMap[l.post_id] || 0) + 1; });
+        (commentCounts || []).forEach((c: any) => { commentMap[c.post_id] = (commentMap[c.post_id] || 0) + 1; });
+        (boostData || []).forEach((b: any) => {
+          boostLikesMap[b.post_id] = (boostLikesMap[b.post_id] || 0) + (b.boost_likes || 0);
+          boostViewsMap[b.post_id] = (boostViewsMap[b.post_id] || 0) + (b.boost_views || 0);
+        });
+
+        setPosts(postsData.map((p: any) => ({
+          ...p,
+          likesCount: (likeMap[p.id] || 0) + (boostLikesMap[p.id] || 0),
+          commentsCount: commentMap[p.id] || 0,
+          boostLikes: boostLikesMap[p.id] || 0,
+          boostViews: boostViewsMap[p.id] || 0,
+        })));
+      }
+
       const { count: pc } = await db.from("posts").select("*", { count: "exact", head: true }).eq("user_id", profileResult.id);
       setPostCount(pc || 0);
 
