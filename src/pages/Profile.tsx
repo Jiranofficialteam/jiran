@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatCount } from "@/lib/utils";
 import { Settings, Grid3X3, Bookmark, Film, BadgeCheck, MessageCircle } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -183,8 +184,8 @@ const Profile = () => {
 
             <div className="mt-5 hidden gap-8 md:flex">
               <span><strong>{postCount}</strong> posts</span>
-              <button onClick={() => setFollowListType("followers")}><strong>{followerCount.toLocaleString()}</strong> followers</button>
-              <button onClick={() => setFollowListType("following")}><strong>{followingCount}</strong> following</button>
+              <button onClick={() => setFollowListType("followers")}><strong>{formatCount(followerCount)}</strong> followers</button>
+              <button onClick={() => setFollowListType("following")}><strong>{formatCount(followingCount)}</strong> following</button>
             </div>
 
             <div className="mt-4 hidden md:block">
@@ -209,8 +210,8 @@ const Profile = () => {
         <div className="mt-3 flex border-t border-b border-border py-3 md:hidden">
           {[
             { label: "posts", value: postCount, action: undefined },
-            { label: "followers", value: followerCount.toLocaleString(), action: () => setFollowListType("followers") },
-            { label: "following", value: followingCount, action: () => setFollowListType("following") },
+            { label: "followers", value: formatCount(followerCount), action: () => setFollowListType("followers") },
+            { label: "following", value: formatCount(followingCount), action: () => setFollowListType("following") },
           ].map((stat) => (
             <button key={stat.label} className="flex-1 text-center" onClick={stat.action}>
               <span className="block text-sm font-semibold">{stat.value}</span>

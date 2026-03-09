@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Heart, MessageCircle, Send, Bookmark, Music2, BadgeCheck, Volume2, VolumeX, ChevronLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import ReelComments from "@/components/ReelComments";
+import { formatCount } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -239,7 +240,7 @@ const Reels = () => {
                 <Heart
                   className={`h-7 w-7 drop-shadow-lg transition-colors ${reel.is_liked ? "fill-red-500 text-red-500" : "text-white"}`}
                 />
-                <span className="text-xs font-semibold text-white drop-shadow">{reel.like_count || ""}</span>
+                <span className="text-xs font-semibold text-white drop-shadow">{formatCount(reel.like_count)}</span>
               </button>
 
               <button onClick={() => setCommentPostId(reel.id)} className="flex flex-col items-center gap-1">
