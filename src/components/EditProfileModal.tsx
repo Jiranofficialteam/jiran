@@ -104,6 +104,22 @@ const EditProfileModal = ({ open, onClose, onSaved }: Props) => {
           </button>
         </div>
 
+        {/* Cover Photo */}
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Cover Photo</label>
+          <button onClick={() => coverRef.current?.click()} className="relative w-full h-28 rounded-xl overflow-hidden border border-border group">
+            {coverPreview ? (
+              <img src={coverPreview} alt="Cover" className="h-full w-full object-cover" />
+            ) : (
+              <div className="h-full w-full gradient-brand opacity-60" />
+            )}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+              <ImagePlus className="h-6 w-6 text-white" />
+            </div>
+          </button>
+          <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={handleCoverChange} />
+        </div>
+
         {/* Avatar */}
         <div className="flex justify-center">
           <button onClick={() => fileRef.current?.click()} className="relative group">
