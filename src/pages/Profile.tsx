@@ -210,8 +210,8 @@ const Profile = () => {
         <div className="mt-3 flex border-t border-b border-border py-3 md:hidden">
           {[
             { label: "posts", value: postCount, action: undefined },
-            { label: "followers", value: followerCount.toLocaleString(), action: () => setFollowListType("followers") },
-            { label: "following", value: followingCount, action: () => setFollowListType("following") },
+            { label: "followers", value: formatCount(followerCount), action: () => setFollowListType("followers") },
+            { label: "following", value: formatCount(followingCount), action: () => setFollowListType("following") },
           ].map((stat) => (
             <button key={stat.label} className="flex-1 text-center" onClick={stat.action}>
               <span className="block text-sm font-semibold">{stat.value}</span>
