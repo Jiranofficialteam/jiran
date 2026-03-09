@@ -78,6 +78,7 @@ const EditProfileModal = ({ open, onClose, onSaved }: Props) => {
         bio,
         website,
         avatar_url: avatarUrl,
+        cover_url: coverUrl,
         is_private: isPrivate,
       }).eq("id", user.id);
 
