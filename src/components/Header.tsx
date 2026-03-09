@@ -95,8 +95,15 @@ const Header = () => {
                 <MessageCircle className="h-[22px] w-[22px]" />
               </NavBtn>
               <button
+                onClick={toggleTheme}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95"
+                title={darkMode ? "Light mode" : "Dark mode"}
+              >
+                {darkMode ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+              </button>
+              <button
                 onClick={signOut}
-                className="ml-1 flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95"
                 title="Log out"
               >
                 <LogOut className="h-[18px] w-[18px]" />
