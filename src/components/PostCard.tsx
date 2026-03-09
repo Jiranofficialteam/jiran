@@ -205,7 +205,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
     setCommentText("");
   };
 
-  const handleShare = () => toast.success("Share link copied!", { duration: 2000 });
+  const handleShare = () => setShareOpen(true);
   const focusComment = () => inputRef.current?.focus();
 
   const handleDeletePost = async () => {
