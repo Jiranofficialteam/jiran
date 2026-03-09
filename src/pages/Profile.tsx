@@ -453,6 +453,16 @@ const Profile = () => {
           profileData={profileData ? { username: profileData.username, avatar_url: profileData.avatar_url, verified: profileData.verified } : undefined}
         />
       )}
+      <ReportModal
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        userId={profileData?.id}
+      />
+      <ProfileVisitors
+        open={visitorsOpen}
+        onClose={() => setVisitorsOpen(false)}
+        profileId={profileData?.id || ""}
+      />
       <BottomNav />
     </div>
   );
