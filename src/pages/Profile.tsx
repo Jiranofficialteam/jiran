@@ -154,8 +154,8 @@ const Profile = () => {
                   >
                     Edit profile
                   </button>
-                  <button className="text-foreground">
-                    <Settings className="h-6 w-6" />
+                  <button onClick={() => navigate("/settings")} className="text-foreground">
+                    <SettingsIcon className="h-6 w-6" />
                   </button>
                 </>
               ) : (
