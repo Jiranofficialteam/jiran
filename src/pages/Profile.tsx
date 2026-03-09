@@ -320,7 +320,7 @@ const Profile = () => {
         </div>
 
         {/* Tabs */}
-        <div className="mt-6 flex rounded-2xl border border-border bg-card/50 p-1 md:mx-8">
+        <div className="mt-6 flex rounded-2xl border border-border bg-card/50 p-1 mx-4 md:mx-8">
           {tabs.map((tab) => (
             <button
               key={tab.id}
