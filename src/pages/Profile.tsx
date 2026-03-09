@@ -231,7 +231,7 @@ const Profile = () => {
         </div>
 
         {/* Action buttons */}
-        <div className="flex items-center gap-2 mt-4 md:px-8">
+        <div className="flex items-center gap-2 mt-4 px-4 md:px-8">
           {isOwnProfile ? (
             <>
               <button
