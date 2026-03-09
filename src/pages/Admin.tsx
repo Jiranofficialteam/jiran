@@ -133,6 +133,8 @@ const OverviewTab = () => {
 const UsersTab = () => {
   const [users, setUsers] = useState<any[]>([]);
   const [search, setSearch] = useState("");
+  const [boostUserId, setBoostUserId] = useState<string | null>(null);
+  const [boostValue, setBoostValue] = useState("");
 
   useEffect(() => {
     const fetch = async () => {
@@ -151,7 +153,6 @@ const UsersTab = () => {
   };
 
   const deleteUser = async (id: string) => {
-    // Delete user's posts, comments, likes, follows first
     await Promise.all([
       db.from("posts").delete().eq("user_id", id),
       db.from("comments").delete().eq("user_id", id),
@@ -164,6 +165,16 @@ const UsersTab = () => {
     toast.success("User removed");
   };
 
+  const updateFollowerBoost = async (id: string) => {
+    const val = parseInt(boostValue);
+    if (isNaN(val) || val < 0) { toast.error("Enter a valid number"); return; }
+    await db.from("profiles").update({ follower_boost: val }).eq("id", id);
+    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, follower_boost: val } : u)));
+    setBoostUserId(null);
+    setBoostValue("");
+    toast.success(`Follower boost set to ${val.toLocaleString()}`);
+  };
+
   return (
     <div>
       <div className="mb-3 flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2">
@@ -172,25 +183,55 @@ const UsersTab = () => {
       </div>
       <div className="space-y-2">
         {users.map((u) => (
-          <div key={u.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-3">
-            <div className="flex items-center gap-3">
-              <img src={u.avatar_url || "/placeholder.svg"} alt="" className="h-10 w-10 rounded-full object-cover" />
-              <div>
-                <div className="flex items-center gap-1">
-                  <span className="text-sm font-semibold text-foreground">{u.username}</span>
-                  {u.verified && <BadgeCheck className="h-3.5 w-3.5 fill-primary text-primary-foreground" />}
+          <div key={u.id} className="rounded-xl border border-border bg-card p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <img src={u.avatar_url || "/placeholder.svg"} alt="" className="h-10 w-10 rounded-full object-cover" />
+                <div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm font-semibold text-foreground">{u.username}</span>
+                    {u.verified && <BadgeCheck className="h-3.5 w-3.5 fill-primary text-primary-foreground" />}
+                  </div>
+                  <p className="text-xs text-muted-foreground">{u.full_name}</p>
+                  {(u.follower_boost || 0) > 0 && (
+                    <p className="text-[11px] text-primary">+{(u.follower_boost || 0).toLocaleString()} boosted followers</p>
+                  )}
                 </div>
-                <p className="text-xs text-muted-foreground">{u.full_name}</p>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => { setBoostUserId(boostUserId === u.id ? null : u.id); setBoostValue(String(u.follower_boost || 0)); }}
+                  className="rounded-lg bg-secondary p-2 text-xs text-muted-foreground hover:opacity-80"
+                  title="Boost followers"
+                >
+                  <Users className="h-4 w-4" />
+                </button>
+                <button onClick={() => toggleVerify(u.id, u.verified)} className={`rounded-lg p-2 text-xs ${u.verified ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"} hover:opacity-80`} title={u.verified ? "Remove verification" : "Verify"}>
+                  <BadgeCheck className="h-4 w-4" />
+                </button>
+                <button onClick={() => deleteUser(u.id)} className="rounded-lg bg-destructive/10 p-2 text-destructive hover:opacity-80" title="Delete user">
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <button onClick={() => toggleVerify(u.id, u.verified)} className={`rounded-lg p-2 text-xs ${u.verified ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"} hover:opacity-80`} title={u.verified ? "Remove verification" : "Verify"}>
-                <BadgeCheck className="h-4 w-4" />
-              </button>
-              <button onClick={() => deleteUser(u.id)} className="rounded-lg bg-destructive/10 p-2 text-destructive hover:opacity-80" title="Delete user">
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
+            {boostUserId === u.id && (
+              <div className="mt-3 flex items-center gap-2 rounded-lg border border-border bg-secondary/50 p-2">
+                <input
+                  type="number"
+                  min="0"
+                  value={boostValue}
+                  onChange={(e) => setBoostValue(e.target.value)}
+                  placeholder="Follower boost count"
+                  className="flex-1 rounded-lg bg-background px-3 py-1.5 text-sm outline-none"
+                />
+                <button
+                  onClick={() => updateFollowerBoost(u.id)}
+                  className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+                >
+                  Set
+                </button>
+              </div>
+            )}
           </div>
         ))}
         {users.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No users found</p>}
