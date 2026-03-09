@@ -185,8 +185,24 @@ const Profile = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      {/* Gradient banner */}
-      <div className="h-24 md:h-32 w-full gradient-brand opacity-80" />
+      {/* Cover Photo / Gradient banner */}
+      <div className="relative h-36 md:h-52 w-full overflow-hidden">
+        {profileData.cover_url ? (
+          <img src={profileData.cover_url} alt="Cover" className="h-full w-full object-cover" />
+        ) : (
+          <div className="h-full w-full gradient-brand opacity-80" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
+        {isOwnProfile && (
+          <button
+            onClick={() => setEditOpen(true)}
+            className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-xl bg-background/80 backdrop-blur-sm px-3 py-1.5 text-xs font-semibold text-foreground border border-border hover:bg-background transition-all active:scale-95"
+          >
+            <Camera className="h-3.5 w-3.5" />
+            {profileData.cover_url ? "Change Cover" : "Add Cover"}
+          </button>
+        )}
+      </div>
 
       <div className="mx-auto max-w-[935px] px-4">
         {/* Profile header — overlapping the banner */}
