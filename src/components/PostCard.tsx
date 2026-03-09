@@ -259,7 +259,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
           </div>
         </div>
       )}
-      <div className="flex items-center justify-between px-3 py-2.5">
+      <div className="flex items-center justify-between px-4 py-3">
         <Link to={`/profile/${username}`} className="flex items-center gap-2.5">
           <div className="story-ring">
             <div className="rounded-full bg-background p-[2px]">
