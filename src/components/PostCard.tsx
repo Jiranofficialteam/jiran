@@ -322,7 +322,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
         )}
       </div>
 
-      <div className="flex items-center justify-between px-3 pt-2.5">
+      <div className="flex items-center justify-between px-4 pt-3">
         <div className="flex items-center gap-4">
           <button onClick={handleLike} className="transition-transform active:scale-90">
             <Heart className={`h-6 w-6 transition-colors ${liked ? "fill-primary text-primary animate-heart-pop" : "text-foreground"}`} />
