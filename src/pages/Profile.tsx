@@ -23,6 +23,7 @@ interface ProfileData {
   website: string;
   is_private: boolean;
   verified: boolean;
+  created_at?: string;
 }
 
 interface PostData {
