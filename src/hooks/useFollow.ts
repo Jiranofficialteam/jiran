@@ -74,5 +74,5 @@ export function useFollow(targetUserId: string | null) {
     setLoading(false);
   }, [user, targetUserId, isFollowing, loading, fetchState]);
 
-  return { isFollowing, followerCount, followingCount, toggleFollow, loading };
+  return { isFollowing, followerCount: followerCount + followerBoost, followingCount, toggleFollow, loading };
 }
