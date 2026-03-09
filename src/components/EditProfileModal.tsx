@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { X, Camera, Loader2, Lock } from "lucide-react";
+import { X, Camera, Loader2, Lock, ImagePlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, Profile } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
