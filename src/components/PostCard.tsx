@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { formatCount } from "@/lib/utils";
 import {
   Heart, MessageCircle, Send, Bookmark, MoreHorizontal,
   BadgeCheck, Smile, ChevronLeft, ChevronRight, Play, Pause,
