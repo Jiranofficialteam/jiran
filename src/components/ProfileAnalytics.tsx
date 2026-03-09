@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Eye, Heart, MessageCircle, Users, BarChart2 } from "lucide-react";
+import { TrendingUp, Eye, Heart, MessageCircle, Users, BarChart2, Rocket, Zap } from "lucide-react";
 import { formatCount } from "@/lib/utils";
 
 const db = supabase as any;
