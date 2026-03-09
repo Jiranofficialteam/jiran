@@ -278,7 +278,15 @@ const Profile = () => {
                       <Film className="h-4 w-4 text-white drop-shadow" />
                     </div>
                   )}
+                  {boostedPostIds.has(post.id) && (
+                    <div className="absolute top-1.5 left-1.5 flex items-center gap-0.5 rounded-full bg-amber-500/90 px-1.5 py-0.5">
+                      <Rocket className="h-3 w-3 text-white" />
+                      <span className="text-[10px] font-bold text-white">Boosted</span>
+                    </div>
+                  )}
                   <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
+                </button>
+              ))}
                 </button>
               ))}
               {posts.filter((p) => activeTab === "reels" ? p.type === "reel" : true).length === 0 && (
