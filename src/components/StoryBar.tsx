@@ -25,37 +25,37 @@ const StoryBar = () => {
 
   return (
     <>
-      <div className="border-b border-border bg-background py-3">
-        <div className="hide-scrollbar flex gap-3 overflow-x-auto px-4">
-          {/* Create / own story button */}
+      <div className="bg-background py-3">
+        <div className="hide-scrollbar flex gap-3.5 overflow-x-auto px-4">
+          {/* Create / own story */}
           {user && (
             <button
               onClick={() => {
                 if (ownGroup) openStory(0);
                 else navigate("/create-story");
               }}
-              className="flex flex-shrink-0 flex-col items-center gap-1.5"
+              className="flex flex-shrink-0 flex-col items-center gap-1.5 group"
             >
-              <div className="relative">
-                <div className={`overflow-hidden rounded-full ${ownGroup ? 'story-ring' : ''}`}>
+              <div className="relative transition-transform duration-200 group-active:scale-95">
+                <div className={`overflow-hidden rounded-full ${ownGroup ? 'story-ring' : 'ring-2 ring-border'}`}>
                   <div className="rounded-full bg-background p-[2px]">
                     <img
                       src={profile?.avatar_url || "/placeholder.svg"}
                       alt="Your story"
-                      className="h-[62px] w-[62px] rounded-full object-cover"
+                      className="h-[64px] w-[64px] rounded-full object-cover"
                     />
                   </div>
                 </div>
                 {!ownGroup && (
                   <button
                     onClick={(e) => { e.stopPropagation(); navigate("/create-story"); }}
-                    className="absolute -bottom-0.5 -right-0.5 flex h-[22px] w-[22px] items-center justify-center rounded-full gradient-brand text-primary-foreground ring-2 ring-background shadow-sm"
+                    className="absolute -bottom-0.5 -right-0.5 flex h-[22px] w-[22px] items-center justify-center rounded-full gradient-brand text-primary-foreground ring-2 ring-background shadow-md"
                   >
                     <Plus className="h-3 w-3" strokeWidth={3} />
                   </button>
                 )}
               </div>
-              <span className="max-w-[66px] truncate text-[11px] font-medium text-muted-foreground">
+              <span className="max-w-[68px] truncate text-[11px] font-medium text-muted-foreground">
                 {ownGroup ? "Your story" : "Add story"}
               </span>
             </button>
@@ -68,18 +68,18 @@ const StoryBar = () => {
               <button
                 key={group.userId}
                 onClick={() => openStory(idx)}
-                className="flex flex-shrink-0 flex-col items-center gap-1.5"
+                className="flex flex-shrink-0 flex-col items-center gap-1.5 group"
               >
-                <div className="story-ring">
+                <div className="story-ring transition-transform duration-200 group-active:scale-95 group-hover:scale-105">
                   <div className="overflow-hidden rounded-full bg-background p-[2px]">
                     <img
                       src={group.avatar || "/placeholder.svg"}
                       alt={group.username}
-                      className="h-[60px] w-[60px] rounded-full object-cover"
+                      className="h-[62px] w-[62px] rounded-full object-cover"
                     />
                   </div>
                 </div>
-                <span className="max-w-[66px] truncate text-[11px] font-medium text-muted-foreground">
+                <span className="max-w-[68px] truncate text-[11px] font-medium text-muted-foreground">
                   {group.username}
                 </span>
               </button>

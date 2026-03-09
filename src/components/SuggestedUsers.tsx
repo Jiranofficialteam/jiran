@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { BadgeCheck, UserPlus } from "lucide-react";
+import { BadgeCheck, UserPlus, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,19 +21,16 @@ const SuggestedUsers = () => {
 
   const fetchSuggested = useCallback(async () => {
     if (!user) return;
-
     const { data: followsData } = await db
       .from("follows")
       .select("following_id")
       .eq("follower_id", user.id);
     const followingIds = new Set((followsData || []).map((f: any) => f.following_id));
-
     const { data: profiles } = await db
       .from("profiles")
       .select("id, username, full_name, avatar_url, verified")
       .neq("id", user.id)
       .limit(20);
-
     const notFollowing = (profiles || []).filter((p: any) => !followingIds.has(p.id));
     setSuggested(notFollowing.slice(0, 5));
   }, [user?.id]);
@@ -59,28 +56,35 @@ const SuggestedUsers = () => {
 
   return (
     <aside className="hidden w-[320px] flex-shrink-0 pl-12 pt-8 lg:block">
-      {/* Current user */}
-      <div className="flex items-center gap-3 mb-6">
-        <Link to="/profile" className="flex-shrink-0">
-          <img src={profile.avatar_url || "/placeholder.svg"} alt="" className="h-12 w-12 rounded-full object-cover ring-1 ring-border" />
-        </Link>
-        <div className="flex-1 min-w-0">
-          <Link to="/profile" className="text-sm font-bold truncate block hover:underline">{profile.username}</Link>
-          <p className="text-xs text-muted-foreground truncate">{profile.full_name}</p>
+      {/* Current user card */}
+      <div className="rounded-2xl border border-border bg-card/50 p-4 mb-5">
+        <div className="flex items-center gap-3">
+          <Link to="/profile" className="flex-shrink-0">
+            <img src={profile.avatar_url || "/placeholder.svg"} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-border" />
+          </Link>
+          <div className="flex-1 min-w-0">
+            <Link to="/profile" className="text-sm font-bold truncate block hover:underline">{profile.username}</Link>
+            <p className="text-xs text-muted-foreground truncate">{profile.full_name}</p>
+          </div>
         </div>
       </div>
 
       {suggested.length > 0 && (
-        <>
-          <div className="flex items-center justify-between mb-4">
+        <div className="rounded-2xl border border-border bg-card/50 p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="h-4 w-4 text-primary" />
             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Suggested for you</span>
           </div>
 
           <div className="space-y-3">
-            {suggested.map((u) => (
-              <div key={u.id} className="flex items-center gap-3 group">
+            {suggested.map((u, i) => (
+              <div
+                key={u.id}
+                className="flex items-center gap-3 group animate-fade-in rounded-xl p-1.5 -mx-1.5 transition-colors hover:bg-secondary/50"
+                style={{ animationDelay: `${i * 80}ms` }}
+              >
                 <Link to={`/profile/${u.username.trim()}`} className="flex-shrink-0">
-                  <img src={u.avatar_url || "/placeholder.svg"} alt="" className="h-9 w-9 rounded-full object-cover ring-1 ring-border" />
+                  <img src={u.avatar_url || "/placeholder.svg"} alt="" className="h-10 w-10 rounded-full object-cover ring-1 ring-border" />
                 </Link>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1">
@@ -91,10 +95,10 @@ const SuggestedUsers = () => {
                 </div>
                 <button
                   onClick={() => toggleFollow(u.id)}
-                  className={`text-xs font-bold transition-all active:scale-95 ${
+                  className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all active:scale-95 ${
                     following.has(u.id)
-                      ? "text-muted-foreground hover:text-foreground"
-                      : "text-primary hover:text-primary/80"
+                      ? "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                      : "gradient-brand text-primary-foreground shadow-sm hover:shadow-md"
                   }`}
                 >
                   {following.has(u.id) ? "Following" : "Follow"}
@@ -102,14 +106,14 @@ const SuggestedUsers = () => {
               </div>
             ))}
           </div>
-        </>
+        </div>
       )}
 
-      <div className="mt-8 space-y-2">
-        <p className="text-[11px] text-muted-foreground/40 leading-relaxed">
+      <div className="mt-6 px-2 space-y-2">
+        <p className="text-[11px] text-muted-foreground/30 leading-relaxed">
           About · Help · Press · API · Jobs · Privacy · Terms
         </p>
-        <p className="text-[11px] text-muted-foreground/40">© 2026 Jiran from Lovable</p>
+        <p className="text-[11px] text-muted-foreground/30">© 2026 Jiran from Lovable</p>
       </div>
     </aside>
   );
