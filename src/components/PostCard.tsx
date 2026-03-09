@@ -337,7 +337,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
       </div>
 
       <div className="px-3 pb-3 pt-1.5">
-        <p className="text-sm font-semibold">{likes.toLocaleString()} likes</p>
+        <p className="text-sm font-semibold">{formatCount(likes)} likes</p>
         <p className="mt-1 text-sm">
           <Link to={`/profile/${username}`} className="font-semibold">{username}</Link>{" "}
           {currentCaption}
