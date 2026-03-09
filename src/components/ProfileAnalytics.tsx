@@ -122,6 +122,22 @@ const ProfileAnalytics = ({ profileId }: ProfileAnalyticsProps) => {
       color: "text-violet-500",
       bg: "bg-violet-500/10",
     },
+    {
+      icon: Rocket,
+      label: "Boost Views",
+      value: formatCount(stats.boostViews),
+      sub: `${stats.activeCampaigns} active campaign${stats.activeCampaigns !== 1 ? "s" : ""}`,
+      color: "text-amber-500",
+      bg: "bg-amber-500/10",
+    },
+    {
+      icon: Zap,
+      label: "Boost Likes",
+      value: formatCount(stats.boostLikes),
+      sub: "from promoted posts",
+      color: "text-orange-500",
+      bg: "bg-orange-500/10",
+    },
   ];
 
   return (
