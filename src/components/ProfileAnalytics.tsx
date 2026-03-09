@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Eye, Heart, MessageCircle, Users, BarChart2 } from "lucide-react";
+import { TrendingUp, Eye, Heart, MessageCircle, Users, BarChart2, Rocket, Zap } from "lucide-react";
 import { formatCount } from "@/lib/utils";
 
 const db = supabase as any;
@@ -16,6 +16,9 @@ interface Stats {
   totalComments: number;
   totalPosts: number;
   avgLikesPerPost: number;
+  boostLikes: number;
+  boostViews: number;
+  activeCampaigns: number;
 }
 
 const ProfileAnalytics = ({ profileId }: ProfileAnalyticsProps) => {
@@ -32,10 +35,12 @@ const ProfileAnalytics = ({ profileId }: ProfileAnalyticsProps) => {
           { count: totalVisits },
           { count: visitsThisWeek },
           { data: posts },
+          { data: campaigns },
         ] = await Promise.all([
           db.from("profile_visits").select("*", { count: "exact", head: true }).eq("profile_id", profileId),
           db.from("profile_visits").select("*", { count: "exact", head: true }).eq("profile_id", profileId).gte("visited_at", weekAgo),
           db.from("posts").select("id").eq("user_id", profileId),
+          db.from("ad_campaigns").select("boost_likes, boost_views, status").eq("user_id", profileId),
         ]);
 
         let totalLikes = 0;
@@ -51,13 +56,20 @@ const ProfileAnalytics = ({ profileId }: ProfileAnalyticsProps) => {
           totalComments = cc || 0;
         }
 
+        const boostLikes = (campaigns || []).reduce((s: number, c: any) => s + (c.boost_likes || 0), 0);
+        const boostViews = (campaigns || []).reduce((s: number, c: any) => s + (c.boost_views || 0), 0);
+        const activeCampaigns = (campaigns || []).filter((c: any) => c.status === "active" || c.status === "approved").length;
+
         setStats({
-          totalVisits: totalVisits || 0,
+          totalVisits: (totalVisits || 0) + boostViews,
           visitsThisWeek: visitsThisWeek || 0,
-          totalLikes,
+          totalLikes: totalLikes + boostLikes,
           totalComments,
           totalPosts: posts?.length || 0,
-          avgLikesPerPost: posts?.length ? Math.round(totalLikes / posts.length) : 0,
+          avgLikesPerPost: posts?.length ? Math.round((totalLikes + boostLikes) / posts.length) : 0,
+          boostLikes,
+          boostViews,
+          activeCampaigns,
         });
       } catch (e) {
         console.error(e);
@@ -109,6 +121,22 @@ const ProfileAnalytics = ({ profileId }: ProfileAnalyticsProps) => {
       sub: "likes + comments / views",
       color: "text-violet-500",
       bg: "bg-violet-500/10",
+    },
+    {
+      icon: Rocket,
+      label: "Boost Views",
+      value: formatCount(stats.boostViews),
+      sub: `${stats.activeCampaigns} active campaign${stats.activeCampaigns !== 1 ? "s" : ""}`,
+      color: "text-amber-500",
+      bg: "bg-amber-500/10",
+    },
+    {
+      icon: Zap,
+      label: "Boost Likes",
+      value: formatCount(stats.boostLikes),
+      sub: "from promoted posts",
+      color: "text-orange-500",
+      bg: "bg-orange-500/10",
     },
   ];
 

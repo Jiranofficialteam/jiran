@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { formatCount } from "@/lib/utils";
-import { Settings as SettingsIcon, Grid3X3, Bookmark, Film, BadgeCheck, MessageCircle, BarChart2 } from "lucide-react";
+import { Settings as SettingsIcon, Grid3X3, Bookmark, Film, BadgeCheck, MessageCircle, BarChart2, Rocket } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,6 +41,7 @@ const Profile = () => {
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [posts, setPosts] = useState<PostData[]>([]);
   const [savedPosts, setSavedPosts] = useState<PostData[]>([]);
+  const [boostedPostIds, setBoostedPostIds] = useState<Set<string>>(new Set());
   const [postCount, setPostCount] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -87,6 +88,14 @@ const Profile = () => {
 
       const { count: pc } = await db.from("posts").select("*", { count: "exact", head: true }).eq("user_id", profileResult.id);
       setPostCount(pc || 0);
+
+      // Fetch boosted post IDs
+      const { data: campaigns } = await db
+        .from("ad_campaigns")
+        .select("post_id, status")
+        .eq("user_id", profileResult.id)
+        .in("status", ["active", "approved", "pending", "completed"]);
+      setBoostedPostIds(new Set((campaigns || []).map((c: any) => c.post_id)));
 
       if (user && profileResult.id === user.id) {
         const { data: saves } = await db
@@ -267,6 +276,12 @@ const Profile = () => {
                   {(post.type === "video" || post.type === "reel") && (
                     <div className="absolute top-1.5 right-1.5">
                       <Film className="h-4 w-4 text-white drop-shadow" />
+                    </div>
+                  )}
+                  {boostedPostIds.has(post.id) && (
+                    <div className="absolute top-1.5 left-1.5 flex items-center gap-0.5 rounded-full bg-amber-500/90 px-1.5 py-0.5">
+                      <Rocket className="h-3 w-3 text-white" />
+                      <span className="text-[10px] font-bold text-white">Boosted</span>
                     </div>
                   )}
                   <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 opacity-0 transition-opacity group-hover:opacity-100" />
