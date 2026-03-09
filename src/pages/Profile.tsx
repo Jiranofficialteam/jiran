@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { formatCount } from "@/lib/utils";
-import { Settings, Grid3X3, Bookmark, Film, BadgeCheck, MessageCircle } from "lucide-react";
+import { Settings as SettingsIcon, Grid3X3, Bookmark, Film, BadgeCheck, MessageCircle } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -154,8 +154,8 @@ const Profile = () => {
                   >
                     Edit profile
                   </button>
-                  <button className="text-foreground">
-                    <Settings className="h-6 w-6" />
+                  <button onClick={() => navigate("/settings")} className="text-foreground">
+                    <SettingsIcon className="h-6 w-6" />
                   </button>
                 </>
               ) : (

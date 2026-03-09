@@ -14,6 +14,7 @@ import CreateStory from "./pages/CreateStory";
 import Auth from "./pages/Auth";
 import Reels from "./pages/Reels";
 import Admin from "./pages/Admin";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/create-story" element={<CreateStory />} />
             <Route path="/reels" element={<Reels />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

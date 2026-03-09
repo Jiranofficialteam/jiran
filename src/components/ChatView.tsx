@@ -1,11 +1,16 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, Send, Image, BadgeCheck, Check, CheckCheck, Smile, Mic, ThumbsUp, X, Play } from "lucide-react";
+import { ArrowLeft, Send, Image, BadgeCheck, Check, CheckCheck, Smile, Mic, ThumbsUp, X, Play, Trash2, MoreVertical } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMessages, Message } from "@/hooks/useMessages";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatDistanceToNowStrict, format, isToday, isYesterday } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getOnlineStatus } from "@/hooks/useOnlineStatus";
+
+const db = supabase as any;
+
+const REACTION_EMOJIS = ["❤️", "😂", "😮", "😢", "😡", "👍"];
 
 interface ChatViewProps {
   conversationId: string;
@@ -15,19 +20,25 @@ interface ChatViewProps {
     full_name: string;
     avatar_url: string | null;
     verified: boolean;
+    last_seen?: string | null;
   };
   onBack: () => void;
 }
 
 const ChatView = ({ conversationId, otherUser, onBack }: ChatViewProps) => {
   const { user } = useAuth();
-  const { messages, loading, sendMessage } = useMessages(conversationId);
+  const { messages, loading, sendMessage, fetchMessages } = useMessages(conversationId);
   const [text, setText] = useState("");
   const [mediaPreview, setMediaPreview] = useState<{ file: File; url: string; type: string } | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [selectedMsgId, setSelectedMsgId] = useState<string | null>(null);
+  const [showReactions, setShowReactions] = useState<string | null>(null);
+  const [reactions, setReactions] = useState<Record<string, { emoji: string; user_id: string }[]>>({});
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const onlineStatus = getOnlineStatus(otherUser.last_seen || null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
