@@ -4,7 +4,7 @@ import {
   Rocket, Trash2, BadgeCheck, Ban, Eye, ThumbsUp, MessageCircle,
   ChevronLeft, Search, Check, X, AlertTriangle, DollarSign,
   Zap, BarChart2, Activity, Clock, Target, ArrowUpRight, ArrowDownRight,
-  RefreshCw, Filter, ChevronDown
+  RefreshCw, Filter, ChevronDown, Heart
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
