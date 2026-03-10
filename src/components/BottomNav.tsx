@@ -16,15 +16,15 @@ const BottomNav = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border glass md:hidden safe-area-bottom">
-      <div className="flex h-[50px] items-center justify-around px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/80 backdrop-blur-xl md:hidden">
+      <div className="flex h-[52px] items-center justify-around px-1 safe-area-bottom">
         {links.map(({ to, icon: Icon, label, isProfile }) => {
           const active = pathname === to || (isProfile && pathname.startsWith("/profile"));
           return (
             <Link
               key={to}
               to={to}
-              className={`flex h-full flex-1 flex-col items-center justify-center gap-0.5 transition-all active:scale-90 ${
+              className={`relative flex h-full flex-1 flex-col items-center justify-center gap-0.5 transition-all duration-200 active:scale-90 ${
                 active ? "text-foreground" : "text-muted-foreground"
               }`}
               aria-label={label}
@@ -34,7 +34,12 @@ const BottomNav = () => {
                   <img src={profile?.avatar_url || "/placeholder.svg"} alt="" className="h-full w-full object-cover" />
                 </div>
               ) : (
-                <Icon className="h-[22px] w-[22px]" strokeWidth={active ? 2.5 : 1.5} />
+                <>
+                  <Icon className="h-[22px] w-[22px]" strokeWidth={active ? 2.5 : 1.5} />
+                  {active && (
+                    <span className="absolute -bottom-0 h-[2px] w-4 rounded-full bg-foreground" />
+                  )}
+                </>
               )}
             </Link>
           );

@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, PlusSquare, LogIn, LogOut, Shield, Compass, Moon, Sun } from "lucide-react";
+import { Heart, MessageCircle, PlusSquare, LogIn, LogOut, Shield, Compass, Moon, Sun, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect, useCallback } from "react";
@@ -13,6 +13,7 @@ const Header = () => {
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains("dark"));
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const toggleTheme = useCallback(() => {
     const html = document.documentElement;
@@ -67,57 +68,86 @@ const Header = () => {
     return () => { supabase.removeChannel(channel); };
   }, [user?.id]);
 
-  return (
-    <header className="sticky top-0 z-50 border-b border-border glass">
-      <div className="mx-auto flex h-[56px] max-w-[935px] items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-1 select-none">
-          <span className="font-display text-[26px] font-bold gradient-text tracking-tight">Jiran</span>
-        </Link>
+  // Close mobile menu on route change
+  useEffect(() => { setMobileMenuOpen(false); }, [pathname]);
 
-        <nav className="flex items-center gap-1">
-          {user ? (
-            <>
-              <NavBtn to="/explore" active={pathname === "/explore"} label="Explore">
-                <Compass className="h-[22px] w-[22px]" />
-              </NavBtn>
-              <NavBtn to="/create" active={pathname === "/create"} label="Create">
-                <PlusSquare className="h-[22px] w-[22px]" />
-              </NavBtn>
-              {isAdmin && (
-                <NavBtn to="/admin" active={pathname === "/admin"} label="Admin" highlight>
-                  <Shield className="h-[20px] w-[20px]" />
+  return (
+    <>
+      <header className="sticky top-0 z-50 border-b border-border glass safe-area-top">
+        <div className="mx-auto flex h-14 max-w-[935px] items-center justify-between px-4">
+          <Link to="/" className="flex items-center gap-1 select-none">
+            <span className="font-display text-[26px] font-bold gradient-text tracking-tight">Jiran</span>
+          </Link>
+
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-1">
+            {user ? (
+              <>
+                <NavBtn to="/explore" active={pathname === "/explore"} label="Explore">
+                  <Compass className="h-[22px] w-[22px]" />
                 </NavBtn>
-              )}
-              <NavBtn to="/notifications" active={pathname === "/notifications"} label="Activity" badge={unreadCount}>
-                <Heart className="h-[22px] w-[22px]" />
-              </NavBtn>
-              <NavBtn to="/messages" active={pathname === "/messages"} label="Messages" badge={unreadMessages}>
-                <MessageCircle className="h-[22px] w-[22px]" />
-              </NavBtn>
-              <button
-                onClick={toggleTheme}
-                className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95"
-                title={darkMode ? "Light mode" : "Dark mode"}
-              >
-                {darkMode ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
-              </button>
-              <button
-                onClick={signOut}
-                className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95"
-                title="Log out"
-              >
-                <LogOut className="h-[18px] w-[18px]" />
-              </button>
-            </>
-          ) : (
-            <Link to="/auth" className="flex items-center gap-1.5 rounded-full gradient-brand px-5 py-2 text-xs font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 active:scale-95">
-              <LogIn className="h-4 w-4" />
-              Log In
-            </Link>
-          )}
-        </nav>
-      </div>
-    </header>
+                <NavBtn to="/create" active={pathname === "/create"} label="Create">
+                  <PlusSquare className="h-[22px] w-[22px]" />
+                </NavBtn>
+                {isAdmin && (
+                  <NavBtn to="/admin" active={pathname === "/admin"} label="Admin" highlight>
+                    <Shield className="h-[20px] w-[20px]" />
+                  </NavBtn>
+                )}
+                <NavBtn to="/notifications" active={pathname === "/notifications"} label="Activity" badge={unreadCount}>
+                  <Heart className="h-[22px] w-[22px]" />
+                </NavBtn>
+                <NavBtn to="/messages" active={pathname === "/messages"} label="Messages" badge={unreadMessages}>
+                  <MessageCircle className="h-[22px] w-[22px]" />
+                </NavBtn>
+                <button
+                  onClick={toggleTheme}
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95"
+                  title={darkMode ? "Light mode" : "Dark mode"}
+                >
+                  {darkMode ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+                </button>
+                <button
+                  onClick={signOut}
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95"
+                  title="Log out"
+                >
+                  <LogOut className="h-[18px] w-[18px]" />
+                </button>
+              </>
+            ) : (
+              <Link to="/auth" className="flex items-center gap-1.5 rounded-full gradient-brand px-5 py-2 text-xs font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 active:scale-95">
+                <LogIn className="h-4 w-4" />
+                Log In
+              </Link>
+            )}
+          </nav>
+
+          {/* Mobile nav - simplified */}
+          <div className="flex md:hidden items-center gap-1">
+            {user ? (
+              <>
+                <NavBtn to="/messages" active={pathname === "/messages"} label="Messages" badge={unreadMessages}>
+                  <MessageCircle className="h-[21px] w-[21px]" />
+                </NavBtn>
+                <button
+                  onClick={toggleTheme}
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-secondary active:scale-95"
+                  title={darkMode ? "Light mode" : "Dark mode"}
+                >
+                  {darkMode ? <Sun className="h-[17px] w-[17px]" /> : <Moon className="h-[17px] w-[17px]" />}
+                </button>
+              </>
+            ) : (
+              <Link to="/auth" className="flex items-center gap-1.5 rounded-full gradient-brand px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm active:scale-95">
+                <LogIn className="h-3.5 w-3.5" />
+                Log In
+              </Link>
+            )}
+          </div>
+        </div>
+      </header>
+    </>
   );
 };
 
