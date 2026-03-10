@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { BadgeCheck, Heart, MessageCircle, UserPlus, AtSign, Film } from "lucide-react";
+import { BadgeCheck, Heart, MessageCircle, UserPlus, AtSign, Film, Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
@@ -41,6 +41,15 @@ const typeText: Record<string, string> = {
   message: "sent you a message.",
 };
 
+const typeColor: Record<string, string> = {
+  like: "bg-primary/10 text-primary",
+  comment: "bg-accent/10 text-accent",
+  follow: "bg-primary/10 text-primary",
+  mention: "bg-accent/10 text-accent",
+  story: "bg-primary/10 text-primary",
+  message: "bg-secondary text-foreground",
+};
+
 const Notifications = () => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<NotifData[]>([]);
@@ -59,7 +68,6 @@ const Notifications = () => {
       .limit(50);
 
     if (data) {
-      // Get post images for post-related notifications
       const postIds = data.filter((n: any) => n.post_id).map((n: any) => n.post_id);
       let postImages: Record<string, string> = {};
       if (postIds.length > 0) {
@@ -72,7 +80,6 @@ const Notifications = () => {
         });
       }
 
-      // Check which actors user follows
       const actorIds = data.map((n: any) => n.profiles?.id).filter(Boolean);
       if (actorIds.length > 0) {
         const { data: follows } = await db
@@ -94,7 +101,6 @@ const Notifications = () => {
       }));
       setNotifications(mapped);
 
-      // Mark all as read
       const unread = data.filter((n: any) => !n.read).map((n: any) => n.id);
       if (unread.length > 0) {
         await db.from("notifications").update({ read: true }).in("id", unread);
@@ -120,7 +126,6 @@ const Notifications = () => {
     }
   };
 
-  // Group by today / this week / earlier
   const now = Date.now();
   const dayMs = 86400000;
   const today = notifications.filter((n) => now - new Date(n.created_at).getTime() < dayMs);
@@ -130,52 +135,61 @@ const Notifications = () => {
   });
   const earlier = notifications.filter((n) => now - new Date(n.created_at).getTime() >= 7 * dayMs);
 
+  const renderSection = (title: string, items: NotifData[]) => {
+    if (items.length === 0) return null;
+    return (
+      <div className="mb-4">
+        <p className="mb-2 px-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">{title}</p>
+        <div className="space-y-1">
+          {items.map((n, i) => (
+            <div key={n.id} className="animate-fade-in" style={{ animationDelay: `${i * 30}ms` }}>
+              <NotifItem n={n} followState={followState} toggleFollow={toggleFollow} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <div className="mx-auto max-w-[600px]">
-        <h2 className="px-4 py-3 text-base font-semibold">Activity</h2>
+        <div className="flex items-center gap-2 px-4 py-4">
+          <Bell className="h-5 w-5 text-foreground" />
+          <h2 className="text-lg font-bold text-foreground">Activity</h2>
+        </div>
 
         {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <div className="px-4 space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center gap-3 animate-pulse rounded-xl p-3">
+                <div className="h-12 w-12 rounded-full bg-secondary" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3.5 w-32 rounded-full bg-secondary" />
+                  <div className="h-3 w-48 rounded-full bg-secondary" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : notifications.length === 0 ? (
-          <div className="flex flex-col items-center py-16 text-muted-foreground">
-            <Heart className="h-12 w-12 mb-3 opacity-30" />
-            <p className="text-sm">No activity yet</p>
+          <div className="flex flex-col items-center py-20 text-muted-foreground animate-fade-in">
+            <div className="h-20 w-20 rounded-full bg-secondary flex items-center justify-center mb-4">
+              <Heart className="h-10 w-10 opacity-30" />
+            </div>
+            <p className="text-base font-semibold text-foreground">No activity yet</p>
+            <p className="text-sm mt-1">When people interact with you, you'll see it here</p>
           </div>
         ) : (
-          <div className="px-4">
-            {today.length > 0 && (
-              <>
-                <p className="mb-2 text-sm font-semibold">Today</p>
-                {today.map((n) => (
-                  <NotifItem key={n.id} n={n} followState={followState} toggleFollow={toggleFollow} />
-                ))}
-              </>
-            )}
-            {thisWeek.length > 0 && (
-              <>
-                <p className="mb-2 mt-4 text-sm font-semibold">This Week</p>
-                {thisWeek.map((n) => (
-                  <NotifItem key={n.id} n={n} followState={followState} toggleFollow={toggleFollow} />
-                ))}
-              </>
-            )}
-            {earlier.length > 0 && (
-              <>
-                <p className="mb-2 mt-4 text-sm font-semibold">Earlier</p>
-                {earlier.map((n) => (
-                  <NotifItem key={n.id} n={n} followState={followState} toggleFollow={toggleFollow} />
-                ))}
-              </>
-            )}
+          <div className="px-4 pb-20">
+            {renderSection("Today", today)}
+            {renderSection("This Week", thisWeek)}
+            {renderSection("Earlier", earlier)}
           </div>
         )}
       </div>
       <BottomNav />
-      <div className="h-14 md:hidden" />
+      <div className="h-16 md:hidden" />
     </div>
   );
 };
@@ -183,32 +197,37 @@ const Notifications = () => {
 function NotifItem({ n, followState, toggleFollow }: { n: NotifData; followState: Set<string>; toggleFollow: (id: string) => void }) {
   const isFollowing = followState.has(n.actor.id);
   const time = formatDistanceToNowStrict(new Date(n.created_at), { addSuffix: false });
+  const IconComp = typeIcon[n.type] || Heart;
+  const colorClass = typeColor[n.type] || "bg-secondary text-foreground";
 
   return (
-    <div className={`flex items-center gap-3 py-2.5 ${!n.read ? "bg-primary/5 -mx-2 px-2 rounded-lg" : ""}`}>
-      <Link to={`/profile/${n.actor.username}`}>
-        <img src={n.actor.avatar_url || "/placeholder.svg"} alt="" className="h-11 w-11 flex-shrink-0 rounded-full object-cover" />
+    <div className={`flex items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:bg-secondary/50 ${!n.read ? "bg-primary/[0.04]" : ""}`}>
+      <Link to={`/profile/${n.actor.username}`} className="relative flex-shrink-0">
+        <img src={n.actor.avatar_url || "/placeholder.svg"} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-background" />
+        <span className={`absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full ${colorClass} ring-2 ring-background`}>
+          <IconComp className="h-2.5 w-2.5" />
+        </span>
       </Link>
       <div className="flex-1 min-w-0">
-        <p className="text-sm">
-          <Link to={`/profile/${n.actor.username}`} className="font-semibold">{n.actor.username}</Link>
+        <p className="text-[13px] leading-snug">
+          <Link to={`/profile/${n.actor.username}`} className="font-bold hover:underline">{n.actor.username}</Link>
           {n.actor.verified && <BadgeCheck className="inline ml-0.5 h-3 w-3 fill-primary text-primary-foreground" />}{" "}
-          {typeText[n.type] || "interacted with your content."}{" "}
-          <span className="text-muted-foreground">{time}</span>
+          <span className="text-muted-foreground">{typeText[n.type] || "interacted with your content."}</span>
         </p>
+        <p className="text-[11px] text-muted-foreground/70 mt-0.5">{time} ago</p>
       </div>
       {n.type === "follow" && (
         <button
           onClick={() => toggleFollow(n.actor.id)}
-          className={`rounded-lg px-5 py-1.5 text-xs font-semibold transition-colors ${
-            isFollowing ? "bg-secondary text-foreground" : "gradient-brand text-primary-foreground"
+          className={`rounded-xl px-4 py-1.5 text-xs font-bold transition-all active:scale-95 ${
+            isFollowing ? "bg-secondary text-foreground border border-border" : "gradient-brand text-primary-foreground shadow-sm"
           }`}
         >
           {isFollowing ? "Following" : "Follow"}
         </button>
       )}
       {n.post_image && n.type !== "follow" && (
-        <div className="h-11 w-11 flex-shrink-0 overflow-hidden rounded-sm bg-secondary">
+        <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-secondary">
           <img src={n.post_image} alt="" className="h-full w-full object-cover" />
         </div>
       )}

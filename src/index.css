@@ -105,6 +105,16 @@
   }
 }
 
+/* Safe area padding for notched devices */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
 @layer utilities {
   .gradient-brand {
     background: var(--gradient-brand);

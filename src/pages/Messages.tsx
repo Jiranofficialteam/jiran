@@ -225,7 +225,7 @@ const Messages = () => {
         </div>
       </div>
       <BottomNav />
-      <div className="h-14 md:hidden" />
+      <div className="h-16 md:hidden" />
     </div>
   );
 };

@@ -22,6 +22,9 @@ const Index = () => {
         <main className="w-full max-w-[470px]">
           <StoryBar />
 
+          {/* Divider between stories and feed */}
+          <div className="h-px bg-border mx-3 md:mx-0" />
+
           {!user && !loading && (
             <div className="mx-3 mt-4 rounded-2xl border border-border bg-card p-8 text-center animate-fade-in">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full gradient-subtle">
@@ -47,7 +50,7 @@ const Index = () => {
             </div>
           )}
 
-          <div className="space-y-4 py-3 px-0 md:px-0">
+          <div className="space-y-3 py-3 px-0 md:px-0">
             {user && feedPosts && feedPosts.length > 0 ? (
               feedPosts.map((fp, i) => (
                 <div key={fp.id} className="animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
@@ -80,7 +83,7 @@ const Index = () => {
         <SuggestedUsers />
       </div>
       <BottomNav />
-      <div className="h-14 md:hidden" />
+      <div className="h-16 md:hidden" />
     </div>
   );
 };
