@@ -2,16 +2,19 @@ import { useState, useEffect } from "react";
 import {
   Shield, Users, Image, Film, MessageSquare, TrendingUp,
   Rocket, Trash2, BadgeCheck, Ban, Eye, ThumbsUp, MessageCircle,
-  ChevronLeft, Search, Check, X, AlertTriangle
+  ChevronLeft, Search, Check, X, AlertTriangle, DollarSign,
+  Zap, BarChart2, Activity, Clock, Target, ArrowUpRight, ArrowDownRight,
+  RefreshCw, Filter, ChevronDown, Heart
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { formatCount } from "@/lib/utils";
 
 const db = supabase as any;
 
-type Tab = "overview" | "users" | "posts" | "stories" | "comments" | "campaigns" | "messages";
+type Tab = "overview" | "users" | "posts" | "stories" | "comments" | "campaigns" | "reports" | "messages";
 
 const Admin = () => {
   const { user } = useAuth();
@@ -34,37 +37,47 @@ const Admin = () => {
   if (loading || !isAdmin) return <div className="flex h-screen items-center justify-center bg-background"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
 
   const tabs: { id: Tab; label: string; icon: any }[] = [
-    { id: "overview", label: "Overview", icon: TrendingUp },
+    { id: "overview", label: "Overview", icon: BarChart2 },
     { id: "users", label: "Users", icon: Users },
     { id: "posts", label: "Posts", icon: Image },
     { id: "stories", label: "Stories", icon: Film },
     { id: "comments", label: "Comments", icon: MessageCircle },
-    { id: "campaigns", label: "Campaigns", icon: Rocket },
+    { id: "campaigns", label: "Boosts", icon: Rocket },
+    { id: "reports", label: "Reports", icon: AlertTriangle },
     { id: "messages", label: "DMs", icon: MessageSquare },
   ];
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-30 border-b border-border bg-card/95 px-4 py-3 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-5xl items-center justify-between">
+      <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur-md">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <button onClick={() => navigate("/")} className="mr-2 rounded-full p-1 hover:bg-secondary">
+            <button onClick={() => navigate("/")} className="mr-1 rounded-full p-1.5 hover:bg-secondary transition-colors">
               <ChevronLeft className="h-5 w-5 text-foreground" />
             </button>
-            <Shield className="h-5 w-5 text-primary" />
-            <h1 className="text-lg font-bold text-foreground">Admin Panel</h1>
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary">
+                <Shield className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-base font-bold text-foreground leading-none">Admin Panel</h1>
+                <p className="text-[10px] text-muted-foreground">Manage everything</p>
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
       <div className="mx-auto max-w-5xl px-4 py-3">
-        <div className="mb-4 flex gap-1.5 overflow-x-auto pb-1">
+        <div className="mb-4 flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
           {tabs.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                tab === t.id ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-muted"
+              className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold transition-all ${
+                tab === t.id
+                  ? "bg-foreground text-background shadow-sm"
+                  : "bg-secondary text-secondary-foreground hover:bg-muted"
               }`}
             >
               <t.icon className="h-3.5 w-3.5" />
@@ -79,6 +92,7 @@ const Admin = () => {
         {tab === "stories" && <StoriesTab />}
         {tab === "comments" && <CommentsTab />}
         {tab === "campaigns" && <CampaignsTab />}
+        {tab === "reports" && <ReportsTab />}
         {tab === "messages" && <MessagesTab />}
       </div>
     </div>
@@ -87,44 +101,162 @@ const Admin = () => {
 
 /* ─── Overview ─── */
 const OverviewTab = () => {
-  const [stats, setStats] = useState({ users: 0, posts: 0, stories: 0, comments: 0, likes: 0, campaigns: 0 });
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetch = async () => {
-      const [u, p, s, c, l, ca] = await Promise.all([
+      const [u, p, s, c, l, ca, visits, reports] = await Promise.all([
         db.from("profiles").select("id", { count: "exact", head: true }),
         db.from("posts").select("id", { count: "exact", head: true }),
         db.from("stories").select("id", { count: "exact", head: true }),
         db.from("comments").select("id", { count: "exact", head: true }),
         db.from("likes").select("id", { count: "exact", head: true }),
-        db.from("ad_campaigns").select("id", { count: "exact", head: true }),
+        db.from("ad_campaigns").select("id, status, boost_likes, boost_views, budget"),
+        db.from("profile_visits").select("id", { count: "exact", head: true }),
+        db.from("reports").select("id", { count: "exact", head: true }),
       ]);
+
+      const campaigns = ca.data || [];
+      const totalBoostLikes = campaigns.reduce((s: number, c: any) => s + (c.boost_likes || 0), 0);
+      const totalBoostViews = campaigns.reduce((s: number, c: any) => s + (c.boost_views || 0), 0);
+      const totalRevenue = campaigns.reduce((s: number, c: any) => s + (Number(c.budget) || 0), 0);
+      const activeCampaigns = campaigns.filter((c: any) => c.status === "active" || c.status === "approved").length;
+      const pendingCampaigns = campaigns.filter((c: any) => c.status === "pending").length;
+
+      // Week stats
+      const weekAgo = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+      const [newUsers, newPosts] = await Promise.all([
+        db.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", weekAgo),
+        db.from("posts").select("id", { count: "exact", head: true }).gte("created_at", weekAgo),
+      ]);
+
       setStats({
-        users: u.count || 0, posts: p.count || 0, stories: s.count || 0,
-        comments: c.count || 0, likes: l.count || 0, campaigns: ca.count || 0,
+        users: u.count || 0,
+        posts: p.count || 0,
+        stories: s.count || 0,
+        comments: c.count || 0,
+        likes: l.count || 0,
+        campaigns: campaigns.length,
+        totalBoostLikes,
+        totalBoostViews,
+        totalRevenue,
+        activeCampaigns,
+        pendingCampaigns,
+        profileVisits: visits.count || 0,
+        reports: reports.count || 0,
+        newUsersWeek: newUsers.count || 0,
+        newPostsWeek: newPosts.count || 0,
       });
+      setLoading(false);
     };
     fetch();
   }, []);
 
-  const cards = [
-    { label: "Total Users", value: stats.users, icon: Users, color: "text-primary" },
-    { label: "Total Posts", value: stats.posts, icon: Image, color: "text-accent" },
-    { label: "Active Stories", value: stats.stories, icon: Film, color: "text-primary" },
-    { label: "Comments", value: stats.comments, icon: MessageCircle, color: "text-accent" },
-    { label: "Total Likes", value: stats.likes, icon: ThumbsUp, color: "text-primary" },
-    { label: "Ad Campaigns", value: stats.campaigns, icon: Rocket, color: "text-accent" },
+  if (loading) return <div className="flex justify-center py-12"><div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
+  if (!stats) return null;
+
+  const primaryCards = [
+    { label: "Total Users", value: formatCount(stats.users), sub: `+${stats.newUsersWeek} this week`, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
+    { label: "Total Posts", value: formatCount(stats.posts), sub: `+${stats.newPostsWeek} this week`, icon: Image, color: "text-violet-500", bg: "bg-violet-500/10" },
+    { label: "Total Likes", value: formatCount(stats.likes + stats.totalBoostLikes), sub: `${formatCount(stats.totalBoostLikes)} from boosts`, icon: Heart, color: "text-rose-500", bg: "bg-rose-500/10" },
+    { label: "Total Views", value: formatCount(stats.profileVisits + stats.totalBoostViews), sub: `${formatCount(stats.totalBoostViews)} from boosts`, icon: Eye, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+  ];
+
+  const secondaryCards = [
+    { label: "Comments", value: formatCount(stats.comments), icon: MessageCircle, color: "text-sky-500", bg: "bg-sky-500/10" },
+    { label: "Stories", value: formatCount(stats.stories), icon: Film, color: "text-pink-500", bg: "bg-pink-500/10" },
+    { label: "Reports", value: formatCount(stats.reports), icon: AlertTriangle, color: "text-amber-500", bg: "bg-amber-500/10" },
+    { label: "Revenue", value: `$${stats.totalRevenue}`, icon: DollarSign, color: "text-green-500", bg: "bg-green-500/10" },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      {cards.map((c) => (
-        <div key={c.label} className="rounded-xl border border-border bg-card p-4">
-          <c.icon className={`mb-2 h-5 w-5 ${c.color}`} />
-          <p className="text-2xl font-bold text-foreground">{c.value.toLocaleString()}</p>
-          <p className="text-xs text-muted-foreground">{c.label}</p>
+    <div className="space-y-4">
+      {/* Primary metrics */}
+      <div className="grid grid-cols-2 gap-3">
+        {primaryCards.map((c) => (
+          <div key={c.label} className="rounded-2xl border border-border bg-card p-4 transition-shadow hover:shadow-md">
+            <div className={`mb-2 inline-flex h-9 w-9 items-center justify-center rounded-xl ${c.bg}`}>
+              <c.icon className={`h-4.5 w-4.5 ${c.color}`} />
+            </div>
+            <p className="text-xl font-bold text-foreground leading-none">{c.value}</p>
+            <p className="text-xs font-semibold text-foreground mt-1">{c.label}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">{c.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Boost summary banner */}
+      <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Rocket className="h-5 w-5 text-primary" />
+          <h3 className="text-sm font-bold text-foreground">Boost Analytics</h3>
+          {stats.pendingCampaigns > 0 && (
+            <span className="ml-auto rounded-full bg-amber-500/20 px-2 py-0.5 text-[11px] font-bold text-amber-600">
+              {stats.pendingCampaigns} pending
+            </span>
+          )}
         </div>
-      ))}
+        <div className="grid grid-cols-4 gap-2 text-center">
+          <div className="rounded-xl bg-card p-2.5">
+            <p className="text-lg font-bold text-foreground">{stats.campaigns}</p>
+            <p className="text-[10px] text-muted-foreground font-medium">Campaigns</p>
+          </div>
+          <div className="rounded-xl bg-card p-2.5">
+            <p className="text-lg font-bold text-primary">{stats.activeCampaigns}</p>
+            <p className="text-[10px] text-muted-foreground font-medium">Active</p>
+          </div>
+          <div className="rounded-xl bg-card p-2.5">
+            <p className="text-lg font-bold text-rose-500">+{formatCount(stats.totalBoostLikes)}</p>
+            <p className="text-[10px] text-muted-foreground font-medium">Boost Likes</p>
+          </div>
+          <div className="rounded-xl bg-card p-2.5">
+            <p className="text-lg font-bold text-emerald-500">+{formatCount(stats.totalBoostViews)}</p>
+            <p className="text-[10px] text-muted-foreground font-medium">Boost Views</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Secondary metrics */}
+      <div className="grid grid-cols-4 gap-2">
+        {secondaryCards.map((c) => (
+          <div key={c.label} className="rounded-2xl border border-border bg-card p-3 text-center transition-shadow hover:shadow-md">
+            <c.icon className={`mx-auto mb-1.5 h-4 w-4 ${c.color}`} />
+            <p className="text-base font-bold text-foreground">{c.value}</p>
+            <p className="text-[10px] text-muted-foreground font-medium">{c.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Engagement rate */}
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Activity className="h-4 w-4 text-primary" />
+            <span className="text-sm font-bold text-foreground">Engagement Overview</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <p className="text-xs text-muted-foreground">Likes/Post</p>
+            <p className="text-lg font-bold text-foreground">
+              {stats.posts > 0 ? ((stats.likes + stats.totalBoostLikes) / stats.posts).toFixed(1) : "0"}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Comments/Post</p>
+            <p className="text-lg font-bold text-foreground">
+              {stats.posts > 0 ? (stats.comments / stats.posts).toFixed(1) : "0"}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Avg Revenue</p>
+            <p className="text-lg font-bold text-foreground">
+              ${stats.campaigns > 0 ? (stats.totalRevenue / stats.campaigns).toFixed(0) : "0"}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -177,56 +309,56 @@ const UsersTab = () => {
 
   return (
     <div>
-      <div className="mb-3 flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2">
+      <div className="mb-3 flex items-center gap-2 rounded-2xl border border-border bg-card px-3 py-2.5">
         <Search className="h-4 w-4 text-muted-foreground" />
         <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search users..." className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
       </div>
       <div className="space-y-2">
         {users.map((u) => (
-          <div key={u.id} className="rounded-xl border border-border bg-card p-3">
+          <div key={u.id} className="rounded-2xl border border-border bg-card p-3 transition-shadow hover:shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <img src={u.avatar_url || "/placeholder.svg"} alt="" className="h-10 w-10 rounded-full object-cover" />
+                <img src={u.avatar_url || "/placeholder.svg"} alt="" className="h-11 w-11 rounded-full object-cover ring-2 ring-border" />
                 <div>
                   <div className="flex items-center gap-1">
-                    <span className="text-sm font-semibold text-foreground">{u.username}</span>
+                    <span className="text-sm font-bold text-foreground">{u.username}</span>
                     {u.verified && <BadgeCheck className="h-3.5 w-3.5 fill-primary text-primary-foreground" />}
                   </div>
                   <p className="text-xs text-muted-foreground">{u.full_name}</p>
                   {(u.follower_boost || 0) > 0 && (
-                    <p className="text-[11px] text-primary">+{(u.follower_boost || 0).toLocaleString()} boosted followers</p>
+                    <p className="text-[11px] text-primary font-medium">+{formatCount(u.follower_boost)} boosted followers</p>
                   )}
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => { setBoostUserId(boostUserId === u.id ? null : u.id); setBoostValue(String(u.follower_boost || 0)); }}
-                  className="rounded-lg bg-secondary p-2 text-xs text-muted-foreground hover:opacity-80"
+                  className="rounded-xl bg-secondary p-2 text-muted-foreground hover:bg-muted transition-colors"
                   title="Boost followers"
                 >
-                  <Users className="h-4 w-4" />
+                  <Rocket className="h-4 w-4" />
                 </button>
-                <button onClick={() => toggleVerify(u.id, u.verified)} className={`rounded-lg p-2 text-xs ${u.verified ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"} hover:opacity-80`} title={u.verified ? "Remove verification" : "Verify"}>
+                <button onClick={() => toggleVerify(u.id, u.verified)} className={`rounded-xl p-2 transition-colors ${u.verified ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground hover:bg-muted"}`} title={u.verified ? "Remove verification" : "Verify"}>
                   <BadgeCheck className="h-4 w-4" />
                 </button>
-                <button onClick={() => deleteUser(u.id)} className="rounded-lg bg-destructive/10 p-2 text-destructive hover:opacity-80" title="Delete user">
+                <button onClick={() => deleteUser(u.id)} className="rounded-xl bg-destructive/10 p-2 text-destructive hover:bg-destructive/20 transition-colors" title="Delete user">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
             </div>
             {boostUserId === u.id && (
-              <div className="mt-3 flex items-center gap-2 rounded-lg border border-border bg-secondary/50 p-2">
+              <div className="mt-3 flex items-center gap-2 rounded-xl border border-border bg-secondary/50 p-2.5">
                 <input
                   type="number"
                   min="0"
                   value={boostValue}
                   onChange={(e) => setBoostValue(e.target.value)}
                   placeholder="Follower boost count"
-                  className="flex-1 rounded-lg bg-background px-3 py-1.5 text-sm outline-none"
+                  className="flex-1 rounded-xl bg-background px-3 py-2 text-sm outline-none border border-border focus:border-primary transition-colors"
                 />
                 <button
                   onClick={() => updateFollowerBoost(u.id)}
-                  className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+                  className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 transition-opacity"
                 >
                   Set
                 </button>
@@ -234,7 +366,7 @@ const UsersTab = () => {
             )}
           </div>
         ))}
-        {users.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No users found</p>}
+        {users.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">No users found</p>}
       </div>
     </div>
   );
@@ -243,21 +375,38 @@ const UsersTab = () => {
 /* ─── Posts ─── */
 const PostsTab = () => {
   const [posts, setPosts] = useState<any[]>([]);
+  const [boostPostId, setBoostPostId] = useState<string | null>(null);
+  const [boostLikes, setBoostLikes] = useState("");
+  const [boostViews, setBoostViews] = useState("");
 
   useEffect(() => {
     const fetch = async () => {
       const { data } = await db.from("posts").select("*, profiles!posts_user_id_fkey (username, avatar_url, verified)").order("created_at", { ascending: false }).limit(100);
       if (data) {
         const postIds = data.map((p: any) => p.id);
-        const [{ data: lc }, { data: cc }] = await Promise.all([
+        const [{ data: lc }, { data: cc }, { data: campaigns }] = await Promise.all([
           db.from("likes").select("post_id").in("post_id", postIds),
           db.from("comments").select("post_id").in("post_id", postIds),
+          db.from("ad_campaigns").select("post_id, boost_likes, boost_views, status").in("post_id", postIds),
         ]);
         const likeMap: Record<string, number> = {};
         const commentMap: Record<string, number> = {};
+        const boostLikesMap: Record<string, number> = {};
+        const boostViewsMap: Record<string, number> = {};
         (lc || []).forEach((l: any) => { likeMap[l.post_id] = (likeMap[l.post_id] || 0) + 1; });
         (cc || []).forEach((c: any) => { commentMap[c.post_id] = (commentMap[c.post_id] || 0) + 1; });
-        setPosts(data.map((p: any) => ({ ...p, like_count: likeMap[p.id] || 0, comment_count: commentMap[p.id] || 0 })));
+        (campaigns || []).forEach((b: any) => {
+          boostLikesMap[b.post_id] = (boostLikesMap[b.post_id] || 0) + (b.boost_likes || 0);
+          boostViewsMap[b.post_id] = (boostViewsMap[b.post_id] || 0) + (b.boost_views || 0);
+        });
+        setPosts(data.map((p: any) => ({
+          ...p,
+          like_count: (likeMap[p.id] || 0) + (boostLikesMap[p.id] || 0),
+          real_likes: likeMap[p.id] || 0,
+          comment_count: commentMap[p.id] || 0,
+          boost_likes: boostLikesMap[p.id] || 0,
+          boost_views: boostViewsMap[p.id] || 0,
+        })));
       }
     };
     fetch();
@@ -268,36 +417,99 @@ const PostsTab = () => {
       db.from("likes").delete().eq("post_id", id),
       db.from("comments").delete().eq("post_id", id),
       db.from("saves").delete().eq("post_id", id),
+      db.from("ad_campaigns").delete().eq("post_id", id),
     ]);
     await db.from("posts").delete().eq("id", id);
     setPosts((prev) => prev.filter((p) => p.id !== id));
     toast.success("Post deleted");
   };
 
+  const addBoostToPost = async (postId: string, userId: string) => {
+    const bl = parseInt(boostLikes) || 0;
+    const bv = parseInt(boostViews) || 0;
+    if (bl === 0 && bv === 0) { toast.error("Enter likes or views"); return; }
+    await db.from("ad_campaigns").insert({
+      user_id: userId,
+      post_id: postId,
+      boost_likes: bl,
+      boost_views: bv,
+      status: "active",
+      budget: 0,
+      duration_days: 30,
+      target_audience: "Admin boost",
+    });
+    setPosts((prev) => prev.map((p) => p.id === postId ? {
+      ...p,
+      like_count: p.like_count + bl,
+      boost_likes: p.boost_likes + bl,
+      boost_views: p.boost_views + bv,
+    } : p));
+    setBoostPostId(null);
+    setBoostLikes("");
+    setBoostViews("");
+    toast.success(`Added +${bl} likes, +${bv} views`);
+  };
+
   return (
     <div className="space-y-2">
       {posts.map((p) => (
-        <div key={p.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-3">
-          <div className="flex items-center gap-3">
-            <div className="h-14 w-14 overflow-hidden rounded-lg bg-secondary">
-              {p.image_url && <img src={p.image_url} alt="" className="h-full w-full object-cover" />}
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-foreground">{p.profiles?.username}</p>
-              <p className="max-w-[200px] truncate text-xs text-muted-foreground">{p.caption || "No caption"}</p>
-              <div className="mt-1 flex items-center gap-3 text-[11px] text-muted-foreground">
-                <span className="flex items-center gap-0.5"><ThumbsUp className="h-3 w-3" /> {p.like_count}</span>
-                <span className="flex items-center gap-0.5"><MessageCircle className="h-3 w-3" /> {p.comment_count}</span>
-                <span className="flex items-center gap-0.5"><Eye className="h-3 w-3" /> {p.type}</span>
+        <div key={p.id} className="rounded-2xl border border-border bg-card p-3 transition-shadow hover:shadow-sm">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-14 w-14 overflow-hidden rounded-xl bg-secondary flex-shrink-0">
+                {p.image_url && <img src={p.image_url} alt="" className="h-full w-full object-cover" />}
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1">
+                  <span className="text-sm font-bold text-foreground">{p.profiles?.username}</span>
+                  {p.profiles?.verified && <BadgeCheck className="h-3 w-3 fill-primary text-primary-foreground" />}
+                </div>
+                <p className="max-w-[180px] truncate text-xs text-muted-foreground">{p.caption || "No caption"}</p>
+                <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[11px]">
+                  <span className="flex items-center gap-0.5 text-rose-500 font-medium">
+                    <Heart className="h-3 w-3" /> {p.like_count}
+                    {p.boost_likes > 0 && <span className="text-[9px] text-muted-foreground ml-0.5">(+{p.boost_likes})</span>}
+                  </span>
+                  <span className="flex items-center gap-0.5 text-blue-500 font-medium">
+                    <MessageCircle className="h-3 w-3" /> {p.comment_count}
+                  </span>
+                  {p.boost_views > 0 && (
+                    <span className="flex items-center gap-0.5 text-emerald-500 font-medium">
+                      <Eye className="h-3 w-3" /> +{formatCount(p.boost_views)}
+                    </span>
+                  )}
+                  <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[10px] text-muted-foreground uppercase">{p.type}</span>
+                </div>
               </div>
             </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setBoostPostId(boostPostId === p.id ? null : p.id)}
+                className="rounded-xl bg-primary/10 p-2 text-primary hover:bg-primary/20 transition-colors"
+                title="Add boost"
+              >
+                <Zap className="h-4 w-4" />
+              </button>
+              <button onClick={() => deletePost(p.id)} className="rounded-xl bg-destructive/10 p-2 text-destructive hover:bg-destructive/20 transition-colors">
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
           </div>
-          <button onClick={() => deletePost(p.id)} className="rounded-lg bg-destructive/10 p-2 text-destructive hover:opacity-80">
-            <Trash2 className="h-4 w-4" />
-          </button>
+          {boostPostId === p.id && (
+            <div className="mt-3 rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-2">
+              <p className="text-xs font-bold text-foreground flex items-center gap-1"><Zap className="h-3 w-3 text-primary" /> Quick Boost</p>
+              <div className="flex gap-2">
+                <input type="number" min="0" value={boostLikes} onChange={(e) => setBoostLikes(e.target.value)} placeholder="Likes" className="flex-1 rounded-xl bg-background px-3 py-2 text-sm outline-none border border-border focus:border-primary" />
+                <input type="number" min="0" value={boostViews} onChange={(e) => setBoostViews(e.target.value)} placeholder="Views" className="flex-1 rounded-xl bg-background px-3 py-2 text-sm outline-none border border-border focus:border-primary" />
+              </div>
+              <button onClick={() => addBoostToPost(p.id, p.user_id)} className="w-full rounded-xl bg-primary py-2 text-xs font-bold text-primary-foreground hover:opacity-90">
+                Apply Boost
+              </button>
+            </div>
+          )}
         </div>
       ))}
-      {posts.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No posts</p>}
+      {posts.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">No posts</p>}
     </div>
   );
 };
@@ -323,17 +535,17 @@ const StoriesTab = () => {
   return (
     <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
       {stories.map((s) => (
-        <div key={s.id} className="group relative overflow-hidden rounded-xl bg-secondary">
+        <div key={s.id} className="group relative overflow-hidden rounded-2xl bg-secondary">
           <img src={s.media_url || "/placeholder.svg"} alt="" className="aspect-[9/16] w-full object-cover" />
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 p-2">
-            <p className="truncate text-xs font-semibold text-white">{s.profiles?.username}</p>
+            <p className="truncate text-xs font-bold text-white">{s.profiles?.username}</p>
           </div>
-          <button onClick={() => deleteStory(s.id)} className="absolute right-1 top-1 rounded-full bg-destructive/80 p-1 opacity-0 transition-opacity group-hover:opacity-100">
+          <button onClick={() => deleteStory(s.id)} className="absolute right-1.5 top-1.5 rounded-full bg-destructive/80 p-1.5 opacity-0 transition-opacity group-hover:opacity-100">
             <Trash2 className="h-3 w-3 text-white" />
           </button>
         </div>
       ))}
-      {stories.length === 0 && <p className="col-span-full py-8 text-center text-sm text-muted-foreground">No stories</p>}
+      {stories.length === 0 && <p className="col-span-full py-12 text-center text-sm text-muted-foreground">No stories</p>}
     </div>
   );
 };
@@ -359,20 +571,20 @@ const CommentsTab = () => {
   return (
     <div className="space-y-2">
       {comments.map((c) => (
-        <div key={c.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-3">
-          <div className="flex items-center gap-3">
-            <img src={c.profiles?.avatar_url || "/placeholder.svg"} alt="" className="h-8 w-8 rounded-full object-cover" />
-            <div>
-              <p className="text-xs font-semibold text-foreground">{c.profiles?.username}</p>
+        <div key={c.id} className="flex items-center justify-between rounded-2xl border border-border bg-card p-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <img src={c.profiles?.avatar_url || "/placeholder.svg"} alt="" className="h-9 w-9 rounded-full object-cover flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-foreground">{c.profiles?.username}</p>
               <p className="max-w-[250px] truncate text-sm text-muted-foreground">{c.text}</p>
             </div>
           </div>
-          <button onClick={() => deleteComment(c.id)} className="rounded-lg bg-destructive/10 p-2 text-destructive hover:opacity-80">
+          <button onClick={() => deleteComment(c.id)} className="rounded-xl bg-destructive/10 p-2 text-destructive hover:bg-destructive/20 transition-colors flex-shrink-0">
             <Trash2 className="h-4 w-4" />
           </button>
         </div>
       ))}
-      {comments.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No comments</p>}
+      {comments.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">No comments</p>}
     </div>
   );
 };
@@ -380,6 +592,7 @@ const CommentsTab = () => {
 /* ─── Campaigns ─── */
 const CampaignsTab = () => {
   const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     const fetch = async () => {
@@ -389,58 +602,187 @@ const CampaignsTab = () => {
     fetch();
   }, []);
 
-  const updateStatus = async (id: string, status: string, postId?: string, boostLikes?: number, boostViews?: number) => {
+  const updateStatus = async (id: string, status: string) => {
     await db.from("ad_campaigns").update({ status }).eq("id", id);
     setCampaigns((prev) => prev.map((c) => (c.id === id ? { ...c, status } : c)));
     toast.success(`Campaign ${status}`);
   };
 
+  const deleteCampaign = async (id: string) => {
+    await db.from("ad_campaigns").delete().eq("id", id);
+    setCampaigns((prev) => prev.filter((c) => c.id !== id));
+    toast.success("Campaign deleted");
+  };
+
   const statusColors: Record<string, string> = {
-    pending: "bg-accent/20 text-accent",
-    approved: "bg-primary/20 text-primary",
-    active: "bg-green-500/20 text-green-600",
-    rejected: "bg-destructive/20 text-destructive",
+    pending: "bg-amber-500/15 text-amber-600",
+    approved: "bg-blue-500/15 text-blue-600",
+    active: "bg-emerald-500/15 text-emerald-600",
+    rejected: "bg-destructive/15 text-destructive",
     completed: "bg-muted text-muted-foreground",
   };
 
+  const filters = ["all", "pending", "active", "approved", "completed", "rejected"];
+  const filtered = filter === "all" ? campaigns : campaigns.filter((c) => c.status === filter);
+
+  // Totals
+  const totalLikes = campaigns.reduce((s, c) => s + (c.boost_likes || 0), 0);
+  const totalViews = campaigns.reduce((s, c) => s + (c.boost_views || 0), 0);
+  const totalRevenue = campaigns.reduce((s, c) => s + (Number(c.budget) || 0), 0);
+
   return (
     <div className="space-y-3">
-      {campaigns.map((c) => (
-        <div key={c.id} className="rounded-xl border border-border bg-card p-4">
+      {/* Summary */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="rounded-2xl border border-border bg-card p-3 text-center">
+          <Heart className="mx-auto mb-1 h-4 w-4 text-rose-500" />
+          <p className="text-lg font-bold text-foreground">+{formatCount(totalLikes)}</p>
+          <p className="text-[10px] text-muted-foreground font-medium">Total Boost Likes</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-3 text-center">
+          <Eye className="mx-auto mb-1 h-4 w-4 text-emerald-500" />
+          <p className="text-lg font-bold text-foreground">+{formatCount(totalViews)}</p>
+          <p className="text-[10px] text-muted-foreground font-medium">Total Boost Views</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-3 text-center">
+          <DollarSign className="mx-auto mb-1 h-4 w-4 text-green-500" />
+          <p className="text-lg font-bold text-foreground">${totalRevenue}</p>
+          <p className="text-[10px] text-muted-foreground font-medium">Total Revenue</p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1">
+        {filters.map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-semibold capitalize transition-colors ${
+              filter === f ? "bg-foreground text-background" : "bg-secondary text-secondary-foreground hover:bg-muted"
+            }`}
+          >
+            {f} {f !== "all" && `(${campaigns.filter((c) => c.status === f).length})`}
+          </button>
+        ))}
+      </div>
+
+      {/* Campaign list */}
+      {filtered.map((c) => (
+        <div key={c.id} className="rounded-2xl border border-border bg-card p-4 transition-shadow hover:shadow-sm">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 overflow-hidden rounded-lg bg-secondary">
+              <div className="h-14 w-14 overflow-hidden rounded-xl bg-secondary flex-shrink-0">
                 {c.posts?.image_url && <img src={c.posts.image_url} alt="" className="h-full w-full object-cover" />}
               </div>
               <div>
-                <p className="text-sm font-semibold text-foreground">{c.profiles?.username}</p>
-                <p className="max-w-[180px] truncate text-xs text-muted-foreground">{c.posts?.caption || "No caption"}</p>
+                <p className="text-sm font-bold text-foreground">{c.profiles?.username}</p>
+                <p className="max-w-[160px] truncate text-xs text-muted-foreground">{c.posts?.caption || "No caption"}</p>
               </div>
             </div>
-            <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${statusColors[c.status] || ""}`}>
-              {c.status}
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${statusColors[c.status] || ""}`}>
+                {c.status}
+              </span>
+              <button onClick={() => deleteCampaign(c.id)} className="rounded-xl p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors">
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
+
           <div className="mt-3 grid grid-cols-4 gap-2 text-center text-xs">
-            <div><p className="font-bold text-foreground">${c.budget}</p><p className="text-muted-foreground">Budget</p></div>
-            <div><p className="font-bold text-foreground">{c.duration_days}d</p><p className="text-muted-foreground">Duration</p></div>
-            <div><p className="font-bold text-foreground">+{c.boost_likes}</p><p className="text-muted-foreground">Likes</p></div>
-            <div><p className="font-bold text-foreground">+{c.boost_views}</p><p className="text-muted-foreground">Views</p></div>
+            <div className="rounded-xl bg-secondary/50 p-2">
+              <p className="font-bold text-foreground">${c.budget}</p>
+              <p className="text-[10px] text-muted-foreground">Budget</p>
+            </div>
+            <div className="rounded-xl bg-secondary/50 p-2">
+              <p className="font-bold text-foreground">{c.duration_days}d</p>
+              <p className="text-[10px] text-muted-foreground">Duration</p>
+            </div>
+            <div className="rounded-xl bg-rose-500/10 p-2">
+              <p className="font-bold text-rose-500">+{c.boost_likes}</p>
+              <p className="text-[10px] text-muted-foreground">Likes</p>
+            </div>
+            <div className="rounded-xl bg-emerald-500/10 p-2">
+              <p className="font-bold text-emerald-500">+{c.boost_views}</p>
+              <p className="text-[10px] text-muted-foreground">Views</p>
+            </div>
           </div>
-          {c.target_audience && <p className="mt-2 text-[11px] text-muted-foreground">🎯 {c.target_audience}</p>}
+
+          {c.target_audience && <p className="mt-2 text-[11px] text-muted-foreground flex items-center gap-1"><Target className="h-3 w-3" /> {c.target_audience}</p>}
+
           {c.status === "pending" && (
             <div className="mt-3 flex gap-2">
-              <button onClick={() => updateStatus(c.id, "active")} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-primary py-2 text-xs font-semibold text-primary-foreground">
-                <Check className="h-3.5 w-3.5" /> Approve & Activate
+              <button onClick={() => updateStatus(c.id, "active")} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-xs font-bold text-primary-foreground hover:opacity-90 transition-opacity">
+                <Check className="h-3.5 w-3.5" /> Approve
               </button>
-              <button onClick={() => updateStatus(c.id, "rejected")} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-destructive py-2 text-xs font-semibold text-destructive-foreground">
+              <button onClick={() => updateStatus(c.id, "rejected")} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-destructive py-2.5 text-xs font-bold text-destructive-foreground hover:opacity-90 transition-opacity">
                 <X className="h-3.5 w-3.5" /> Reject
               </button>
             </div>
           )}
+          {(c.status === "active" || c.status === "approved") && (
+            <button onClick={() => updateStatus(c.id, "completed")} className="mt-3 w-full rounded-xl bg-secondary py-2 text-xs font-bold text-secondary-foreground hover:bg-muted transition-colors">
+              Mark Completed
+            </button>
+          )}
         </div>
       ))}
-      {campaigns.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No campaigns</p>}
+      {filtered.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">No campaigns</p>}
+    </div>
+  );
+};
+
+/* ─── Reports ─── */
+const ReportsTab = () => {
+  const [reports, setReports] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetch = async () => {
+      const { data } = await db.from("reports").select("*").order("created_at", { ascending: false }).limit(100);
+      if (data) {
+        // Fetch reporter profiles
+        const reporterIds = [...new Set(data.map((r: any) => r.reporter_id))];
+        const { data: profiles } = await db.from("profiles").select("id, username, avatar_url").in("id", reporterIds);
+        const profileMap: Record<string, any> = {};
+        (profiles || []).forEach((p: any) => { profileMap[p.id] = p; });
+        setReports(data.map((r: any) => ({ ...r, reporter: profileMap[r.reporter_id] })));
+      }
+    };
+    fetch();
+  }, []);
+
+  const deleteReport = async (id: string) => {
+    await db.from("reports").delete().eq("id", id);
+    setReports((prev) => prev.filter((r) => r.id !== id));
+    toast.success("Report dismissed");
+  };
+
+  return (
+    <div className="space-y-2">
+      {reports.map((r) => (
+        <div key={r.id} className="rounded-2xl border border-border bg-card p-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10">
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-foreground">
+                  Reported by {r.reporter?.username || "Unknown"}
+                </p>
+                <p className="text-sm text-muted-foreground">{r.reason || "No reason"}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  {r.post_id ? "Post report" : r.user_id ? "User report" : "General"} • {new Date(r.created_at).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+            <button onClick={() => deleteReport(r.id)} className="rounded-xl bg-secondary p-2 text-muted-foreground hover:bg-muted transition-colors" title="Dismiss">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      ))}
+      {reports.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">No reports</p>}
     </div>
   );
 };
@@ -462,24 +804,26 @@ const MessagesTab = () => {
       {conversations.map((conv) => {
         const members = conv.conversation_members || [];
         return (
-          <div key={conv.id} className="rounded-xl border border-border bg-card p-3">
-            <div className="flex items-center gap-2">
+          <div key={conv.id} className="rounded-2xl border border-border bg-card p-3">
+            <div className="flex items-center gap-3">
               <div className="flex -space-x-2">
                 {members.slice(0, 3).map((m: any, i: number) => (
-                  <img key={i} src={m.profiles?.avatar_url || "/placeholder.svg"} alt="" className="h-8 w-8 rounded-full border-2 border-card object-cover" />
+                  <img key={i} src={m.profiles?.avatar_url || "/placeholder.svg"} alt="" className="h-9 w-9 rounded-full border-2 border-card object-cover" />
                 ))}
               </div>
               <div>
-                <p className="text-sm font-semibold text-foreground">
+                <p className="text-sm font-bold text-foreground">
                   {members.map((m: any) => m.profiles?.username).filter(Boolean).join(", ") || "Empty conversation"}
                 </p>
-                <p className="text-[11px] text-muted-foreground">{conv.is_group ? "Group" : "Direct"} • {new Date(conv.created_at).toLocaleDateString()}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {conv.is_group ? "Group" : "Direct"} • {new Date(conv.created_at).toLocaleDateString()}
+                </p>
               </div>
             </div>
           </div>
         );
       })}
-      {conversations.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No conversations</p>}
+      {conversations.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">No conversations</p>}
     </div>
   );
 };
