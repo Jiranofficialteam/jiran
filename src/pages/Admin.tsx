@@ -267,6 +267,9 @@ const UsersTab = () => {
   const [search, setSearch] = useState("");
   const [boostUserId, setBoostUserId] = useState<string | null>(null);
   const [boostValue, setBoostValue] = useState("");
+  const [banUserId, setBanUserId] = useState<string | null>(null);
+  const [banDuration, setBanDuration] = useState("1");
+  const [banReason, setBanReason] = useState("");
 
   useEffect(() => {
     const fetch = async () => {
@@ -307,6 +310,24 @@ const UsersTab = () => {
     toast.success(`Follower boost set to ${val.toLocaleString()}`);
   };
 
+  const banUser = async (id: string) => {
+    const days = parseInt(banDuration);
+    if (isNaN(days) || days < 1) { toast.error("সঠিক সময়কাল দিন"); return; }
+    const banUntil = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+    await db.from("profiles").update({ is_banned: true, ban_until: banUntil, ban_reason: banReason || "নীতিমালা লঙ্ঘন" }).eq("id", id);
+    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, is_banned: true, ban_until: banUntil, ban_reason: banReason || "নীতিমালা লঙ্ঘন" } : u)));
+    setBanUserId(null);
+    setBanDuration("1");
+    setBanReason("");
+    toast.success(`ইউজার ${days} দিনের জন্য ব্যান করা হয়েছে`);
+  };
+
+  const unbanUser = async (id: string) => {
+    await db.from("profiles").update({ is_banned: false, ban_until: null, ban_reason: "" }).eq("id", id);
+    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, is_banned: false, ban_until: null, ban_reason: "" } : u)));
+    toast.success("ইউজার আনব্যান করা হয়েছে");
+  };
+
   return (
     <div>
       <div className="mb-3 flex items-center gap-2 rounded-2xl border border-border bg-card px-3 py-2.5">
@@ -314,23 +335,55 @@ const UsersTab = () => {
         <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search users..." className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
       </div>
       <div className="space-y-2">
-        {users.map((u) => (
-          <div key={u.id} className="rounded-2xl border border-border bg-card p-3 transition-shadow hover:shadow-sm">
+        {users.map((u) => {
+          const isBanned = u.is_banned && u.ban_until && new Date(u.ban_until) > new Date();
+          return (
+          <div key={u.id} className={`rounded-2xl border bg-card p-3 transition-shadow hover:shadow-sm ${isBanned ? "border-destructive/30 bg-destructive/5" : "border-border"}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <img src={u.avatar_url || "/placeholder.svg"} alt="" className="h-11 w-11 rounded-full object-cover ring-2 ring-border" />
+                <div className="relative">
+                  <img src={u.avatar_url || "/placeholder.svg"} alt="" className={`h-11 w-11 rounded-full object-cover ring-2 ${isBanned ? "ring-destructive/50 opacity-60" : "ring-border"}`} />
+                  {isBanned && (
+                    <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive flex items-center justify-center">
+                      <Ban className="h-2.5 w-2.5 text-destructive-foreground" />
+                    </div>
+                  )}
+                </div>
                 <div>
                   <div className="flex items-center gap-1">
                     <span className="text-sm font-bold text-foreground">{u.username}</span>
                     {u.verified && <BadgeCheck className="h-3.5 w-3.5 fill-primary text-primary-foreground" />}
+                    {isBanned && <span className="text-[10px] font-bold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded-full">ব্যানড</span>}
                   </div>
                   <p className="text-xs text-muted-foreground">{u.full_name}</p>
                   {(u.follower_boost || 0) > 0 && (
                     <p className="text-[11px] text-primary font-medium">+{formatCount(u.follower_boost)} boosted followers</p>
                   )}
+                  {isBanned && (
+                    <p className="text-[10px] text-destructive mt-0.5">
+                      {new Date(u.ban_until).toLocaleDateString("bn-BD")} পর্যন্ত • {u.ban_reason}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
+                {isBanned ? (
+                  <button
+                    onClick={() => unbanUser(u.id)}
+                    className="rounded-xl bg-emerald-500/10 p-2 text-emerald-600 hover:bg-emerald-500/20 transition-colors"
+                    title="আনব্যান"
+                  >
+                    <Check className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => { setBanUserId(banUserId === u.id ? null : u.id); setBanDuration("1"); setBanReason(""); }}
+                    className="rounded-xl bg-amber-500/10 p-2 text-amber-600 hover:bg-amber-500/20 transition-colors"
+                    title="সাময়িক ব্যান"
+                  >
+                    <Ban className="h-4 w-4" />
+                  </button>
+                )}
                 <button
                   onClick={() => { setBoostUserId(boostUserId === u.id ? null : u.id); setBoostValue(String(u.follower_boost || 0)); }}
                   className="rounded-xl bg-secondary p-2 text-muted-foreground hover:bg-muted transition-colors"
@@ -346,6 +399,42 @@ const UsersTab = () => {
                 </button>
               </div>
             </div>
+
+            {/* Ban panel */}
+            {banUserId === u.id && !isBanned && (
+              <div className="mt-3 space-y-2 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
+                <p className="text-xs font-bold text-foreground">সাময়িক ব্যান</p>
+                <div className="flex gap-2">
+                  <select
+                    value={banDuration}
+                    onChange={(e) => setBanDuration(e.target.value)}
+                    className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                  >
+                    <option value="1">১ দিন</option>
+                    <option value="3">৩ দিন</option>
+                    <option value="7">৭ দিন</option>
+                    <option value="14">১৪ দিন</option>
+                    <option value="30">৩০ দিন</option>
+                    <option value="90">৯০ দিন</option>
+                  </select>
+                  <input
+                    type="text"
+                    value={banReason}
+                    onChange={(e) => setBanReason(e.target.value)}
+                    placeholder="ব্যানের কারণ..."
+                    className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                  />
+                </div>
+                <button
+                  onClick={() => banUser(u.id)}
+                  className="w-full rounded-lg bg-destructive py-2 text-xs font-bold text-destructive-foreground hover:opacity-90 transition-opacity"
+                >
+                  ব্যান করুন
+                </button>
+              </div>
+            )}
+
+            {/* Follower boost panel */}
             {boostUserId === u.id && (
               <div className="mt-3 flex items-center gap-2 rounded-xl border border-border bg-secondary/50 p-2.5">
                 <input
@@ -365,7 +454,8 @@ const UsersTab = () => {
               </div>
             )}
           </div>
-        ))}
+          );
+        })}
         {users.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">No users found</p>}
       </div>
     </div>
