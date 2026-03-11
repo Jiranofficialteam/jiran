@@ -517,12 +517,15 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          ban_reason: string | null
+          ban_until: string | null
           bio: string | null
           cover_url: string | null
           created_at: string
           follower_boost: number
           full_name: string
           id: string
+          is_banned: boolean
           is_private: boolean
           last_seen: string | null
           updated_at: string
@@ -532,12 +535,15 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          ban_until?: string | null
           bio?: string | null
           cover_url?: string | null
           created_at?: string
           follower_boost?: number
           full_name?: string
           id: string
+          is_banned?: boolean
           is_private?: boolean
           last_seen?: string | null
           updated_at?: string
@@ -547,12 +553,15 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          ban_until?: string | null
           bio?: string | null
           cover_url?: string | null
           created_at?: string
           follower_boost?: number
           full_name?: string
           id?: string
+          is_banned?: boolean
           is_private?: boolean
           last_seen?: string | null
           updated_at?: string

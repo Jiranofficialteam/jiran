@@ -2,6 +2,12 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
+declare global {
+  interface Window {
+    __banInfo?: { until: string; reason: string };
+  }
+}
+
 export interface Profile {
   id: string;
   username: string;
@@ -12,6 +18,9 @@ export interface Profile {
   website: string;
   is_private: boolean;
   verified: boolean;
+  is_banned?: boolean;
+  ban_until?: string | null;
+  ban_reason?: string;
 }
 
 interface AuthContextType {
@@ -39,7 +48,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .select("*")
       .eq("id", userId)
       .single();
-    if (data) setProfile(data as Profile);
+    if (data) {
+      const p = data as Profile;
+      // Check if user is banned
+      if (p.is_banned && p.ban_until && new Date(p.ban_until) > new Date()) {
+        await supabase.auth.signOut();
+        setProfile(null);
+        setUser(null);
+        setSession(null);
+        // Store ban info for display
+        window.__banInfo = { until: p.ban_until, reason: p.ban_reason || "" };
+        return;
+      }
+      setProfile(p);
+    }
   };
 
   useEffect(() => {
