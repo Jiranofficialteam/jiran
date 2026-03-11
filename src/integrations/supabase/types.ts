@@ -22,9 +22,12 @@ export type Database = {
           created_at: string
           duration_days: number
           id: string
+          payment_method: string | null
           post_id: string
+          sender_number: string | null
           status: Database["public"]["Enums"]["campaign_status"]
           target_audience: string | null
+          transaction_id: string | null
           updated_at: string
           user_id: string
         }
@@ -35,9 +38,12 @@ export type Database = {
           created_at?: string
           duration_days?: number
           id?: string
+          payment_method?: string | null
           post_id: string
+          sender_number?: string | null
           status?: Database["public"]["Enums"]["campaign_status"]
           target_audience?: string | null
+          transaction_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -48,9 +54,12 @@ export type Database = {
           created_at?: string
           duration_days?: number
           id?: string
+          payment_method?: string | null
           post_id?: string
+          sender_number?: string | null
           status?: Database["public"]["Enums"]["campaign_status"]
           target_audience?: string | null
+          transaction_id?: string | null
           updated_at?: string
           user_id?: string
         }
