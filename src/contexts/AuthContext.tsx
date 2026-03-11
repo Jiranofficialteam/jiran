@@ -42,7 +42,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .select("*")
       .eq("id", userId)
       .single();
-    if (data) setProfile(data as Profile);
+    if (data) {
+      const p = data as Profile;
+      // Check if user is banned
+      if (p.is_banned && p.ban_until && new Date(p.ban_until) > new Date()) {
+        await supabase.auth.signOut();
+        setProfile(null);
+        setUser(null);
+        setSession(null);
+        // Store ban info for display
+        window.__banInfo = { until: p.ban_until, reason: p.ban_reason || "" };
+        return;
+      }
+      setProfile(p);
+    }
   };
 
   useEffect(() => {
