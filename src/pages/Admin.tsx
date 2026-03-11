@@ -691,7 +691,7 @@ const CampaignsTab = () => {
 
           <div className="mt-3 grid grid-cols-4 gap-2 text-center text-xs">
             <div className="rounded-xl bg-secondary/50 p-2">
-              <p className="font-bold text-foreground">${c.budget}</p>
+              <p className="font-bold text-foreground">৳{c.budget}</p>
               <p className="text-[10px] text-muted-foreground">Budget</p>
             </div>
             <div className="rounded-xl bg-secondary/50 p-2">
@@ -707,6 +707,27 @@ const CampaignsTab = () => {
               <p className="text-[10px] text-muted-foreground">Views</p>
             </div>
           </div>
+
+          {/* Payment Info */}
+          {c.payment_method && (
+            <div className="mt-3 rounded-xl border border-border bg-secondary/30 p-3">
+              <p className="text-[11px] font-bold text-foreground mb-2 flex items-center gap-1">💳 পেমেন্ট তথ্য</p>
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div>
+                  <p className="text-[10px] text-muted-foreground">মেথড</p>
+                  <p className="font-bold text-foreground capitalize">{c.payment_method}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground">নাম্বার</p>
+                  <p className="font-bold text-foreground">{c.sender_number}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground">TXN ID</p>
+                  <p className="font-bold text-foreground break-all">{c.transaction_id}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {c.target_audience && <p className="mt-2 text-[11px] text-muted-foreground flex items-center gap-1"><Target className="h-3 w-3" /> {c.target_audience}</p>}
 
