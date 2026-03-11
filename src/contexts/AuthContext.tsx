@@ -12,6 +12,9 @@ export interface Profile {
   website: string;
   is_private: boolean;
   verified: boolean;
+  is_banned?: boolean;
+  ban_until?: string | null;
+  ban_reason?: string;
 }
 
 interface AuthContextType {
