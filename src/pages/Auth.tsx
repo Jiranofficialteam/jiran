@@ -37,6 +37,14 @@ const Auth = () => {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) throw error;
+        // Check if banned
+        if (window.__banInfo) {
+          const info = window.__banInfo;
+          window.__banInfo = undefined;
+          toast.error(`আপনার অ্যাকাউন্ট ${new Date(info.until).toLocaleDateString("bn-BD")} পর্যন্ত ব্যান করা হয়েছে। কারণ: ${info.reason}`);
+          setSubmitting(false);
+          return;
+        }
         toast.success("স্বাগতম! 👋");
       } else {
         const { error } = await signUp(email, password, username.trim(), fullName.trim());
