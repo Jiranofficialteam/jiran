@@ -2,6 +2,12 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
+declare global {
+  interface Window {
+    __banInfo?: { until: string; reason: string };
+  }
+}
+
 export interface Profile {
   id: string;
   username: string;
