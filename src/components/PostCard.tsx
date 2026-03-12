@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import BoostPostModal from "./BoostPostModal";
 import EditPostModal from "./EditPostModal";
 import ShareModal from "./ShareModal";
+import EmojiReactions from "./EmojiReactions";
 
 const db = supabase as any;
 
