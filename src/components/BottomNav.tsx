@@ -9,9 +9,9 @@ const BottomNav = () => {
   const links = [
     { to: "/", icon: Home, label: "Home" },
     { to: "/explore", icon: Search, label: "Explore" },
-    { to: "/reels", icon: Film, label: "Reels" },
+    { to: "/marketplace", icon: ShoppingBag, label: "Shop" },
     { to: "/create", icon: PlusSquare, label: "Create" },
-    { to: "/notifications", icon: Heart, label: "Activity" },
+    { to: "/groups", icon: Users, label: "Groups" },
     { to: "/profile", icon: User, label: "Profile", isProfile: true },
   ];
 

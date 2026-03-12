@@ -42,6 +42,9 @@ const App = () => (
             <Route path="/reels" element={<Reels />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/marketplace" element={<Marketplace />} />
+            <Route path="/groups" element={<Groups />} />
+            <Route path="/verification" element={<VerificationRequest />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

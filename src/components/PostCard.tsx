@@ -341,6 +341,11 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
       </div>
 
       <div className="px-4 pb-4 pt-2">
+        {isDB && (
+          <div className="mb-2">
+            <EmojiReactions postId={postId} />
+          </div>
+        )}
         <p className="text-sm font-semibold">{formatCount(likes)} likes</p>
         <p className="mt-1 text-sm">
           <Link to={`/profile/${username}`} className="font-semibold">{username}</Link>{" "}

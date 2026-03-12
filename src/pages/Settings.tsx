@@ -170,6 +170,13 @@ const Settings = () => {
           action: () => navigate("/profile"),
         },
         {
+          icon: BadgeCheck,
+          label: "ভেরিফিকেশন আবেদন",
+          desc: "ভেরিফাইড ব্যাজ পেতে আবেদন করুন",
+          right: <ChevronRight className="h-4 w-4 text-muted-foreground" />,
+          action: () => navigate("/verification"),
+        },
+        {
           icon: Info,
           label: "Account Info",
           desc: user?.email || "No email",
