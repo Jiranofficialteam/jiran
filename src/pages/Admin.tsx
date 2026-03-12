@@ -941,4 +941,69 @@ const MessagesTab = () => {
   );
 };
 
+/* ─── Verification Requests ─── */
+const VerificationTab = () => {
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetch = async () => {
+      const { data } = await db.from("verification_requests").select("*, profiles!verification_requests_user_id_fkey(username, avatar_url, full_name, verified)").order("created_at", { ascending: false }).limit(50);
+      setRequests(data || []);
+      setLoading(false);
+    };
+    fetch();
+  }, []);
+
+  const handleAction = async (id: string, userId: string, status: "approved" | "rejected", note: string) => {
+    await db.from("verification_requests").update({ status, admin_note: note, updated_at: new Date().toISOString() }).eq("id", id);
+    if (status === "approved") {
+      await db.from("profiles").update({ verified: true }).eq("id", userId);
+    }
+    setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status, admin_note: note } : r)));
+    toast.success(status === "approved" ? "ভেরিফাই করা হয়েছে" : "প্রত্যাখ্যান করা হয়েছে");
+  };
+
+  if (loading) return <div className="flex justify-center py-12"><div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
+
+  return (
+    <div className="space-y-3">
+      {requests.map((r) => (
+        <div key={r.id} className={`rounded-2xl border bg-card p-4 space-y-3 ${r.status === "pending" ? "border-amber-300/30" : "border-border"}`}>
+          <div className="flex items-center gap-3">
+            <img src={r.profiles?.avatar_url || "/placeholder.svg"} alt="" className="h-11 w-11 rounded-full object-cover ring-2 ring-border" />
+            <div className="flex-1">
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-bold text-foreground">{r.profiles?.username}</span>
+                {r.profiles?.verified && <BadgeCheck className="h-3.5 w-3.5 fill-primary text-primary-foreground" />}
+              </div>
+              <p className="text-xs text-muted-foreground">{r.full_name}</p>
+            </div>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+              r.status === "pending" ? "bg-amber-500/10 text-amber-600" :
+              r.status === "approved" ? "bg-emerald-500/10 text-emerald-600" :
+              "bg-destructive/10 text-destructive"
+            }`}>{r.status}</span>
+          </div>
+          <p className="text-sm text-foreground bg-secondary rounded-xl p-3">{r.reason}</p>
+          {r.document_url && (
+            <a href={r.document_url} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-primary">📎 ডকুমেন্ট দেখুন</a>
+          )}
+          {r.status === "pending" && (
+            <div className="flex gap-2">
+              <button onClick={() => handleAction(r.id, r.user_id, "approved", "অনুমোদিত")} className="flex-1 rounded-xl bg-emerald-500 py-2 text-sm font-bold text-white active:scale-[0.98]">
+                <Check className="inline h-4 w-4 mr-1" /> অনুমোদন
+              </button>
+              <button onClick={() => handleAction(r.id, r.user_id, "rejected", "প্রত্যাখ্যাত")} className="flex-1 rounded-xl bg-destructive py-2 text-sm font-bold text-destructive-foreground active:scale-[0.98]">
+                <X className="inline h-4 w-4 mr-1" /> প্রত্যাখ্যান
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
+      {requests.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">কোনো আবেদন নেই</p>}
+    </div>
+  );
+};
+
 export default Admin;
