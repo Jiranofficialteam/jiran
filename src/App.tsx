@@ -15,6 +15,9 @@ import Auth from "./pages/Auth";
 import Reels from "./pages/Reels";
 import Admin from "./pages/Admin";
 import Settings from "./pages/Settings";
+import Marketplace from "./pages/Marketplace";
+import Groups from "./pages/Groups";
+import VerificationRequest from "./pages/VerificationRequest";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
