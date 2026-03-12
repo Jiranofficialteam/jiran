@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronLeft, Moon, Sun, Lock, Eye, EyeOff, Bell, Shield, LogOut, Trash2, ChevronRight, User, Palette, Info } from "lucide-react";
+import { ChevronLeft, Moon, Sun, Lock, Eye, EyeOff, Bell, Shield, LogOut, Trash2, ChevronRight, User, Palette, Info, BadgeCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -168,6 +168,13 @@ const Settings = () => {
           desc: "Update your username, bio and photo",
           right: <ChevronRight className="h-4 w-4 text-muted-foreground" />,
           action: () => navigate("/profile"),
+        },
+        {
+          icon: BadgeCheck,
+          label: "ভেরিফিকেশন আবেদন",
+          desc: "ভেরিফাইড ব্যাজ পেতে আবেদন করুন",
+          right: <ChevronRight className="h-4 w-4 text-muted-foreground" />,
+          action: () => navigate("/verification"),
         },
         {
           icon: Info,

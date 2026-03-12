@@ -15,6 +15,9 @@ import Auth from "./pages/Auth";
 import Reels from "./pages/Reels";
 import Admin from "./pages/Admin";
 import Settings from "./pages/Settings";
+import Marketplace from "./pages/Marketplace";
+import Groups from "./pages/Groups";
+import VerificationRequest from "./pages/VerificationRequest";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +42,9 @@ const App = () => (
             <Route path="/reels" element={<Reels />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/marketplace" element={<Marketplace />} />
+            <Route path="/groups" element={<Groups />} />
+            <Route path="/verification" element={<VerificationRequest />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
