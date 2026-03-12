@@ -44,6 +44,7 @@ const Admin = () => {
     { id: "comments", label: "Comments", icon: MessageCircle },
     { id: "campaigns", label: "Boosts", icon: Rocket },
     { id: "reports", label: "Reports", icon: AlertTriangle },
+    { id: "verification", label: "Verify", icon: BadgeCheck },
     { id: "messages", label: "DMs", icon: MessageSquare },
   ];
 
