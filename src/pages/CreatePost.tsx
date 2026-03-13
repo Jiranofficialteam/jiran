@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { ArrowLeft, Image, Film, Camera, X, Plus, Loader2, MapPin } from "lucide-react";
+import { ArrowLeft, Image, Film, Camera, X, Plus, Loader2, MapPin, Type } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,7 +29,7 @@ const CreatePost = () => {
   const [uploading, setUploading] = useState(false);
 
   const acceptMap: Record<PostTab, string> = {
-    post: "image/*",
+    post: "image/*,video/*",
     story: "image/*,video/*",
     reel: "video/*",
   };
@@ -68,13 +68,22 @@ const CreatePost = () => {
     return data.publicUrl;
   };
 
+  // Can share if: has text (for post tab) OR has files
+  const canShare = tab === "post" ? (caption.trim().length > 0 || files.length > 0) : files.length > 0;
+
   const handleShare = async () => {
     if (!user) {
       navigate("/auth");
       return;
     }
-    if (!files.length) {
+
+    if (tab !== "post" && !files.length) {
       toast({ title: "মিডিয়া সিলেক্ট করো", description: "অন্তত একটি ফাইল আপলোড করো।", variant: "destructive" });
+      return;
+    }
+
+    if (tab === "post" && !files.length && !caption.trim()) {
+      toast({ title: "কিছু লেখো বা মিডিয়া দাও", description: "টেক্সট বা ফটো/ভিডিও যোগ করো।", variant: "destructive" });
       return;
     }
 
@@ -94,9 +103,19 @@ const CreatePost = () => {
         if (error) throw error;
         toast({ title: "স্টোরি তৈরি হয়েছে! ✨" });
       } else {
-        const urls = await Promise.all(files.map(uploadFile));
-        const isVideo = tab === "reel" || files[0].type.startsWith("video");
-        const postType = tab === "reel" ? "reel" : urls.length > 1 ? "carousel" : isVideo ? "video" : "photo";
+        let urls: string[] = [];
+        if (files.length > 0) {
+          urls = await Promise.all(files.map(uploadFile));
+        }
+        const hasVideo = files.length > 0 && (tab === "reel" || files[0].type.startsWith("video"));
+        const postType = tab === "reel"
+          ? "reel"
+          : urls.length > 1
+          ? "carousel"
+          : hasVideo
+          ? "video"
+          : "photo";
+
         const parsedTags = hashtags
           .split(/[\s,#]+/)
           .filter(Boolean)
@@ -110,7 +129,7 @@ const CreatePost = () => {
           hashtags: parsedTags,
           image_url: urls[0] || "",
           images: urls,
-          video_url: isVideo ? urls[0] : "",
+          video_url: hasVideo ? urls[0] : "",
         });
         if (error) throw error;
         toast({ title: "পোস্ট শেয়ার হয়েছে! 🎉" });
@@ -148,7 +167,7 @@ const CreatePost = () => {
         <Button
           size="sm"
           onClick={handleShare}
-          disabled={uploading || !files.length}
+          disabled={uploading || !canShare}
           className="gradient-brand text-primary-foreground"
         >
           {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Share"}
@@ -160,7 +179,7 @@ const CreatePost = () => {
         {tabItems.map((t) => (
           <button
             key={t.id}
-            onClick={() => { setTab(t.id); resetFiles(); }}
+            onClick={() => { setTab(t.id); resetFiles(); setCaption(""); }}
             className={`flex flex-1 items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
               tab === t.id ? "border-b-2 border-foreground text-foreground" : "text-muted-foreground"
             }`}
@@ -180,92 +199,165 @@ const CreatePost = () => {
         onChange={handleFileSelect}
       />
 
-      {/* Media Preview / Picker */}
-      {files.length === 0 ? (
-        <div className="flex flex-col items-center justify-center px-6 py-16">
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="flex h-28 w-28 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/30 transition-colors hover:border-primary/50"
-          >
-            {tab === "reel" ? (
-              <Film className="h-12 w-12 text-muted-foreground" />
-            ) : (
-              <Image className="h-12 w-12 text-muted-foreground" />
-            )}
-          </button>
-          <h2 className="mt-4 text-xl font-light">
-            {tab === "post" ? "Share Photos" : tab === "story" ? "Create a Story" : "Create a Reel"}
-          </h2>
-          <p className="mt-2 max-w-xs text-center text-sm text-muted-foreground">
-            {tab === "post"
-              ? "Upload up to 10 photos for a carousel post."
-              : tab === "story"
-              ? "Share a moment that disappears in 24 hours."
-              : "Upload a short video clip."}
-          </p>
-          <Button
-            onClick={() => fileInputRef.current?.click()}
-            className="mt-6 gradient-brand text-primary-foreground"
-          >
-            Select from Gallery
-          </Button>
-        </div>
-      ) : (
+      {/* Post tab: always show text area + optional media */}
+      {tab === "post" ? (
         <div className="space-y-4 p-4">
-          {/* Thumbnails */}
-          <div className="flex flex-wrap gap-2">
-            {previews.map((src, i) => (
-              <div key={i} className="group relative h-28 w-28 overflow-hidden rounded-lg border border-border">
-                {files[i]?.type.startsWith("video") ? (
-                  <video src={src} className="h-full w-full object-cover" muted />
-                ) : (
-                  <img src={src} alt="" className="h-full w-full object-cover" />
-                )}
+          {/* Caption / Text */}
+          <Textarea
+            placeholder="আপনার মনে কী আছে? লিখুন..."
+            value={caption}
+            onChange={(e) => setCaption(e.target.value)}
+            className="min-h-[120px] resize-none bg-card text-base"
+            autoFocus
+          />
+
+          {/* Media previews */}
+          {previews.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {previews.map((src, i) => (
+                <div key={i} className="group relative h-28 w-28 overflow-hidden rounded-lg border border-border">
+                  {files[i]?.type.startsWith("video") ? (
+                    <video src={src} className="h-full w-full object-cover" muted />
+                  ) : (
+                    <img src={src} alt="" className="h-full w-full object-cover" />
+                  )}
+                  <button
+                    onClick={() => removeFile(i)}
+                    className="absolute right-1 top-1 rounded-full bg-background/80 p-0.5 text-destructive opacity-0 transition-opacity group-hover:opacity-100"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+              {files.length < MAX_IMAGES && (
                 <button
-                  onClick={() => removeFile(i)}
-                  className="absolute right-1 top-1 rounded-full bg-background/80 p-0.5 text-destructive opacity-0 transition-opacity group-hover:opacity-100"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex h-28 w-28 items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 text-muted-foreground transition-colors hover:border-primary/50"
                 >
-                  <X className="h-4 w-4" />
+                  <Plus className="h-6 w-6" />
                 </button>
-              </div>
-            ))}
-            {tab === "post" && files.length < MAX_IMAGES && (
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="flex h-28 w-28 items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 text-muted-foreground transition-colors hover:border-primary/50"
-              >
-                <Plus className="h-6 w-6" />
-              </button>
-            )}
+              )}
+            </div>
+          )}
+
+          {/* Action bar: add media, location, hashtags */}
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-3">
+            <span className="text-sm font-medium text-foreground flex-1">পোস্টে যোগ করুন</span>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="rounded-full p-2 text-green-500 hover:bg-muted transition-colors"
+              title="ফটো/ভিডিও"
+            >
+              <Image className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="rounded-full p-2 text-blue-500 hover:bg-muted transition-colors"
+              title="ভিডিও"
+            >
+              <Film className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => {
+                const el = document.getElementById("location-input");
+                if (el) el.focus();
+              }}
+              className="rounded-full p-2 text-red-500 hover:bg-muted transition-colors"
+              title="লোকেশন"
+            >
+              <MapPin className="h-5 w-5" />
+            </button>
           </div>
 
-          {/* Caption & details (not for story) */}
-          {tab !== "story" && (
-            <div className="space-y-3">
-              <Textarea
-                placeholder="Write a caption…"
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                className="min-h-[100px] resize-none bg-card"
-              />
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Add location"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="bg-card"
-                />
-              </div>
+          {/* Location & Hashtags */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Hashtags (e.g. travel, food, nature)"
-                value={hashtags}
-                onChange={(e) => setHashtags(e.target.value)}
+                id="location-input"
+                placeholder="লোকেশন যোগ করুন"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
                 className="bg-card"
               />
             </div>
-          )}
+            <Input
+              placeholder="হ্যাশট্যাগ (যেমন: travel, food, nature)"
+              value={hashtags}
+              onChange={(e) => setHashtags(e.target.value)}
+              className="bg-card"
+            />
+          </div>
         </div>
+      ) : (
+        /* Story / Reel tabs: require media first */
+        files.length === 0 ? (
+          <div className="flex flex-col items-center justify-center px-6 py-16">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex h-28 w-28 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/30 transition-colors hover:border-primary/50"
+            >
+              {tab === "reel" ? (
+                <Film className="h-12 w-12 text-muted-foreground" />
+              ) : (
+                <Image className="h-12 w-12 text-muted-foreground" />
+              )}
+            </button>
+            <h2 className="mt-4 text-xl font-light">
+              {tab === "story" ? "স্টোরি তৈরি করুন" : "রিল তৈরি করুন"}
+            </h2>
+            <p className="mt-2 max-w-xs text-center text-sm text-muted-foreground">
+              {tab === "story"
+                ? "২৪ ঘণ্টায় মুছে যাওয়া মুহূর্ত শেয়ার করুন।"
+                : "একটি শর্ট ভিডিও ক্লিপ আপলোড করুন।"}
+            </p>
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              className="mt-6 gradient-brand text-primary-foreground"
+            >
+              গ্যালারি থেকে বেছে নিন
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4 p-4">
+            {/* Thumbnails */}
+            <div className="flex flex-wrap gap-2">
+              {previews.map((src, i) => (
+                <div key={i} className="group relative h-28 w-28 overflow-hidden rounded-lg border border-border">
+                  {files[i]?.type.startsWith("video") ? (
+                    <video src={src} className="h-full w-full object-cover" muted />
+                  ) : (
+                    <img src={src} alt="" className="h-full w-full object-cover" />
+                  )}
+                  <button
+                    onClick={() => removeFile(i)}
+                    className="absolute right-1 top-1 rounded-full bg-background/80 p-0.5 text-destructive opacity-0 transition-opacity group-hover:opacity-100"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Caption for reel */}
+            {tab === "reel" && (
+              <div className="space-y-3">
+                <Textarea
+                  placeholder="ক্যাপশন লিখুন…"
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  className="min-h-[100px] resize-none bg-card"
+                />
+                <Input
+                  placeholder="হ্যাশট্যাগ (যেমন: travel, food, nature)"
+                  value={hashtags}
+                  onChange={(e) => setHashtags(e.target.value)}
+                  className="bg-card"
+                />
+              </div>
+            )}
+          </div>
+        )
       )}
 
       {/* Upload progress overlay */}
