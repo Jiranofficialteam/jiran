@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Heart, MessageCircle, Send, Bookmark, Music2, BadgeCheck, Volume2, VolumeX, ChevronLeft, UserPlus, MoreVertical, Play } from "lucide-react";
+import { Heart, MessageCircle, Send, Bookmark, Music2, BadgeCheck, Volume2, VolumeX, ChevronLeft, Play, Film } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import ReelComments from "@/components/ReelComments";
 import ShareModal from "@/components/ShareModal";
