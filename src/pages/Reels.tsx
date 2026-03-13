@@ -424,6 +424,7 @@ const Reels = () => {
       {/* Share modal */}
       {sharePostId && (
         <ShareModal
+          open={true}
           postId={sharePostId}
           onClose={() => setSharePostId(null)}
         />
