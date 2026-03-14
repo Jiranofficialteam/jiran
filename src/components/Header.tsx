@@ -79,6 +79,14 @@ const Header = () => {
             <span className="font-display text-[26px] font-bold gradient-text tracking-tight">Jiran</span>
           </Link>
 
+          {/* Live button - mobile */}
+          {user && (
+            <Link to="/live" className="flex md:hidden items-center gap-1 ml-2 px-2.5 py-1 rounded-full bg-destructive/10">
+              <Radio className="h-3.5 w-3.5 text-destructive animate-pulse" />
+              <span className="text-[10px] font-bold text-destructive">LIVE</span>
+            </Link>
+          )}
+
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
             {user ? (
