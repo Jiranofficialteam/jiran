@@ -18,6 +18,7 @@ import Settings from "./pages/Settings";
 import Marketplace from "./pages/Marketplace";
 import Groups from "./pages/Groups";
 import VerificationRequest from "./pages/VerificationRequest";
+import Rewards from "./pages/Rewards";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
