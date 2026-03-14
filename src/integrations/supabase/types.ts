@@ -131,6 +131,27 @@ export type Database = {
         }
         Relationships: []
       }
+      close_friends: {
+        Row: {
+          created_at: string
+          friend_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           created_at: string
@@ -222,18 +243,21 @@ export type Database = {
           id: string
           is_group: boolean
           name: string | null
+          vanish_mode: boolean | null
         }
         Insert: {
           created_at?: string
           id?: string
           is_group?: boolean
           name?: string | null
+          vanish_mode?: boolean | null
         }
         Update: {
           created_at?: string
           id?: string
           is_group?: boolean
           name?: string | null
+          vanish_mode?: boolean | null
         }
         Relationships: []
       }
@@ -258,6 +282,83 @@ export type Database = {
           login_date?: string
           reward_coins?: number
           user_id?: string
+        }
+        Relationships: []
+      }
+      event_rsvps: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          category: string | null
+          cover_url: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string | null
+          event_date: string
+          id: string
+          is_online: boolean | null
+          location: string | null
+          online_link: string | null
+          title: string
+        }
+        Insert: {
+          category?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date?: string | null
+          event_date: string
+          id?: string
+          is_online?: boolean | null
+          location?: string | null
+          online_link?: string | null
+          title: string
+        }
+        Update: {
+          category?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string | null
+          event_date?: string
+          id?: string
+          is_online?: boolean | null
+          location?: string | null
+          online_link?: string | null
+          title?: string
         }
         Relationships: []
       }
@@ -296,6 +397,89 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      fundraiser_donations: {
+        Row: {
+          amount: number
+          created_at: string
+          donor_id: string
+          fundraiser_id: string
+          id: string
+          is_anonymous: boolean | null
+          message: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          donor_id: string
+          fundraiser_id: string
+          id?: string
+          is_anonymous?: boolean | null
+          message?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          donor_id?: string
+          fundraiser_id?: string
+          id?: string
+          is_anonymous?: boolean | null
+          message?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fundraiser_donations_fundraiser_id_fkey"
+            columns: ["fundraiser_id"]
+            isOneToOne: false
+            referencedRelation: "fundraisers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fundraisers: {
+        Row: {
+          category: string | null
+          cover_url: string | null
+          created_at: string
+          created_by: string
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number
+          id: string
+          is_active: boolean | null
+          raised_amount: number
+          title: string
+        }
+        Insert: {
+          category?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by: string
+          currency?: string | null
+          description?: string | null
+          end_date?: string | null
+          goal_amount?: number
+          id?: string
+          is_active?: boolean | null
+          raised_amount?: number
+          title: string
+        }
+        Update: {
+          category?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string | null
+          description?: string | null
+          end_date?: string | null
+          goal_amount?: number
+          id?: string
+          is_active?: boolean | null
+          raised_amount?: number
+          title?: string
+        }
+        Relationships: []
       }
       group_members: {
         Row: {
@@ -370,6 +554,42 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      highlight_stories: {
+        Row: {
+          added_at: string
+          highlight_id: string
+          id: string
+          story_id: string
+        }
+        Insert: {
+          added_at?: string
+          highlight_id: string
+          id?: string
+          story_id: string
+        }
+        Update: {
+          added_at?: string
+          highlight_id?: string
+          id?: string
+          story_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "highlight_stories_highlight_id_fkey"
+            columns: ["highlight_id"]
+            isOneToOne: false
+            referencedRelation: "story_highlights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "highlight_stories_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
             referencedColumns: ["id"]
           },
         ]
@@ -509,6 +729,7 @@ export type Database = {
         Row: {
           conversation_id: string
           created_at: string
+          expires_at: string | null
           id: string
           media_type: string | null
           media_url: string | null
@@ -519,6 +740,7 @@ export type Database = {
         Insert: {
           conversation_id: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           media_type?: string | null
           media_url?: string | null
@@ -529,6 +751,7 @@ export type Database = {
         Update: {
           conversation_id?: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           media_type?: string | null
           media_url?: string | null
@@ -779,6 +1002,8 @@ export type Database = {
           id: string
           image_url: string | null
           images: string[] | null
+          is_live: boolean | null
+          live_viewers: number | null
           location: string | null
           type: Database["public"]["Enums"]["post_type"]
           updated_at: string
@@ -792,6 +1017,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           images?: string[] | null
+          is_live?: boolean | null
+          live_viewers?: number | null
           location?: string | null
           type?: Database["public"]["Enums"]["post_type"]
           updated_at?: string
@@ -805,6 +1032,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           images?: string[] | null
+          is_live?: boolean | null
+          live_viewers?: number | null
           location?: string | null
           type?: Database["public"]["Enums"]["post_type"]
           updated_at?: string
@@ -1016,6 +1245,7 @@ export type Database = {
           elements: Json | null
           expires_at: string
           id: string
+          is_close_friends_only: boolean | null
           media_type: string
           media_url: string
           user_id: string
@@ -1026,6 +1256,7 @@ export type Database = {
           elements?: Json | null
           expires_at: string
           id?: string
+          is_close_friends_only?: boolean | null
           media_type?: string
           media_url: string
           user_id: string
@@ -1036,6 +1267,7 @@ export type Database = {
           elements?: Json | null
           expires_at?: string
           id?: string
+          is_close_friends_only?: boolean | null
           media_type?: string
           media_url?: string
           user_id?: string
@@ -1049,6 +1281,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      story_highlights: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          title?: string
+          user_id: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_badges: {
         Row: {
