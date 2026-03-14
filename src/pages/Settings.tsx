@@ -177,6 +177,13 @@ const Settings = () => {
           action: () => navigate("/verification"),
         },
         {
+          icon: Gift,
+          label: "রিওয়ার্ড সেন্টার",
+          desc: "দৈনিক পুরস্কার, ব্যাজ ও লেভেল সিস্টেম",
+          right: <ChevronRight className="h-4 w-4 text-muted-foreground" />,
+          action: () => navigate("/rewards"),
+        },
+        {
           icon: Info,
           label: "Account Info",
           desc: user?.email || "No email",
