@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronLeft, Moon, Sun, Lock, Eye, EyeOff, Bell, Shield, LogOut, Trash2, ChevronRight, User, Palette, Info, BadgeCheck, Gift } from "lucide-react";
+import { ChevronLeft, Moon, Sun, Lock, Eye, EyeOff, Bell, Shield, LogOut, Trash2, ChevronRight, User, Palette, Info, BadgeCheck, Gift, Star, Calendar, Heart, Radio } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -182,6 +182,34 @@ const Settings = () => {
           desc: "দৈনিক পুরস্কার, ব্যাজ ও লেভেল সিস্টেম",
           right: <ChevronRight className="h-4 w-4 text-muted-foreground" />,
           action: () => navigate("/rewards"),
+        },
+        {
+          icon: Star,
+          label: "ক্লোজ ফ্রেন্ডস",
+          desc: "বিশেষ বন্ধুদের তালিকা পরিচালনা করুন",
+          right: <ChevronRight className="h-4 w-4 text-muted-foreground" />,
+          action: () => navigate("/close-friends"),
+        },
+        {
+          icon: Calendar,
+          label: "ইভেন্ট",
+          desc: "ইভেন্ট তৈরি ও অংশগ্রহণ করুন",
+          right: <ChevronRight className="h-4 w-4 text-muted-foreground" />,
+          action: () => navigate("/events"),
+        },
+        {
+          icon: Heart,
+          label: "ফান্ডরেইজার",
+          desc: "চাঁদা সংগ্রহ ক্যাম্পেইন",
+          right: <ChevronRight className="h-4 w-4 text-muted-foreground" />,
+          action: () => navigate("/fundraisers"),
+        },
+        {
+          icon: Radio,
+          label: "লাইভ",
+          desc: "লাইভ স্ট্রিমিং শুরু করুন",
+          right: <ChevronRight className="h-4 w-4 text-muted-foreground" />,
+          action: () => navigate("/live"),
         },
         {
           icon: Info,

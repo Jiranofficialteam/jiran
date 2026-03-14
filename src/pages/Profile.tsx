@@ -14,6 +14,7 @@ import PostDetailModal from "@/components/PostDetailModal";
 import ProfileAnalytics from "@/components/ProfileAnalytics";
 import ReportModal from "@/components/ReportModal";
 import ProfileVisitors from "@/components/ProfileVisitors";
+import StoryHighlights from "@/components/StoryHighlights";
 
 const db = supabase as any;
 
@@ -340,6 +341,9 @@ const Profile = () => {
             </div>
           </div>
         </div>
+
+        {/* Story Highlights */}
+        <StoryHighlights profileId={profileData.id} isOwn={isOwnProfile} />
 
         {/* Stats cards */}
         <div className="mt-4 grid grid-cols-3 gap-2 px-4 md:px-8">

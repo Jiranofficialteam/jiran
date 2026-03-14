@@ -19,6 +19,10 @@ import Marketplace from "./pages/Marketplace";
 import Groups from "./pages/Groups";
 import VerificationRequest from "./pages/VerificationRequest";
 import Rewards from "./pages/Rewards";
+import CloseFriends from "./pages/CloseFriends";
+import Events from "./pages/Events";
+import Fundraisers from "./pages/Fundraisers";
+import LiveStream from "./pages/LiveStream";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +51,10 @@ const App = () => (
             <Route path="/groups" element={<Groups />} />
             <Route path="/verification" element={<VerificationRequest />} />
             <Route path="/rewards" element={<Rewards />} />
+            <Route path="/close-friends" element={<CloseFriends />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/fundraisers" element={<Fundraisers />} />
+            <Route path="/live" element={<LiveStream />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
