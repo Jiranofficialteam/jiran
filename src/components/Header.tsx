@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, PlusSquare, LogIn, LogOut, Shield, Compass, Moon, Sun, Menu, X } from "lucide-react";
+import { Heart, MessageCircle, PlusSquare, LogIn, LogOut, Shield, Compass, Moon, Sun, Menu, X, Radio } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect, useCallback } from "react";
