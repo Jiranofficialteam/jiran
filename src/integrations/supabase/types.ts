@@ -80,6 +80,36 @@ export type Database = {
           },
         ]
       }
+      badges: {
+        Row: {
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          name: string
+          requirement_type: string
+          requirement_value: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name: string
+          requirement_type?: string
+          requirement_value?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          requirement_type?: string
+          requirement_value?: number
+        }
+        Relationships: []
+      }
       blocks: {
         Row: {
           blocked_id: string
@@ -204,6 +234,30 @@ export type Database = {
           id?: string
           is_group?: boolean
           name?: string | null
+        }
+        Relationships: []
+      }
+      daily_logins: {
+        Row: {
+          created_at: string
+          id: string
+          login_date: string
+          reward_coins: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          login_date?: string
+          reward_coins?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          login_date?: string
+          reward_coins?: number
+          user_id?: string
         }
         Relationships: []
       }
@@ -860,6 +914,30 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referred_id: string
+          referrer_id: string
+          reward_claimed: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referred_id: string
+          referrer_id: string
+          reward_claimed?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+          reward_claimed?: boolean
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           created_at: string
@@ -971,6 +1049,74 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_badges: {
+        Row: {
+          badge_id: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_points: {
+        Row: {
+          coins: number
+          created_at: string
+          daily_streak: number
+          id: string
+          last_login_date: string | null
+          level: number
+          referral_code: string
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          coins?: number
+          created_at?: string
+          daily_streak?: number
+          id?: string
+          last_login_date?: string | null
+          level?: number
+          referral_code?: string
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          coins?: number
+          created_at?: string
+          daily_streak?: number
+          id?: string
+          last_login_date?: string | null
+          level?: number
+          referral_code?: string
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
