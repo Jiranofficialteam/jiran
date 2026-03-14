@@ -14,6 +14,7 @@ import PostDetailModal from "@/components/PostDetailModal";
 import ProfileAnalytics from "@/components/ProfileAnalytics";
 import ReportModal from "@/components/ReportModal";
 import ProfileVisitors from "@/components/ProfileVisitors";
+import StoryHighlights from "@/components/StoryHighlights";
 
 const db = supabase as any;
 
