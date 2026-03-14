@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronLeft, Moon, Sun, Lock, Eye, EyeOff, Bell, Shield, LogOut, Trash2, ChevronRight, User, Palette, Info, BadgeCheck } from "lucide-react";
+import { ChevronLeft, Moon, Sun, Lock, Eye, EyeOff, Bell, Shield, LogOut, Trash2, ChevronRight, User, Palette, Info, BadgeCheck, Gift } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
