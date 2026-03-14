@@ -46,6 +46,7 @@ const App = () => (
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/groups" element={<Groups />} />
             <Route path="/verification" element={<VerificationRequest />} />
+            <Route path="/rewards" element={<Rewards />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
