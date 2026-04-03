@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Camera, Type } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStories, DbStoryGroup } from "@/hooks/useStories";
@@ -26,68 +26,126 @@ const StoryBar = () => {
   return (
     <>
       <div className="bg-background py-3">
-        <div className="hide-scrollbar flex gap-3.5 overflow-x-auto px-4">
-          {/* Create / own story */}
+        <div className="hide-scrollbar flex gap-2 overflow-x-auto px-3">
+          {/* Create Story Card - Facebook style */}
           {user && (
-            <button
-              onClick={() => {
-                if (ownGroup) openStory(0);
-                else navigate("/create-story");
-              }}
-              className="flex flex-shrink-0 flex-col items-center gap-1.5 group"
-            >
-              <div className="relative transition-transform duration-200 group-active:scale-95">
-                <div className={`overflow-hidden rounded-full ${ownGroup ? 'story-ring' : 'ring-2 ring-border'}`}>
-                  <div className="rounded-full bg-background p-[2px]">
+            <div className="flex-shrink-0">
+              {ownGroup ? (
+                <button
+                  onClick={() => openStory(0)}
+                  className="group relative h-[200px] w-[120px] overflow-hidden rounded-xl shadow-md transition-transform duration-200 active:scale-[0.97]"
+                >
+                  {/* Preview of own story */}
+                  <div className={`absolute inset-0 ${ownGroup.items[0]?.background || ''}`}>
+                    <img
+                      src={ownGroup.items[0]?.media_url || "/placeholder.svg"}
+                      alt="Your story"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
+                  </div>
+                  {/* Avatar ring */}
+                  <div className="absolute left-2 top-2 z-10">
+                    <div className="rounded-full ring-[3px] ring-primary p-[2px] bg-background">
+                      <img
+                        src={profile?.avatar_url || "/placeholder.svg"}
+                        alt=""
+                        className="h-9 w-9 rounded-full object-cover"
+                      />
+                    </div>
+                  </div>
+                  <span className="absolute bottom-2 left-2 right-2 z-10 text-[11px] font-semibold text-white drop-shadow-md leading-tight">
+                    Your story
+                  </span>
+                  {/* Items count badge */}
+                  {ownGroup.items.length > 1 && (
+                    <div className="absolute right-2 top-2 z-10 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
+                      {ownGroup.items.length}
+                    </div>
+                  )}
+                </button>
+              ) : (
+                <button
+                  onClick={() => navigate("/create-story")}
+                  className="group relative flex h-[200px] w-[120px] flex-col overflow-hidden rounded-xl border-2 border-dashed border-border bg-card shadow-md transition-all duration-200 hover:border-primary/50 hover:shadow-lg active:scale-[0.97]"
+                >
+                  {/* Top: User photo */}
+                  <div className="relative flex-1 overflow-hidden">
                     <img
                       src={profile?.avatar_url || "/placeholder.svg"}
-                      alt="Your story"
-                      className="h-[64px] w-[64px] rounded-full object-cover"
+                      alt=""
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-card/80" />
                   </div>
-                </div>
-                {!ownGroup && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); navigate("/create-story"); }}
-                    className="absolute -bottom-0.5 -right-0.5 flex h-[22px] w-[22px] items-center justify-center rounded-full gradient-brand text-primary-foreground ring-2 ring-background shadow-md"
-                  >
-                    <Plus className="h-3 w-3" strokeWidth={3} />
-                  </button>
-                )}
-              </div>
-              <span className="max-w-[68px] truncate text-[11px] font-medium text-muted-foreground">
-                {ownGroup ? "Your story" : "Add story"}
-              </span>
-            </button>
+                  {/* Bottom: Create label */}
+                  <div className="relative flex flex-col items-center gap-1 bg-card px-2 pb-3 pt-5">
+                    <div className="absolute -top-4 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground ring-4 ring-card shadow-lg">
+                      <Plus className="h-5 w-5" strokeWidth={3} />
+                    </div>
+                    <span className="text-[11px] font-semibold text-foreground">Create story</span>
+                  </div>
+                </button>
+              )}
+            </div>
           )}
 
           {/* Other users' stories */}
           {otherGroups.map((group, i) => {
             const idx = ownGroup ? i + 1 : i;
+            const latestItem = group.items[0];
+            const hoursAgo = Math.round(
+              (Date.now() - new Date(latestItem.created_at).getTime()) / (3600 * 1000)
+            );
+            const timeLabel = hoursAgo < 1 ? "Now" : `${hoursAgo}h`;
+
             return (
               <button
                 key={group.userId}
                 onClick={() => openStory(idx)}
-                className="flex flex-shrink-0 flex-col items-center gap-1.5 group"
+                className="group relative h-[200px] w-[120px] flex-shrink-0 overflow-hidden rounded-xl shadow-md transition-transform duration-200 active:scale-[0.97]"
               >
-                <div className="story-ring transition-transform duration-200 group-active:scale-95 group-hover:scale-105">
-                  <div className="overflow-hidden rounded-full bg-background p-[2px]">
+                {/* Background: story content */}
+                <div className={`absolute inset-0 ${latestItem.background || ''}`}>
+                  <img
+                    src={latestItem.media_url || "/placeholder.svg"}
+                    alt={group.username}
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/70" />
+                </div>
+
+                {/* Avatar */}
+                <div className="absolute left-2 top-2 z-10">
+                  <div className="rounded-full ring-[3px] ring-primary p-[2px] bg-background">
                     <img
                       src={group.avatar || "/placeholder.svg"}
-                      alt={group.username}
-                      className="h-[62px] w-[62px] rounded-full object-cover"
+                      alt=""
+                      className="h-9 w-9 rounded-full object-cover"
                     />
                   </div>
                 </div>
-                <span className="max-w-[68px] truncate text-[11px] font-medium text-muted-foreground">
+
+                {/* Time badge */}
+                <div className="absolute right-2 top-2 z-10 rounded-full bg-black/40 px-1.5 py-0.5 text-[10px] font-medium text-white/90 backdrop-blur-sm">
+                  {timeLabel}
+                </div>
+
+                {/* Username */}
+                <span className="absolute bottom-2 left-2 right-2 z-10 truncate text-[11px] font-semibold text-white drop-shadow-md leading-tight">
                   {group.username}
                 </span>
+
+                {/* Unseen glow effect */}
+                <div className="absolute inset-0 rounded-xl ring-2 ring-primary/60 ring-inset opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
               </button>
             );
           })}
 
           {allGroups.length === 0 && !user && (
-            <p className="px-2 py-4 text-sm text-muted-foreground">Log in to see stories</p>
+            <div className="flex items-center px-4 py-8">
+              <p className="text-sm text-muted-foreground">Log in to see stories</p>
+            </div>
           )}
         </div>
       </div>
