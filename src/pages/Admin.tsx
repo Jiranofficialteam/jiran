@@ -98,6 +98,7 @@ const Admin = () => {
         {tab === "reports" && <ReportsTab />}
         {tab === "verification" && <VerificationTab />}
         {tab === "messages" && <MessagesTab />}
+        {tab === "site_settings" && <SiteSettingsTab />}
       </div>
     </div>
   );
