@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { X, ChevronLeft, ChevronRight, BadgeCheck, Send, Heart, Eye, MoreHorizontal, Pause, Play } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, BadgeCheck, Send, Heart, Eye, MoreHorizontal, Pause, Play, Users } from "lucide-react";
 import { DbStoryGroup, DbStoryItem } from "@/hooks/useStories";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { useRecordStoryView, useStoryViewCount, useStoryViewers } from "@/hooks/useStoryViews";
 
 const db = supabase as any;
 
