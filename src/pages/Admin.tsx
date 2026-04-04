@@ -47,6 +47,7 @@ const Admin = () => {
     { id: "reports", label: "Reports", icon: AlertTriangle },
     { id: "verification", label: "Verify", icon: BadgeCheck },
     { id: "messages", label: "DMs", icon: MessageSquare },
+    { id: "site_settings", label: "Site Settings", icon: Settings },
   ];
 
   return (
