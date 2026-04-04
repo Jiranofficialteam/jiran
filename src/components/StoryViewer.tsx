@@ -159,17 +159,31 @@ const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) =
   const [liked, setLiked] = useState(false);
   const [sending, setSending] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
+  const [showViewers, setShowViewers] = useState(false);
   const [slideAnim, setSlideAnim] = useState<"" | "slide-left" | "slide-right">("");
   const timerRef = useRef<ReturnType<typeof setInterval>>();
 
   const group = storyGroups[groupIdx];
   const item = group?.items[itemIdx];
   const duration = 5000;
+  const isOwnStory = user?.id === group?.userId;
+
+  const recordView = useRecordStoryView();
+  const { data: viewCount = 0 } = useStoryViewCount(isOwnStory ? item?.id : undefined);
+  const { data: viewers = [] } = useStoryViewers(showViewers ? item?.id : undefined);
+
+  // Record view when story changes
+  useEffect(() => {
+    if (user && item && !isOwnStory) {
+      recordView.mutate({ storyId: item.id, viewerId: user.id });
+    }
+  }, [item?.id, user?.id]);
 
   useEffect(() => {
     setLiked(false);
     setReplyText("");
     setShowReactions(false);
+    setShowViewers(false);
   }, [groupIdx, itemIdx]);
 
   const sendStoryReaction = async (text: string) => {
