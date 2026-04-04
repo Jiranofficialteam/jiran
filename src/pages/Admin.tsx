@@ -1009,4 +1009,153 @@ const VerificationTab = () => {
   );
 };
 
+/* ─── Site Settings ─── */
+const SiteSettingsTab = () => {
+  const { data: settings, isLoading } = useSiteSettings();
+  const updateSetting = useUpdateSiteSetting();
+  const [editValues, setEditValues] = useState<Record<string, string>>({});
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    if (settings) setEditValues({ ...settings });
+  }, [settings]);
+
+  const handleSave = async (key: string) => {
+    try {
+      await updateSetting.mutateAsync({ key, value: editValues[key] || "" });
+      toast.success(`${key} updated!`);
+    } catch {
+      toast.error("Failed to update");
+    }
+  };
+
+  const handleLogoUpload = async () => {
+    if (!logoFile) return;
+    setUploading(true);
+    try {
+      const ext = logoFile.name.split(".").pop() || "png";
+      const path = `site/logo_${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("media").upload(path, logoFile);
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("media").getPublicUrl(path);
+      await updateSetting.mutateAsync({ key: "site_logo_url", value: urlData.publicUrl });
+      setEditValues(prev => ({ ...prev, site_logo_url: urlData.publicUrl }));
+      toast.success("Logo updated!");
+      setLogoFile(null);
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+    setUploading(false);
+  };
+
+  if (isLoading) return <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
+
+  const settingItems = [
+    { key: "site_name", label: "Site Name", icon: Type, type: "text" },
+    { key: "site_tagline", label: "Tagline", icon: Type, type: "text" },
+    { key: "welcome_message", label: "Welcome Message", icon: MessageSquare, type: "text" },
+    { key: "footer_text", label: "Footer Text", icon: Type, type: "text" },
+    { key: "primary_color", label: "Primary Color", icon: Palette, type: "color" },
+    { key: "accent_color", label: "Accent Color", icon: Palette, type: "color" },
+    { key: "maintenance_mode", label: "Maintenance Mode", icon: AlertTriangle, type: "toggle" },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+        <Settings className="h-5 w-5 text-primary" />
+        Site Customization
+      </h2>
+
+      {/* Logo Upload */}
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <p className="text-sm font-semibold text-foreground mb-3">Site Logo</p>
+        <div className="flex items-center gap-4">
+          {editValues.site_logo_url ? (
+            <img src={editValues.site_logo_url} alt="Logo" className="h-16 w-16 rounded-xl object-contain bg-secondary" />
+          ) : (
+            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-secondary text-muted-foreground">
+              <Image className="h-8 w-8" />
+            </div>
+          )}
+          <div className="flex-1 space-y-2">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
+              className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-full file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary-foreground hover:file:bg-primary/90"
+            />
+            {logoFile && (
+              <button
+                onClick={handleLogoUpload}
+                disabled={uploading}
+                className="rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-primary-foreground disabled:opacity-50"
+              >
+                {uploading ? "Uploading..." : "Upload Logo"}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Settings */}
+      {settingItems.map((item) => (
+        <div key={item.key} className="rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <item.icon className="h-4 w-4 text-primary" />
+            <p className="text-sm font-semibold text-foreground">{item.label}</p>
+          </div>
+
+          {item.type === "text" && (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={editValues[item.key] || ""}
+                onChange={(e) => setEditValues(prev => ({ ...prev, [item.key]: e.target.value }))}
+                className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+              />
+              <button onClick={() => handleSave(item.key)} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground active:scale-95">Save</button>
+            </div>
+          )}
+
+          {item.type === "color" && (
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={editValues[item.key] || "#8B5CF6"}
+                onChange={(e) => setEditValues(prev => ({ ...prev, [item.key]: e.target.value }))}
+                className="h-10 w-14 cursor-pointer rounded-lg border border-border"
+              />
+              <input
+                type="text"
+                value={editValues[item.key] || ""}
+                onChange={(e) => setEditValues(prev => ({ ...prev, [item.key]: e.target.value }))}
+                className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none font-mono"
+              />
+              <button onClick={() => handleSave(item.key)} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground active:scale-95">Save</button>
+            </div>
+          )}
+
+          {item.type === "toggle" && (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  const newVal = editValues[item.key] === "true" ? "false" : "true";
+                  setEditValues(prev => ({ ...prev, [item.key]: newVal }));
+                  updateSetting.mutate({ key: item.key, value: newVal });
+                }}
+                className={`relative h-7 w-12 rounded-full transition-colors ${editValues[item.key] === "true" ? "bg-destructive" : "bg-secondary"}`}
+              >
+                <div className={`absolute top-0.5 h-6 w-6 rounded-full bg-background shadow transition-transform ${editValues[item.key] === "true" ? "translate-x-5" : "translate-x-0.5"}`} />
+              </button>
+              <span className="text-sm text-muted-foreground">{editValues[item.key] === "true" ? "ON — Site is in maintenance mode" : "OFF"}</span>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export default Admin;
