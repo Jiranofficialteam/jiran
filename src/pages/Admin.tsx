@@ -15,7 +15,7 @@ import { formatCount } from "@/lib/utils";
 
 const db = supabase as any;
 
-type Tab = "overview" | "users" | "posts" | "stories" | "comments" | "campaigns" | "reports" | "messages" | "verification";
+type Tab = "overview" | "users" | "posts" | "stories" | "comments" | "campaigns" | "reports" | "messages" | "verification" | "site_settings";
 
 const Admin = () => {
   const { user } = useAuth();
