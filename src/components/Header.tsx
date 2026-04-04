@@ -10,11 +10,14 @@ const db = supabase as any;
 const Header = () => {
   const { user, profile, signOut } = useAuth();
   const { pathname } = useLocation();
+  const { data: siteSettings } = useSiteSettings();
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains("dark"));
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const siteName = siteSettings?.site_name || "Jiran";
+  const logoUrl = siteSettings?.site_logo_url;
 
   const toggleTheme = useCallback(() => {
     const html = document.documentElement;
