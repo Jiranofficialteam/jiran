@@ -391,6 +391,36 @@ const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) =
             </div>
           )}
 
+          {/* Viewers panel */}
+          {showViewers && isOwnStory && (
+            <div className="absolute bottom-0 left-0 right-0 z-50 max-h-[50%] overflow-y-auto rounded-t-2xl bg-black/90 backdrop-blur-xl border-t border-white/10 animate-fade-in" onClick={(e) => e.stopPropagation()}>
+              <div className="sticky top-0 flex items-center justify-between bg-black/90 px-4 py-3 backdrop-blur-xl border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-white/70" />
+                  <span className="text-sm font-bold text-white">{viewCount} viewers</span>
+                </div>
+                <button onClick={() => { setShowViewers(false); setPaused(false); }} className="rounded-full p-1.5 hover:bg-white/10">
+                  <X className="h-4 w-4 text-white/70" />
+                </button>
+              </div>
+              {viewers.length === 0 ? (
+                <p className="py-8 text-center text-sm text-white/40">No viewers yet</p>
+              ) : (
+                <div className="divide-y divide-white/5">
+                  {viewers.map((v: any) => (
+                    <div key={v.id} className="flex items-center gap-3 px-4 py-2.5">
+                      <img src={v.avatar || "/placeholder.svg"} alt="" className="h-9 w-9 rounded-full object-cover" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">{v.fullName || v.username}</p>
+                        <p className="text-[11px] text-white/40">@{v.username}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Bottom bar */}
           {!isOwnStory && user ? (
             <div className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-4 pb-5 pt-16">
