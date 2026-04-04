@@ -79,8 +79,12 @@ const Header = () => {
     <>
       <header className="sticky top-0 z-50 border-b border-border glass safe-area-top">
         <div className="mx-auto flex h-14 max-w-[935px] items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-1 select-none">
-            <span className="font-display text-[26px] font-bold gradient-text tracking-tight">Jiran</span>
+          <Link to="/" className="flex items-center gap-2 select-none">
+            {logoUrl ? (
+              <img src={logoUrl} alt={siteName} className="h-8 w-8 rounded-lg object-contain" />
+            ) : null}
+            <span className="font-display text-[26px] font-bold gradient-text tracking-tight">{siteName}</span>
+          </Link>
           </Link>
 
           {/* Live button - mobile */}
