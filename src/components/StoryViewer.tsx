@@ -433,10 +433,13 @@ const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) =
           ) : (
             <div className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black/60 to-transparent px-4 pb-5 pt-12">
               {isOwnStory ? (
-                <div className="flex items-center justify-center gap-2">
-                  <Eye className="h-4 w-4 text-white/50" />
-                  <span className="text-sm text-white/50">Your story</span>
-                </div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowViewers(!showViewers); setPaused(true); }}
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-white/10 py-2.5 backdrop-blur-sm hover:bg-white/20 transition-all"
+                >
+                  <Eye className="h-4 w-4 text-white/70" />
+                  <span className="text-sm font-medium text-white/70">{viewCount} views</span>
+                </button>
               ) : (
                 <p className="text-center text-sm text-white/50">Log in to reply</p>
               )}
