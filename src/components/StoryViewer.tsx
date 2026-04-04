@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { X, ChevronLeft, ChevronRight, BadgeCheck, Send, Heart, Eye, MoreHorizontal, Pause, Play } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, BadgeCheck, Send, Heart, Eye, MoreHorizontal, Pause, Play, Users } from "lucide-react";
 import { DbStoryGroup, DbStoryItem } from "@/hooks/useStories";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { useRecordStoryView, useStoryViewCount, useStoryViewers } from "@/hooks/useStoryViews";
 
 const db = supabase as any;
 
@@ -158,17 +159,31 @@ const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) =
   const [liked, setLiked] = useState(false);
   const [sending, setSending] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
+  const [showViewers, setShowViewers] = useState(false);
   const [slideAnim, setSlideAnim] = useState<"" | "slide-left" | "slide-right">("");
   const timerRef = useRef<ReturnType<typeof setInterval>>();
 
   const group = storyGroups[groupIdx];
   const item = group?.items[itemIdx];
   const duration = 5000;
+  const isOwnStory = user?.id === group?.userId;
+
+  const recordView = useRecordStoryView();
+  const { data: viewCount = 0 } = useStoryViewCount(isOwnStory ? item?.id : undefined);
+  const { data: viewers = [] } = useStoryViewers(showViewers ? item?.id : undefined);
+
+  // Record view when story changes
+  useEffect(() => {
+    if (user && item && !isOwnStory) {
+      recordView.mutate({ storyId: item.id, viewerId: user.id });
+    }
+  }, [item?.id, user?.id]);
 
   useEffect(() => {
     setLiked(false);
     setReplyText("");
     setShowReactions(false);
+    setShowViewers(false);
   }, [groupIdx, itemIdx]);
 
   const sendStoryReaction = async (text: string) => {
@@ -263,7 +278,6 @@ const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) =
   if (!group || !item) return null;
 
   const timeLabel = formatDistanceToNow(new Date(item.created_at), { addSuffix: true });
-  const isOwnStory = user?.id === group.userId;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm">
@@ -377,6 +391,36 @@ const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) =
             </div>
           )}
 
+          {/* Viewers panel */}
+          {showViewers && isOwnStory && (
+            <div className="absolute bottom-0 left-0 right-0 z-50 max-h-[50%] overflow-y-auto rounded-t-2xl bg-black/90 backdrop-blur-xl border-t border-white/10 animate-fade-in" onClick={(e) => e.stopPropagation()}>
+              <div className="sticky top-0 flex items-center justify-between bg-black/90 px-4 py-3 backdrop-blur-xl border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-white/70" />
+                  <span className="text-sm font-bold text-white">{viewCount} viewers</span>
+                </div>
+                <button onClick={() => { setShowViewers(false); setPaused(false); }} className="rounded-full p-1.5 hover:bg-white/10">
+                  <X className="h-4 w-4 text-white/70" />
+                </button>
+              </div>
+              {viewers.length === 0 ? (
+                <p className="py-8 text-center text-sm text-white/40">No viewers yet</p>
+              ) : (
+                <div className="divide-y divide-white/5">
+                  {viewers.map((v: any) => (
+                    <div key={v.id} className="flex items-center gap-3 px-4 py-2.5">
+                      <img src={v.avatar || "/placeholder.svg"} alt="" className="h-9 w-9 rounded-full object-cover" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">{v.fullName || v.username}</p>
+                        <p className="text-[11px] text-white/40">@{v.username}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Bottom bar */}
           {!isOwnStory && user ? (
             <div className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-4 pb-5 pt-16">
@@ -419,10 +463,13 @@ const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) =
           ) : (
             <div className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black/60 to-transparent px-4 pb-5 pt-12">
               {isOwnStory ? (
-                <div className="flex items-center justify-center gap-2">
-                  <Eye className="h-4 w-4 text-white/50" />
-                  <span className="text-sm text-white/50">Your story</span>
-                </div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowViewers(!showViewers); setPaused(true); }}
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-white/10 py-2.5 backdrop-blur-sm hover:bg-white/20 transition-all"
+                >
+                  <Eye className="h-4 w-4 text-white/70" />
+                  <span className="text-sm font-medium text-white/70">{viewCount} views</span>
+                </button>
               ) : (
                 <p className="text-center text-sm text-white/50">Log in to reply</p>
               )}
@@ -553,7 +600,17 @@ const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) =
             </div>
           ) : (
             <div className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black/60 to-transparent px-3 pb-4 pt-8">
-              <p className="text-center text-xs text-white/50">{isOwnStory ? "Your story" : "Log in to reply"}</p>
+              {isOwnStory ? (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowViewers(!showViewers); setPaused(true); }}
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-white/10 py-2 backdrop-blur-sm"
+                >
+                  <Eye className="h-4 w-4 text-white/60" />
+                  <span className="text-xs font-medium text-white/60">{viewCount} views</span>
+                </button>
+              ) : (
+                <p className="text-center text-xs text-white/50">Log in to reply</p>
+              )}
             </div>
           )}
         </div>

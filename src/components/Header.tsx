@@ -3,17 +3,21 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const db = supabase as any;
 
 const Header = () => {
   const { user, profile, signOut } = useAuth();
   const { pathname } = useLocation();
+  const { data: siteSettings } = useSiteSettings();
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains("dark"));
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const siteName = siteSettings?.site_name || "Jiran";
+  const logoUrl = siteSettings?.site_logo_url;
 
   const toggleTheme = useCallback(() => {
     const html = document.documentElement;
@@ -75,8 +79,11 @@ const Header = () => {
     <>
       <header className="sticky top-0 z-50 border-b border-border glass safe-area-top">
         <div className="mx-auto flex h-14 max-w-[935px] items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-1 select-none">
-            <span className="font-display text-[26px] font-bold gradient-text tracking-tight">Jiran</span>
+          <Link to="/" className="flex items-center gap-2 select-none">
+            {logoUrl ? (
+              <img src={logoUrl} alt={siteName} className="h-8 w-8 rounded-lg object-contain" />
+            ) : null}
+            <span className="font-display text-[26px] font-bold gradient-text tracking-tight">{siteName}</span>
           </Link>
 
           {/* Live button - mobile */}
