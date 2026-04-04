@@ -85,7 +85,6 @@ const Header = () => {
             ) : null}
             <span className="font-display text-[26px] font-bold gradient-text tracking-tight">{siteName}</span>
           </Link>
-          </Link>
 
           {/* Live button - mobile */}
           {user && (
