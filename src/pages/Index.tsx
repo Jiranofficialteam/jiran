@@ -26,18 +26,21 @@ const Index = () => {
           <div className="h-px bg-border mx-3 md:mx-0" />
 
           {!user && !loading && (
-            <div className="mx-3 mt-4 rounded-2xl border border-border bg-card p-8 text-center animate-fade-in">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full gradient-subtle">
-                <Camera className="h-8 w-8 text-muted-foreground" />
+            <div className="mx-3 mt-4 rounded-2xl border border-border bg-card p-8 text-center animate-slide-up overflow-hidden relative">
+              <div className="absolute inset-0 gradient-subtle opacity-50" />
+              <div className="relative z-10">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl gradient-brand neon-glow">
+                  <Camera className="h-8 w-8 text-primary-foreground" />
+                </div>
+                <p className="text-lg font-extrabold text-foreground mb-1">See what's happening</p>
+                <p className="text-sm text-muted-foreground mb-5">Log in to see posts from people you follow</p>
+                <Link
+                  to="/auth"
+                  className="inline-block rounded-full gradient-brand px-8 py-2.5 text-sm font-bold text-primary-foreground shadow-lg neon-glow transition-all hover:shadow-xl active:scale-95"
+                >
+                  Log In / Sign Up
+                </Link>
               </div>
-              <p className="text-base font-bold text-foreground mb-1">See what's happening</p>
-              <p className="text-sm text-muted-foreground mb-5">Log in to see posts from people you follow</p>
-              <Link
-                to="/auth"
-                className="inline-block rounded-full gradient-brand px-8 py-2.5 text-sm font-bold text-primary-foreground shadow-lg transition-all hover:shadow-xl hover:brightness-110 active:scale-95"
-              >
-                Log In / Sign Up
-              </Link>
             </div>
           )}
 
@@ -50,7 +53,7 @@ const Index = () => {
             </div>
           )}
 
-          <div className="space-y-3 py-3 px-0 md:px-0">
+          <div className="space-y-3 py-3 px-0 md:px-0 animate-slide-up">
             {user && feedPosts && feedPosts.length > 0 ? (
               feedPosts.map((fp, i) => (
                 <div key={fp.id} className="animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
@@ -67,16 +70,19 @@ const Index = () => {
           </div>
 
           {user && feedPosts && feedPosts.length === 0 && !feedLoading && (
-            <div className="mx-3 mt-4 rounded-2xl border border-border bg-card p-10 text-center animate-fade-in">
-              <Sparkles className="mx-auto h-10 w-10 text-primary/40 mb-3" />
-              <p className="text-base font-bold">Your feed is empty</p>
-              <p className="text-sm text-muted-foreground mt-1">Follow people to see their posts here</p>
-              <Link
-                to="/explore"
-                className="mt-4 inline-block rounded-full gradient-brand px-6 py-2 text-sm font-bold text-primary-foreground shadow-lg hover:shadow-xl active:scale-95"
-              >
-                Discover People
-              </Link>
+            <div className="mx-3 mt-4 rounded-2xl border border-border bg-card p-10 text-center animate-slide-up relative overflow-hidden">
+              <div className="absolute inset-0 gradient-subtle opacity-30" />
+              <div className="relative z-10">
+                <Sparkles className="mx-auto h-10 w-10 text-accent mb-3" />
+                <p className="text-lg font-extrabold">Your feed is empty</p>
+                <p className="text-sm text-muted-foreground mt-1">Follow people to see their posts here</p>
+                <Link
+                  to="/explore"
+                  className="mt-4 inline-block rounded-full gradient-brand px-6 py-2 text-sm font-bold text-primary-foreground shadow-lg neon-glow active:scale-95"
+                >
+                  Discover People
+                </Link>
+              </div>
             </div>
           )}
         </main>
