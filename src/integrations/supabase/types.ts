@@ -80,6 +80,130 @@ export type Database = {
           },
         ]
       }
+      ad_clicks: {
+        Row: {
+          ad_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          ad_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          ad_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_clicks_ad_id_fkey"
+            columns: ["ad_id"]
+            isOneToOne: false
+            referencedRelation: "ads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_impressions: {
+        Row: {
+          ad_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          ad_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          ad_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_impressions_ad_id_fkey"
+            columns: ["ad_id"]
+            isOneToOne: false
+            referencedRelation: "ads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ads: {
+        Row: {
+          ad_type: string
+          budget: number
+          clicks: number
+          cpc: number
+          cpm: number
+          created_at: string
+          created_by: string
+          description: string | null
+          destination_url: string | null
+          end_date: string | null
+          id: string
+          image_url: string | null
+          impressions: number
+          placement: string
+          spent: number
+          start_date: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          ad_type?: string
+          budget?: number
+          clicks?: number
+          cpc?: number
+          cpm?: number
+          created_at?: string
+          created_by: string
+          description?: string | null
+          destination_url?: string | null
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          impressions?: number
+          placement?: string
+          spent?: number
+          start_date?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          ad_type?: string
+          budget?: number
+          clicks?: number
+          cpc?: number
+          cpm?: number
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          destination_url?: string | null
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          impressions?: number
+          placement?: string
+          spent?: number
+          start_date?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       badges: {
         Row: {
           created_at: string
@@ -1504,6 +1628,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_ad_click: { Args: { ad_uuid: string }; Returns: undefined }
+      increment_ad_impression: { Args: { ad_uuid: string }; Returns: undefined }
       is_conversation_member: {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean

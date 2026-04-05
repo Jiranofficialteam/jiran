@@ -3,6 +3,7 @@ import BottomNav from "@/components/BottomNav";
 import StoryBar from "@/components/StoryBar";
 import PostCard from "@/components/PostCard";
 import SuggestedUsers from "@/components/SuggestedUsers";
+import FeedAd from "@/components/FeedAd";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFeed } from "@/hooks/useFeed";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
@@ -56,8 +57,12 @@ const Index = () => {
           <div className="space-y-3 py-3 px-0 md:px-0 animate-slide-up">
             {user && feedPosts && feedPosts.length > 0 ? (
               feedPosts.map((fp, i) => (
-                <div key={fp.id} className="animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
-                  <PostCard feedPost={fp} />
+                <div key={fp.id}>
+                  <div className="animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
+                    <PostCard feedPost={fp} />
+                  </div>
+                  {i === 2 && <FeedAd />}
+                  {i === 7 && <FeedAd />}
                 </div>
               ))
             ) : (
