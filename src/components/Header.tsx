@@ -77,13 +77,13 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-border glass safe-area-top">
+      <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-2xl safe-area-top">
         <div className="mx-auto flex h-14 max-w-[935px] items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2 select-none">
+          <Link to="/" className="flex items-center gap-2 select-none group">
             {logoUrl ? (
               <img src={logoUrl} alt={siteName} className="h-8 w-8 rounded-lg object-contain" />
             ) : null}
-            <span className="font-display text-[26px] font-bold gradient-text tracking-tight">{siteName}</span>
+            <span className="font-display text-[26px] font-extrabold gradient-text-neon tracking-tight transition-all group-hover:neon-text-glow">{siteName}</span>
           </Link>
 
           {/* Live button - mobile */}
