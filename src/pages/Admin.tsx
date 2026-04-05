@@ -4,9 +4,11 @@ import {
   Rocket, Trash2, BadgeCheck, Ban, Eye, ThumbsUp, MessageCircle,
   ChevronLeft, Search, Check, X, AlertTriangle, DollarSign,
   Zap, BarChart2, Activity, Clock, Target, ArrowUpRight, ArrowDownRight,
-  RefreshCw, Filter, ChevronDown, Heart, Settings, Upload, Palette, Type
+  RefreshCw, Filter, ChevronDown, Heart, Settings, Upload, Palette, Type,
+  Megaphone
 } from "lucide-react";
 import { useSiteSettings, useUpdateSiteSetting } from "@/hooks/useSiteSettings";
+import AdminAdsTab from "@/components/AdminAdsTab";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +17,7 @@ import { formatCount } from "@/lib/utils";
 
 const db = supabase as any;
 
-type Tab = "overview" | "users" | "posts" | "stories" | "comments" | "campaigns" | "reports" | "messages" | "verification" | "site_settings";
+type Tab = "overview" | "users" | "posts" | "stories" | "comments" | "campaigns" | "reports" | "messages" | "verification" | "site_settings" | "ads";
 
 const Admin = () => {
   const { user } = useAuth();
@@ -44,8 +46,11 @@ const Admin = () => {
     { id: "stories", label: "Stories", icon: Film },
     { id: "comments", label: "Comments", icon: MessageCircle },
     { id: "campaigns", label: "Boosts", icon: Rocket },
+    { id: "ads", label: "Ads", icon: Megaphone },
     { id: "reports", label: "Reports", icon: AlertTriangle },
     { id: "verification", label: "Verify", icon: BadgeCheck },
+    { id: "messages", label: "DMs", icon: MessageSquare },
+    { id: "site_settings", label: "Site Settings", icon: Settings },
     { id: "messages", label: "DMs", icon: MessageSquare },
     { id: "site_settings", label: "Site Settings", icon: Settings },
   ];
