@@ -103,6 +103,7 @@ const Admin = () => {
         {tab === "comments" && <CommentsTab />}
         {tab === "campaigns" && <CampaignsTab />}
         {tab === "ads" && <AdminAdsTab />}
+        {tab === "monetization" && <AdminMonetizationTab />}
         {tab === "reports" && <ReportsTab />}
         {tab === "verification" && <VerificationTab />}
         {tab === "messages" && <MessagesTab />}
