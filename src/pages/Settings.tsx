@@ -184,6 +184,13 @@ const Settings = () => {
           action: () => navigate("/rewards"),
         },
         {
+          icon: DollarSign,
+          label: "মনিটাইজেশন",
+          desc: "কন্টেন্ট থেকে আয় করুন",
+          right: <ChevronRight className="h-4 w-4 text-muted-foreground" />,
+          action: () => navigate("/monetization"),
+        },
+        {
           icon: Star,
           label: "ক্লোজ ফ্রেন্ডস",
           desc: "বিশেষ বন্ধুদের তালিকা পরিচালনা করুন",
