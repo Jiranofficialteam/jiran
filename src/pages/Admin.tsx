@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useSiteSettings, useUpdateSiteSetting } from "@/hooks/useSiteSettings";
 import AdminAdsTab from "@/components/AdminAdsTab";
+import AdminMonetizationTab from "@/components/AdminMonetizationTab";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -17,7 +18,7 @@ import { formatCount } from "@/lib/utils";
 
 const db = supabase as any;
 
-type Tab = "overview" | "users" | "posts" | "stories" | "comments" | "campaigns" | "reports" | "messages" | "verification" | "site_settings" | "ads";
+type Tab = "overview" | "users" | "posts" | "stories" | "comments" | "campaigns" | "reports" | "messages" | "verification" | "site_settings" | "ads" | "monetization";
 
 const Admin = () => {
   const { user } = useAuth();
@@ -47,6 +48,7 @@ const Admin = () => {
     { id: "comments", label: "Comments", icon: MessageCircle },
     { id: "campaigns", label: "Boosts", icon: Rocket },
     { id: "ads", label: "Ads", icon: Megaphone },
+    { id: "monetization", label: "Monetize", icon: DollarSign },
     { id: "reports", label: "Reports", icon: AlertTriangle },
     { id: "verification", label: "Verify", icon: BadgeCheck },
     { id: "messages", label: "DMs", icon: MessageSquare },
@@ -101,6 +103,7 @@ const Admin = () => {
         {tab === "comments" && <CommentsTab />}
         {tab === "campaigns" && <CampaignsTab />}
         {tab === "ads" && <AdminAdsTab />}
+        {tab === "monetization" && <AdminMonetizationTab />}
         {tab === "reports" && <ReportsTab />}
         {tab === "verification" && <VerificationTab />}
         {tab === "messages" && <MessagesTab />}
