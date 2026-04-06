@@ -47,7 +47,7 @@ const Monetization = () => {
   const [applying, setApplying] = useState(false);
   const [requestingPayout, setRequestingPayout] = useState(false);
   const [payoutForm, setPayoutForm] = useState({ amount: "", method: "bkash", number: "" });
-  const [stats, setStats] = useState({ posts: 0, followers: 0 });
+  const [stats, setStats] = useState({ posts: 0, followers: 0, totalLikes: 0, totalViews: 0, boostLikes: 0, boostViews: 0, followerBoost: 0 });
 
   useEffect(() => {
     if (!user) return;
@@ -58,18 +58,40 @@ const Monetization = () => {
     if (!user) return;
     setLoading(true);
 
-    const [{ data: mon }, { data: earn }, { data: pay }, { count: postCount }, { count: followerCount }] = await Promise.all([
+    const [{ data: mon }, { data: earn }, { data: pay }, { count: postCount }, { count: followerCount }, { data: profileData }, { data: campaigns }] = await Promise.all([
       db.from("creator_monetization").select("*").eq("user_id", user.id).maybeSingle(),
       db.from("creator_earnings").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
       db.from("payout_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       db.from("posts").select("*", { count: "exact", head: true }).eq("user_id", user.id),
       db.from("follows").select("*", { count: "exact", head: true }).eq("following_id", user.id),
+      db.from("profiles").select("follower_boost").eq("id", user.id).single(),
+      db.from("ad_campaigns").select("boost_likes, boost_views, status").eq("user_id", user.id),
     ]);
+
+    const boostLikes = (campaigns || []).reduce((s: number, c: any) => s + (c.boost_likes || 0), 0);
+    const boostViews = (campaigns || []).reduce((s: number, c: any) => s + (c.boost_views || 0), 0);
+    const followerBoost = profileData?.follower_boost || 0;
+
+    // Get total real likes
+    const { data: userPosts } = await db.from("posts").select("id").eq("user_id", user.id);
+    let totalLikes = 0;
+    if (userPosts && userPosts.length > 0) {
+      const { count } = await db.from("likes").select("*", { count: "exact", head: true }).in("post_id", userPosts.map((p: any) => p.id));
+      totalLikes = count || 0;
+    }
 
     setMonetization(mon);
     setEarnings(earn || []);
     setPayouts(pay || []);
-    setStats({ posts: postCount || 0, followers: followerCount || 0 });
+    setStats({
+      posts: postCount || 0,
+      followers: (followerCount || 0) + followerBoost,
+      totalLikes: totalLikes + boostLikes,
+      totalViews: boostViews,
+      boostLikes,
+      boostViews,
+      followerBoost,
+    });
     setLoading(false);
   };
 
