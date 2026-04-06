@@ -250,6 +250,24 @@ const Monetization = () => {
                   </div>
                 </div>
 
+                {/* Boost Stats */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="rounded-xl border border-border bg-card p-3 text-center">
+                    <p className="text-lg font-bold text-foreground">{formatCount(stats.totalLikes)}</p>
+                    <p className="text-[10px] text-muted-foreground">মোট লাইক</p>
+                    {stats.boostLikes > 0 && <p className="text-[9px] text-primary">+{formatCount(stats.boostLikes)} বুস্ট</p>}
+                  </div>
+                  <div className="rounded-xl border border-border bg-card p-3 text-center">
+                    <p className="text-lg font-bold text-foreground">{formatCount(stats.totalViews)}</p>
+                    <p className="text-[10px] text-muted-foreground">বুস্ট ভিউ</p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-card p-3 text-center">
+                    <p className="text-lg font-bold text-foreground">{formatCount(stats.followers)}</p>
+                    <p className="text-[10px] text-muted-foreground">ফলোয়ার</p>
+                    {stats.followerBoost > 0 && <p className="text-[9px] text-primary">+{formatCount(stats.followerBoost)} বুস্ট</p>}
+                  </div>
+                </div>
+
                 {/* Payout Button */}
                 {monetization.pending_payout > 0 && (
                   <button
