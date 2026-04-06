@@ -164,12 +164,20 @@ const Monetization = () => {
 
             <div className="grid grid-cols-2 gap-3 text-left">
               <div className="rounded-xl bg-secondary p-3">
-                <p className="text-2xl font-bold text-foreground">{stats.followers}</p>
-                <p className="text-xs text-muted-foreground">ফলোয়ার</p>
+                <p className="text-2xl font-bold text-foreground">{formatCount(stats.followers)}</p>
+                <p className="text-xs text-muted-foreground">ফলোয়ার {stats.followerBoost > 0 && <span className="text-primary">(+{formatCount(stats.followerBoost)} বুস্ট)</span>}</p>
               </div>
               <div className="rounded-xl bg-secondary p-3">
                 <p className="text-2xl font-bold text-foreground">{stats.posts}</p>
                 <p className="text-xs text-muted-foreground">পোস্ট</p>
+              </div>
+              <div className="rounded-xl bg-secondary p-3">
+                <p className="text-2xl font-bold text-foreground">{formatCount(stats.totalLikes)}</p>
+                <p className="text-xs text-muted-foreground">মোট লাইক {stats.boostLikes > 0 && <span className="text-primary">(+{formatCount(stats.boostLikes)})</span>}</p>
+              </div>
+              <div className="rounded-xl bg-secondary p-3">
+                <p className="text-2xl font-bold text-foreground">{formatCount(stats.totalViews)}</p>
+                <p className="text-xs text-muted-foreground">বুস্ট ভিউ</p>
               </div>
             </div>
 
