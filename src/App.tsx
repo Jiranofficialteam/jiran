@@ -23,6 +23,7 @@ import CloseFriends from "./pages/CloseFriends";
 import Events from "./pages/Events";
 import Fundraisers from "./pages/Fundraisers";
 import LiveStream from "./pages/LiveStream";
+import Monetization from "./pages/Monetization";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/events" element={<Events />} />
             <Route path="/fundraisers" element={<Fundraisers />} />
             <Route path="/live" element={<LiveStream />} />
+            <Route path="/monetization" element={<Monetization />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
