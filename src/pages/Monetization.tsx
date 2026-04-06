@@ -47,7 +47,7 @@ const Monetization = () => {
   const [applying, setApplying] = useState(false);
   const [requestingPayout, setRequestingPayout] = useState(false);
   const [payoutForm, setPayoutForm] = useState({ amount: "", method: "bkash", number: "" });
-  const [stats, setStats] = useState({ posts: 0, followers: 0 });
+  const [stats, setStats] = useState({ posts: 0, followers: 0, totalLikes: 0, totalViews: 0, boostLikes: 0, boostViews: 0, followerBoost: 0 });
 
   useEffect(() => {
     if (!user) return;
@@ -58,18 +58,40 @@ const Monetization = () => {
     if (!user) return;
     setLoading(true);
 
-    const [{ data: mon }, { data: earn }, { data: pay }, { count: postCount }, { count: followerCount }] = await Promise.all([
+    const [{ data: mon }, { data: earn }, { data: pay }, { count: postCount }, { count: followerCount }, { data: profileData }, { data: campaigns }] = await Promise.all([
       db.from("creator_monetization").select("*").eq("user_id", user.id).maybeSingle(),
       db.from("creator_earnings").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
       db.from("payout_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       db.from("posts").select("*", { count: "exact", head: true }).eq("user_id", user.id),
       db.from("follows").select("*", { count: "exact", head: true }).eq("following_id", user.id),
+      db.from("profiles").select("follower_boost").eq("id", user.id).single(),
+      db.from("ad_campaigns").select("boost_likes, boost_views, status").eq("user_id", user.id),
     ]);
+
+    const boostLikes = (campaigns || []).reduce((s: number, c: any) => s + (c.boost_likes || 0), 0);
+    const boostViews = (campaigns || []).reduce((s: number, c: any) => s + (c.boost_views || 0), 0);
+    const followerBoost = profileData?.follower_boost || 0;
+
+    // Get total real likes
+    const { data: userPosts } = await db.from("posts").select("id").eq("user_id", user.id);
+    let totalLikes = 0;
+    if (userPosts && userPosts.length > 0) {
+      const { count } = await db.from("likes").select("*", { count: "exact", head: true }).in("post_id", userPosts.map((p: any) => p.id));
+      totalLikes = count || 0;
+    }
 
     setMonetization(mon);
     setEarnings(earn || []);
     setPayouts(pay || []);
-    setStats({ posts: postCount || 0, followers: followerCount || 0 });
+    setStats({
+      posts: postCount || 0,
+      followers: (followerCount || 0) + followerBoost,
+      totalLikes: totalLikes + boostLikes,
+      totalViews: boostViews,
+      boostLikes,
+      boostViews,
+      followerBoost,
+    });
     setLoading(false);
   };
 
@@ -142,12 +164,20 @@ const Monetization = () => {
 
             <div className="grid grid-cols-2 gap-3 text-left">
               <div className="rounded-xl bg-secondary p-3">
-                <p className="text-2xl font-bold text-foreground">{stats.followers}</p>
-                <p className="text-xs text-muted-foreground">ফলোয়ার</p>
+                <p className="text-2xl font-bold text-foreground">{formatCount(stats.followers)}</p>
+                <p className="text-xs text-muted-foreground">ফলোয়ার {stats.followerBoost > 0 && <span className="text-primary">(+{formatCount(stats.followerBoost)} বুস্ট)</span>}</p>
               </div>
               <div className="rounded-xl bg-secondary p-3">
                 <p className="text-2xl font-bold text-foreground">{stats.posts}</p>
                 <p className="text-xs text-muted-foreground">পোস্ট</p>
+              </div>
+              <div className="rounded-xl bg-secondary p-3">
+                <p className="text-2xl font-bold text-foreground">{formatCount(stats.totalLikes)}</p>
+                <p className="text-xs text-muted-foreground">মোট লাইক {stats.boostLikes > 0 && <span className="text-primary">(+{formatCount(stats.boostLikes)})</span>}</p>
+              </div>
+              <div className="rounded-xl bg-secondary p-3">
+                <p className="text-2xl font-bold text-foreground">{formatCount(stats.totalViews)}</p>
+                <p className="text-xs text-muted-foreground">বুস্ট ভিউ</p>
               </div>
             </div>
 
@@ -217,6 +247,24 @@ const Monetization = () => {
                     </div>
                     <p className="text-xl font-bold text-foreground">৳{formatCount(monetization.pending_payout)}</p>
                     <p className="text-xs text-muted-foreground">উত্তোলনযোগ্য</p>
+                  </div>
+                </div>
+
+                {/* Boost Stats */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="rounded-xl border border-border bg-card p-3 text-center">
+                    <p className="text-lg font-bold text-foreground">{formatCount(stats.totalLikes)}</p>
+                    <p className="text-[10px] text-muted-foreground">মোট লাইক</p>
+                    {stats.boostLikes > 0 && <p className="text-[9px] text-primary">+{formatCount(stats.boostLikes)} বুস্ট</p>}
+                  </div>
+                  <div className="rounded-xl border border-border bg-card p-3 text-center">
+                    <p className="text-lg font-bold text-foreground">{formatCount(stats.totalViews)}</p>
+                    <p className="text-[10px] text-muted-foreground">বুস্ট ভিউ</p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-card p-3 text-center">
+                    <p className="text-lg font-bold text-foreground">{formatCount(stats.followers)}</p>
+                    <p className="text-[10px] text-muted-foreground">ফলোয়ার</p>
+                    {stats.followerBoost > 0 && <p className="text-[9px] text-primary">+{formatCount(stats.followerBoost)} বুস্ট</p>}
                   </div>
                 </div>
 
