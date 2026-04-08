@@ -25,8 +25,8 @@ const StoryBar = () => {
 
   return (
     <>
-      <div className="bg-background py-3">
-        <div className="hide-scrollbar flex gap-2 overflow-x-auto px-3">
+      <div className="bg-background py-3.5">
+        <div className="hide-scrollbar flex gap-2.5 overflow-x-auto px-3">
           {/* Create Story Card - Facebook style */}
           {user && (
             <div className="flex-shrink-0">
