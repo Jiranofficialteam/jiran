@@ -243,7 +243,7 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
   if (deleted) return null;
 
   return (
-    <article className="mx-3 md:mx-0 rounded-2xl border border-border bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+    <article className="mx-3 md:mx-0 rounded-2xl border border-border/60 bg-card overflow-hidden shadow-card card-interactive">
       {isDB && <BoostPostModal postId={postId} open={boostOpen} onClose={() => setBoostOpen(false)} />}
       {isOwnPost && <EditPostModal open={editOpen} onClose={() => setEditOpen(false)} postId={postId} initialCaption={currentCaption} initialLocation={currentLocation} onUpdated={(c, l) => { setCurrentCaption(c); setCurrentLocation(l); }} />}
       {isDB && <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} postId={postId} caption={currentCaption} />}

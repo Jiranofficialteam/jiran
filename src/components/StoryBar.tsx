@@ -25,15 +25,15 @@ const StoryBar = () => {
 
   return (
     <>
-      <div className="bg-background py-3">
-        <div className="hide-scrollbar flex gap-2 overflow-x-auto px-3">
+      <div className="bg-background py-3.5">
+        <div className="hide-scrollbar flex gap-2.5 overflow-x-auto px-3">
           {/* Create Story Card - Facebook style */}
           {user && (
             <div className="flex-shrink-0">
               {ownGroup ? (
                 <button
                   onClick={() => openStory(0)}
-                  className="group relative h-[200px] w-[120px] overflow-hidden rounded-xl shadow-md transition-transform duration-200 active:scale-[0.97]"
+                  className="group relative h-[210px] w-[125px] overflow-hidden rounded-2xl shadow-card transition-all duration-300 active:scale-[0.97] hover:shadow-premium"
                 >
                   {/* Preview of own story */}
                   <div className={`absolute inset-0 ${ownGroup.items[0]?.background || ''}`}>
@@ -67,7 +67,7 @@ const StoryBar = () => {
               ) : (
                 <button
                   onClick={() => navigate("/create-story")}
-                  className="group relative flex h-[200px] w-[120px] flex-col overflow-hidden rounded-xl border-2 border-dashed border-border bg-card shadow-md transition-all duration-200 hover:border-primary/50 hover:shadow-lg active:scale-[0.97]"
+                  className="group relative flex h-[210px] w-[125px] flex-col overflow-hidden rounded-2xl border-2 border-dashed border-border/60 bg-card shadow-card transition-all duration-300 hover:border-primary/40 hover:shadow-premium active:scale-[0.97]"
                 >
                   {/* Top: User photo */}
                   <div className="relative flex-1 overflow-hidden">
@@ -103,7 +103,7 @@ const StoryBar = () => {
               <button
                 key={group.userId}
                 onClick={() => openStory(idx)}
-                className="group relative h-[200px] w-[120px] flex-shrink-0 overflow-hidden rounded-xl shadow-md transition-transform duration-200 active:scale-[0.97]"
+                className="group relative h-[210px] w-[125px] flex-shrink-0 overflow-hidden rounded-2xl shadow-card transition-all duration-300 active:scale-[0.97] hover:shadow-premium"
               >
                 {/* Background: story content */}
                 <div className={`absolute inset-0 ${latestItem.background || ''}`}>
