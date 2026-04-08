@@ -57,10 +57,14 @@ const SuggestedUsers = () => {
   return (
     <aside className="hidden w-[320px] flex-shrink-0 pl-12 pt-8 lg:block">
       {/* Current user card */}
-      <div className="rounded-2xl border border-border bg-card/50 p-4 mb-5">
+      <div className="rounded-2xl glass-premium p-4 mb-5">
         <div className="flex items-center gap-3">
           <Link to="/profile" className="flex-shrink-0">
-            <img src={profile.avatar_url || "/placeholder.svg"} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-border" />
+            <div className="story-ring">
+              <div className="rounded-full bg-background p-[2px]">
+                <img src={profile.avatar_url || "/placeholder.svg"} alt="" className="h-11 w-11 rounded-full object-cover" />
+              </div>
+            </div>
           </Link>
           <div className="flex-1 min-w-0">
             <Link to="/profile" className="text-sm font-bold truncate block hover:underline">{profile.username}</Link>
@@ -70,7 +74,7 @@ const SuggestedUsers = () => {
       </div>
 
       {suggested.length > 0 && (
-        <div className="rounded-2xl border border-border bg-card/50 p-4">
+        <div className="rounded-2xl glass-premium p-4">
           <div className="flex items-center gap-2 mb-4">
             <Sparkles className="h-4 w-4 text-primary" />
             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Suggested for you</span>
