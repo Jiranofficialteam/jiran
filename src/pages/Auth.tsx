@@ -58,15 +58,33 @@ const Auth = () => {
           return;
         }
         toast.success("স্বাগতম! 👋");
-      } else {
+      } else if (step === 3) {
         const { error } = await signUp(email, password, username.trim(), fullName.trim());
         if (error) throw error;
-        toast.success("অ্যাকাউন্ট তৈরি হয়েছে! ইমেইল ভেরিফাই করুন ✉️");
+        toast.success("৬ ডিজিটের কোড আপনার ইমেইলে পাঠানো হয়েছে ✉️");
+        setStep(4);
+      } else if (step === 4) {
+        if (otpCode.length !== 6) { toast.error("৬ ডিজিটের কোড দিন"); setSubmitting(false); return; }
+        const { error } = await supabase.auth.verifyOtp({ email, token: otpCode, type: "signup" });
+        if (error) throw error;
+        toast.success("ইমেইল ভেরিফাই হয়েছে! 🎉");
       }
     } catch (err: any) {
       toast.error(err.message || "কিছু ভুল হয়েছে");
     }
     setSubmitting(false);
+  };
+
+  const handleResendCode = async () => {
+    setResending(true);
+    try {
+      const { error } = await supabase.auth.resend({ type: "signup", email });
+      if (error) throw error;
+      toast.success("নতুন কোড পাঠানো হয়েছে ✉️");
+    } catch (err: any) {
+      toast.error(err.message || "কোড পাঠানো যায়নি");
+    }
+    setResending(false);
   };
 
   const resetForm = (login: boolean) => {
