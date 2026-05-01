@@ -142,20 +142,25 @@ const Auth = () => {
           <div className="rounded-2xl border border-border bg-card px-6 sm:px-8 py-8 shadow-sm">
             <div className="mb-6">
               <h2 className="text-xl font-bold text-foreground">
-                {isLogin ? "আবার স্বাগতম!" : step === 1 ? "নতুন অ্যাকাউন্ট তৈরি করুন" : step === 2 ? "আপনার তথ্য দিন" : "প্রায় শেষ!"}
+                {isLogin ? "আবার স্বাগতম!"
+                  : step === 1 ? "নতুন অ্যাকাউন্ট তৈরি করুন"
+                  : step === 2 ? "আপনার তথ্য দিন"
+                  : step === 3 ? "প্রায় শেষ!"
+                  : "ইমেইল ভেরিফাই করুন"}
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
                 {isLogin ? "আপনার অ্যাকাউন্টে লগ ইন করুন"
                   : step === 1 ? "এটা দ্রুত এবং সহজ"
                   : step === 2 ? "জন্ম তারিখ ও লিঙ্গ নির্বাচন করুন"
-                  : "ইমেইল ও পাসওয়ার্ড সেট করুন"}
+                  : step === 3 ? "ইমেইল ও পাসওয়ার্ড সেট করুন"
+                  : `${email} এ পাঠানো ৬ ডিজিটের কোডটি লিখুন`}
               </p>
             </div>
 
             {/* Step indicators */}
             {!isLogin && (
               <div className="flex items-center gap-2 mb-6">
-                {[1, 2, 3].map(s => (
+                {[1, 2, 3, 4].map(s => (
                   <div key={s} className={`h-1 flex-1 rounded-full transition-colors ${step >= s ? "gradient-brand" : "bg-border"}`} />
                 ))}
               </div>
