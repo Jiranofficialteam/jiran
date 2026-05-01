@@ -90,7 +90,7 @@ const Auth = () => {
   const resetForm = (login: boolean) => {
     setIsLogin(login);
     setStep(1);
-    setEmail(""); setPassword(""); setUsername(""); setFullName("");
+    setEmail(""); setPassword(""); setUsername(""); setFullName(""); setOtpCode("");
     setBirthDay(""); setBirthMonth(""); setBirthYear(""); setGender("");
   };
 
