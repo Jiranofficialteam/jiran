@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Eye, EyeOff, Mail, Lock, User, AtSign, ArrowRight, Calendar, MapPin, Users } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, AtSign, ArrowRight, Calendar, MapPin, Users, ShieldCheck } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Auth = () => {
   const { user, loading, signIn, signUp } = useAuth();
@@ -13,7 +14,9 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [step, setStep] = useState(1); // 1=name, 2=birthday/gender, 3=credentials
+  const [step, setStep] = useState(1); // 1=name, 2=birthday/gender, 3=credentials, 4=otp verify
+  const [otpCode, setOtpCode] = useState("");
+  const [resending, setResending] = useState(false);
 
   // Step 2 fields (Facebook style)
   const [birthDay, setBirthDay] = useState("");
