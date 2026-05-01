@@ -15,7 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import BoostPostModal from "./BoostPostModal";
 import EditPostModal from "./EditPostModal";
 import ShareModal from "./ShareModal";
-import EmojiReactions from "./EmojiReactions";
+import FBReactionButton from "./FBReactionButton";
+import FacebookComments from "./FacebookComments";
 
 const db = supabase as any;
 
@@ -324,103 +325,96 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
       </div>
 
       <div className="flex items-center justify-between px-4 pt-3">
-        <div className="flex items-center gap-4">
-          <button onClick={handleLike} className="transition-transform active:scale-90">
-            <Heart className={`h-6 w-6 transition-colors ${liked ? "fill-primary text-primary animate-heart-pop" : "text-foreground"}`} />
+        <div className="flex items-center gap-1">
+          {isDB ? (
+            <FBReactionButton postId={postId} />
+          ) : (
+            <button onClick={handleLike} className="transition-transform active:scale-90">
+              <Heart className={`h-6 w-6 transition-colors ${liked ? "fill-primary text-primary animate-heart-pop" : "text-foreground"}`} />
+            </button>
+          )}
+          <button onClick={focusComment} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold text-foreground hover:bg-secondary transition-colors">
+            <MessageCircle className="h-5 w-5" />
+            <span className="hidden sm:inline">Comment</span>
           </button>
-          <button onClick={focusComment} className="text-foreground transition-opacity hover:opacity-60">
-            <MessageCircle className="h-6 w-6" />
-          </button>
-          <button onClick={handleShare} className="text-foreground transition-opacity hover:opacity-60">
-            <Send className="h-6 w-6" />
+          <button onClick={handleShare} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold text-foreground hover:bg-secondary transition-colors">
+            <Send className="h-5 w-5" />
+            <span className="hidden sm:inline">Share</span>
           </button>
         </div>
-        <button onClick={handleSave} className="transition-transform active:scale-90">
-          <Bookmark className={`h-6 w-6 transition-colors ${saved ? "fill-foreground text-foreground" : "text-foreground"}`} />
+        <button onClick={handleSave} className="rounded-lg p-1.5 transition-transform active:scale-90 hover:bg-secondary">
+          <Bookmark className={`h-5 w-5 transition-colors ${saved ? "fill-foreground text-foreground" : "text-foreground"}`} />
         </button>
       </div>
 
       <div className="px-4 pb-4 pt-2">
-        {isDB && (
-          <div className="mb-2">
-            <EmojiReactions postId={postId} />
-          </div>
-        )}
-        <p className="text-sm font-semibold">{formatCount(likes)} likes</p>
         <p className="mt-1 text-sm">
           <Link to={`/profile/${username}`} className="font-semibold">{username}</Link>{" "}
           {currentCaption}
         </p>
 
         {commentsCount > 0 && !showAllComments && (
-          <button onClick={() => setShowAllComments(true)} className="mt-1 text-sm text-muted-foreground">
-            View all {commentsCount} comments
+          <button onClick={() => setShowAllComments(true)} className="mt-2 text-sm font-semibold text-muted-foreground hover:text-foreground">
+            সব {commentsCount}টি কমেন্ট দেখুন
           </button>
         )}
 
         {showAllComments && (
-          <div className="mt-2 space-y-2">
+          <div className="mt-2 border-t border-border pt-2">
             {isDB ? (
-              dbComments.map((c) => (
-                <div key={c.id} className="flex items-start gap-2">
-                  <Link to={`/profile/${c.profiles?.username}`}>
-                    <img src={c.profiles?.avatar_url || "/placeholder.svg"} alt="" className="mt-0.5 h-6 w-6 rounded-full object-cover" />
-                  </Link>
-                  <div className="flex-1">
-                    <p className="text-sm">
-                      <Link to={`/profile/${c.profiles?.username}`} className="font-semibold">{c.profiles?.username}</Link>{" "}
-                      {c.text}
-                    </p>
-                    <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
-                      <span>{getTimeAgo(c.created_at)}</span>
-                      <button className="font-semibold">Like</button>
-                      <button className="font-semibold">Reply</button>
-                    </div>
-                  </div>
-                </div>
-              ))
+              <FacebookComments postId={postId} />
             ) : (
-              mockComments.map((comment) => (
-                <div key={comment.id} className="flex items-start gap-2">
-                  <img src={comment.user.avatar} alt="" className="mt-0.5 h-6 w-6 rounded-full object-cover" />
-                  <div className="flex-1">
-                    <p className="text-sm">
-                      <Link to={`/profile/${comment.user.username}`} className="font-semibold">{comment.user.username}</Link>{" "}
-                      {comment.text}
-                    </p>
-                    <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
-                      <span>{comment.timestamp}</span>
-                      <button className="font-semibold">Like</button>
-                      <button className="font-semibold">Reply</button>
+              <>
+                {mockComments.map((comment) => (
+                  <div key={comment.id} className="flex items-start gap-2 mt-2">
+                    <img src={comment.user.avatar} alt="" className="mt-0.5 h-7 w-7 rounded-full object-cover" />
+                    <div className="flex-1">
+                      <div className="inline-block rounded-2xl bg-secondary px-3 py-2">
+                        <Link to={`/profile/${comment.user.username}`} className="text-xs font-bold">{comment.user.username}</Link>
+                        <p className="text-sm">{comment.text}</p>
+                      </div>
+                      <div className="mt-0.5 ml-2 flex items-center gap-3 text-[11px] text-muted-foreground">
+                        <span>{comment.timestamp}</span>
+                        <button className="font-bold">লাইক</button>
+                        <button className="font-bold">রিপ্লাই</button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </>
             )}
-            {dbComments.length === 0 && isDB && (
-              <p className="text-xs text-muted-foreground">No comments yet</p>
-            )}
-            <button onClick={() => setShowAllComments(false)} className="text-sm text-muted-foreground">Hide comments</button>
+            <button onClick={() => setShowAllComments(false)} className="mt-2 text-xs font-semibold text-muted-foreground hover:text-foreground">
+              ▴ কমেন্ট হাইড
+            </button>
           </div>
         )}
 
         <p className="mt-1 text-[11px] uppercase text-muted-foreground">{timestamp} ago</p>
 
-        <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
-          <Smile className="h-5 w-5 text-muted-foreground" />
-          <input
-            ref={inputRef}
-            type="text"
-            placeholder="Add a comment..."
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-          />
-          <button onClick={handleAddComment} disabled={!commentText.trim()} className="text-sm font-semibold text-primary disabled:opacity-40">
-            Post
+        {!isDB && (
+          <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
+            <Smile className="h-5 w-5 text-muted-foreground" />
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder="Add a comment..."
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            />
+            <button onClick={handleAddComment} disabled={!commentText.trim()} className="text-sm font-semibold text-primary disabled:opacity-40">
+              Post
+            </button>
+          </div>
+        )}
+        {isDB && !showAllComments && (
+          <button onClick={() => { setShowAllComments(true); setTimeout(() => focusComment(), 100); }}
+            className="mt-3 flex w-full items-center gap-2 border-t border-border pt-3 text-sm text-muted-foreground">
+            <Smile className="h-5 w-5" />
+            <span>একটি কমেন্ট লিখুন...</span>
           </button>
-        </div>
+        )}
       </div>
     </article>
   );
