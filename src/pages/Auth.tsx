@@ -288,6 +288,53 @@ const Auth = () => {
                   </button>
                 </>
               )}
+
+              {/* === SIGNUP STEP 4: OTP Verification === */}
+              {!isLogin && step === 4 && (
+                <>
+                  <div className="flex justify-center mb-2">
+                    <div className="h-16 w-16 rounded-2xl gradient-brand flex items-center justify-center shadow-premium">
+                      <ShieldCheck className="h-8 w-8 text-primary-foreground" />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-foreground">৬ ডিজিটের কোড</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      placeholder="------"
+                      value={otpCode}
+                      onChange={e => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      className="w-full rounded-xl border border-border bg-secondary/50 py-4 px-4 text-center text-2xl font-bold tracking-[0.6em] outline-none transition-all placeholder:text-muted-foreground/40 focus:border-primary/50 focus:bg-background focus:ring-2 focus:ring-primary/10"
+                      autoFocus
+                      required
+                    />
+                    <p className="text-[11px] text-muted-foreground text-center pt-1">
+                      ইমেইল চেক করুন (স্প্যাম ফোল্ডারও দেখুন)
+                    </p>
+                  </div>
+                  <button type="submit" disabled={submitting || otpCode.length !== 6}
+                    className="w-full rounded-xl gradient-brand py-3 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50">
+                    {submitting ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                        <span>যাচাই হচ্ছে...</span>
+                      </div>
+                    ) : "কোড যাচাই করুন"}
+                  </button>
+                  <div className="flex items-center justify-between text-xs pt-1">
+                    <button type="button" onClick={() => setStep(3)} className="text-muted-foreground hover:text-foreground font-semibold">
+                      ← ইমেইল পরিবর্তন
+                    </button>
+                    <button type="button" onClick={handleResendCode} disabled={resending}
+                      className="text-primary font-semibold hover:underline disabled:opacity-50">
+                      {resending ? "পাঠানো হচ্ছে..." : "কোড আবার পাঠান"}
+                    </button>
+                  </div>
+                </>
+              )}
             </form>
           </div>
 
