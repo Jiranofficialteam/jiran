@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Eye, EyeOff, Mail, Lock, User, AtSign, ArrowRight, Calendar, MapPin, Users } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, AtSign, ArrowRight, Calendar, MapPin, Users, ShieldCheck } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Auth = () => {
   const { user, loading, signIn, signUp } = useAuth();
@@ -13,7 +14,9 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [step, setStep] = useState(1); // 1=name, 2=birthday/gender, 3=credentials
+  const [step, setStep] = useState(1); // 1=name, 2=birthday/gender, 3=credentials, 4=otp verify
+  const [otpCode, setOtpCode] = useState("");
+  const [resending, setResending] = useState(false);
 
   // Step 2 fields (Facebook style)
   const [birthDay, setBirthDay] = useState("");
@@ -55,10 +58,16 @@ const Auth = () => {
           return;
         }
         toast.success("স্বাগতম! 👋");
-      } else {
+      } else if (step === 3) {
         const { error } = await signUp(email, password, username.trim(), fullName.trim());
         if (error) throw error;
-        toast.success("অ্যাকাউন্ট তৈরি হয়েছে! ইমেইল ভেরিফাই করুন ✉️");
+        toast.success("৬ ডিজিটের কোড আপনার ইমেইলে পাঠানো হয়েছে ✉️");
+        setStep(4);
+      } else if (step === 4) {
+        if (otpCode.length !== 6) { toast.error("৬ ডিজিটের কোড দিন"); setSubmitting(false); return; }
+        const { error } = await supabase.auth.verifyOtp({ email, token: otpCode, type: "signup" });
+        if (error) throw error;
+        toast.success("ইমেইল ভেরিফাই হয়েছে! 🎉");
       }
     } catch (err: any) {
       toast.error(err.message || "কিছু ভুল হয়েছে");
@@ -66,10 +75,22 @@ const Auth = () => {
     setSubmitting(false);
   };
 
+  const handleResendCode = async () => {
+    setResending(true);
+    try {
+      const { error } = await supabase.auth.resend({ type: "signup", email });
+      if (error) throw error;
+      toast.success("নতুন কোড পাঠানো হয়েছে ✉️");
+    } catch (err: any) {
+      toast.error(err.message || "কোড পাঠানো যায়নি");
+    }
+    setResending(false);
+  };
+
   const resetForm = (login: boolean) => {
     setIsLogin(login);
     setStep(1);
-    setEmail(""); setPassword(""); setUsername(""); setFullName("");
+    setEmail(""); setPassword(""); setUsername(""); setFullName(""); setOtpCode("");
     setBirthDay(""); setBirthMonth(""); setBirthYear(""); setGender("");
   };
 
@@ -121,20 +142,25 @@ const Auth = () => {
           <div className="rounded-2xl border border-border bg-card px-6 sm:px-8 py-8 shadow-sm">
             <div className="mb-6">
               <h2 className="text-xl font-bold text-foreground">
-                {isLogin ? "আবার স্বাগতম!" : step === 1 ? "নতুন অ্যাকাউন্ট তৈরি করুন" : step === 2 ? "আপনার তথ্য দিন" : "প্রায় শেষ!"}
+                {isLogin ? "আবার স্বাগতম!"
+                  : step === 1 ? "নতুন অ্যাকাউন্ট তৈরি করুন"
+                  : step === 2 ? "আপনার তথ্য দিন"
+                  : step === 3 ? "প্রায় শেষ!"
+                  : "ইমেইল ভেরিফাই করুন"}
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
                 {isLogin ? "আপনার অ্যাকাউন্টে লগ ইন করুন"
                   : step === 1 ? "এটা দ্রুত এবং সহজ"
                   : step === 2 ? "জন্ম তারিখ ও লিঙ্গ নির্বাচন করুন"
-                  : "ইমেইল ও পাসওয়ার্ড সেট করুন"}
+                  : step === 3 ? "ইমেইল ও পাসওয়ার্ড সেট করুন"
+                  : `${email} এ পাঠানো ৬ ডিজিটের কোডটি লিখুন`}
               </p>
             </div>
 
             {/* Step indicators */}
             {!isLogin && (
               <div className="flex items-center gap-2 mb-6">
-                {[1, 2, 3].map(s => (
+                {[1, 2, 3, 4].map(s => (
                   <div key={s} className={`h-1 flex-1 rounded-full transition-colors ${step >= s ? "gradient-brand" : "bg-border"}`} />
                 ))}
               </div>
@@ -260,6 +286,53 @@ const Auth = () => {
                       </div>
                     ) : isLogin ? "লগ ইন" : "সাইন আপ"}
                   </button>
+                </>
+              )}
+
+              {/* === SIGNUP STEP 4: OTP Verification === */}
+              {!isLogin && step === 4 && (
+                <>
+                  <div className="flex justify-center mb-2">
+                    <div className="h-16 w-16 rounded-2xl gradient-brand flex items-center justify-center shadow-premium">
+                      <ShieldCheck className="h-8 w-8 text-primary-foreground" />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-foreground">৬ ডিজিটের কোড</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      placeholder="------"
+                      value={otpCode}
+                      onChange={e => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      className="w-full rounded-xl border border-border bg-secondary/50 py-4 px-4 text-center text-2xl font-bold tracking-[0.6em] outline-none transition-all placeholder:text-muted-foreground/40 focus:border-primary/50 focus:bg-background focus:ring-2 focus:ring-primary/10"
+                      autoFocus
+                      required
+                    />
+                    <p className="text-[11px] text-muted-foreground text-center pt-1">
+                      ইমেইল চেক করুন (স্প্যাম ফোল্ডারও দেখুন)
+                    </p>
+                  </div>
+                  <button type="submit" disabled={submitting || otpCode.length !== 6}
+                    className="w-full rounded-xl gradient-brand py-3 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50">
+                    {submitting ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                        <span>যাচাই হচ্ছে...</span>
+                      </div>
+                    ) : "কোড যাচাই করুন"}
+                  </button>
+                  <div className="flex items-center justify-between text-xs pt-1">
+                    <button type="button" onClick={() => setStep(3)} className="text-muted-foreground hover:text-foreground font-semibold">
+                      ← ইমেইল পরিবর্তন
+                    </button>
+                    <button type="button" onClick={handleResendCode} disabled={resending}
+                      className="text-primary font-semibold hover:underline disabled:opacity-50">
+                      {resending ? "পাঠানো হচ্ছে..." : "কোড আবার পাঠান"}
+                    </button>
+                  </div>
                 </>
               )}
             </form>
