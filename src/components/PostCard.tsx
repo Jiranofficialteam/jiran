@@ -391,21 +391,30 @@ const PostCard = ({ post, feedPost }: PostCardProps) => {
 
         <p className="mt-1 text-[11px] uppercase text-muted-foreground">{timestamp} ago</p>
 
-        <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
-          <Smile className="h-5 w-5 text-muted-foreground" />
-          <input
-            ref={inputRef}
-            type="text"
-            placeholder="Add a comment..."
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-          />
-          <button onClick={handleAddComment} disabled={!commentText.trim()} className="text-sm font-semibold text-primary disabled:opacity-40">
-            Post
+        {!isDB && (
+          <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
+            <Smile className="h-5 w-5 text-muted-foreground" />
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder="Add a comment..."
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            />
+            <button onClick={handleAddComment} disabled={!commentText.trim()} className="text-sm font-semibold text-primary disabled:opacity-40">
+              Post
+            </button>
+          </div>
+        )}
+        {isDB && !showAllComments && (
+          <button onClick={() => { setShowAllComments(true); setTimeout(() => focusComment(), 100); }}
+            className="mt-3 flex w-full items-center gap-2 border-t border-border pt-3 text-sm text-muted-foreground">
+            <Smile className="h-5 w-5" />
+            <span>একটি কমেন্ট লিখুন...</span>
           </button>
-        </div>
+        )}
       </div>
     </article>
   );
