@@ -615,6 +615,33 @@ export type Database = {
           },
         ]
       }
+      friendships: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fundraiser_donations: {
         Row: {
           amount: number
@@ -1750,6 +1777,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      are_friends: { Args: { _a: string; _b: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1779,6 +1807,8 @@ export type Database = {
         | "mention"
         | "story"
         | "message"
+        | "friend_request"
+        | "friend_accept"
       post_type: "photo" | "video" | "carousel" | "reel"
     }
     CompositeTypes: {
@@ -1922,6 +1952,8 @@ export const Constants = {
         "mention",
         "story",
         "message",
+        "friend_request",
+        "friend_accept",
       ],
       post_type: ["photo", "video", "carousel", "reel"],
     },

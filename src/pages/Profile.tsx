@@ -19,6 +19,8 @@ import ProfileAnalytics from "@/components/ProfileAnalytics";
 import ReportModal from "@/components/ReportModal";
 import ProfileVisitors from "@/components/ProfileVisitors";
 import StoryHighlights from "@/components/StoryHighlights";
+import FriendButton from "@/components/FriendButton";
+import { useFriendship } from "@/hooks/useFriendship";
 
 const db = supabase as any;
 
@@ -70,6 +72,7 @@ const Profile = () => {
 
   const { isFollowing, followerCount, followingCount, toggleFollow, loading: followLoading } = useFollow(profileData?.id ?? null);
   const { isBlocked, toggleBlock, loading: blockLoading } = useBlock(profileData?.id ?? null);
+  const { friendCount } = useFriendship(profileData?.id ?? null);
 
   const isOwnProfile = !username || (authProfile && authProfile.username?.trim() === username) || (!username && !!user);
 
@@ -328,6 +331,7 @@ const Profile = () => {
             </>
           ) : (
             <>
+              {profileData && <FriendButton targetUserId={profileData.id} />}
               <button
                 onClick={toggleFollow}
                 disabled={followLoading}
