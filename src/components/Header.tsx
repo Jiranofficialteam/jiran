@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, PlusSquare, LogIn, LogOut, Shield, Compass, Moon, Sun, Bell, Radio } from "lucide-react";
+import { Heart, MessageCircle, PlusSquare, LogIn, LogOut, Shield, Compass, Moon, Sun, Bell, Radio, Users } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect, useCallback } from "react";
@@ -13,6 +13,7 @@ const Header = () => {
   const { data: siteSettings } = useSiteSettings();
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [friendRequests, setFriendRequests] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains("dark"));
   const siteName = siteSettings?.site_name || "Jiran";
@@ -31,7 +32,7 @@ const Header = () => {
   }, [darkMode]);
 
   useEffect(() => {
-    if (!user) { setUnreadCount(0); setUnreadMessages(0); setIsAdmin(false); return; }
+    if (!user) { setUnreadCount(0); setUnreadMessages(0); setFriendRequests(0); setIsAdmin(false); return; }
 
     const fetchCounts = async () => {
       const { count: notifCount } = await db
@@ -58,6 +59,13 @@ const Header = () => {
         const unread = (msgs || []).filter((m: any) => !(m.read_by || []).includes(user.id));
         setUnreadMessages(unread.length);
       }
+
+      const { count: frCount } = await db
+        .from("friendships")
+        .select("*", { count: "exact", head: true })
+        .eq("addressee_id", user.id)
+        .eq("status", "pending");
+      setFriendRequests(frCount || 0);
     };
 
     fetchCounts();
@@ -66,6 +74,7 @@ const Header = () => {
       .channel("header-badges")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, () => fetchCounts())
       .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => fetchCounts())
+      .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, () => fetchCounts())
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -110,6 +119,9 @@ const Header = () => {
                   <Shield className="h-[19px] w-[19px]" />
                 </NavBtn>
               )}
+              <NavBtn to="/friends" active={pathname === "/friends"} label="Friends" badge={friendRequests}>
+                <Users className="h-[21px] w-[21px]" />
+              </NavBtn>
               <NavBtn to="/notifications" active={pathname === "/notifications"} label="Activity" badge={unreadCount}>
                 <Bell className="h-[21px] w-[21px]" />
               </NavBtn>
@@ -143,6 +155,9 @@ const Header = () => {
         <div className="flex md:hidden items-center gap-0.5">
           {user ? (
             <>
+              <NavBtn to="/friends" active={pathname === "/friends"} label="Friends" badge={friendRequests}>
+                <Users className="h-[20px] w-[20px]" />
+              </NavBtn>
               <NavBtn to="/messages" active={pathname === "/messages"} label="Messages" badge={unreadMessages}>
                 <MessageCircle className="h-[20px] w-[20px]" />
               </NavBtn>
