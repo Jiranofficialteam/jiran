@@ -436,7 +436,10 @@ const Profile = () => {
             </div>
           </div>
         )}
+        </div>
+        {/* ═══════════════════ END FB CARD ═══════════════════ */}
 
+        <div className="mx-auto max-w-[1100px] px-2 md:px-4 mt-4">
         {/* ═══════════════════ STORY HIGHLIGHTS ═══════════════════ */}
         <StoryHighlights profileId={profileData.id} isOwn={isOwnProfile} />
 
