@@ -224,6 +224,7 @@ const Messages = () => {
             })
           )}
         </div>
+        </div>
       </div>
       <BottomNav />
       <div className="h-16 md:hidden" />
