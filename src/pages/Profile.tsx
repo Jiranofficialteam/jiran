@@ -553,6 +553,7 @@ const Profile = () => {
             </>
           )}
         </div>
+        </div>
       </div>
 
       {/* Modals */}
