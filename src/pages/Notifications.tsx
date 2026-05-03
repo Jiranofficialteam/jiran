@@ -152,41 +152,43 @@ const Notifications = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-secondary/40">
       <Header />
-      <div className="mx-auto max-w-[600px]">
-        <div className="flex items-center gap-2 px-4 py-4">
-          <Bell className="h-5 w-5 text-foreground" />
-          <h2 className="text-lg font-bold text-foreground">Activity</h2>
-        </div>
+      <div className="mx-auto max-w-[680px] px-2 md:px-4 py-4">
+        <div className="rounded-xl bg-card border border-border shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-4 border-b border-border">
+            <Bell className="h-6 w-6 text-primary" />
+            <h2 className="text-2xl font-extrabold text-foreground">Notifications</h2>
+          </div>
 
-        {loading ? (
-          <div className="px-4 space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-center gap-3 animate-pulse rounded-xl p-3">
-                <div className="h-12 w-12 rounded-full bg-secondary" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3.5 w-32 rounded-full bg-secondary" />
-                  <div className="h-3 w-48 rounded-full bg-secondary" />
+          {loading ? (
+            <div className="p-4 space-y-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex items-center gap-3 animate-pulse rounded-xl p-3">
+                  <div className="h-12 w-12 rounded-full bg-secondary" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3.5 w-32 rounded-full bg-secondary" />
+                    <div className="h-3 w-48 rounded-full bg-secondary" />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : notifications.length === 0 ? (
-          <div className="flex flex-col items-center py-20 text-muted-foreground animate-fade-in">
-            <div className="h-20 w-20 rounded-full bg-secondary flex items-center justify-center mb-4">
-              <Heart className="h-10 w-10 opacity-30" />
+              ))}
             </div>
-            <p className="text-base font-semibold text-foreground">No activity yet</p>
-            <p className="text-sm mt-1">When people interact with you, you'll see it here</p>
-          </div>
-        ) : (
-          <div className="px-4 pb-20">
-            {renderSection("Today", today)}
-            {renderSection("This Week", thisWeek)}
-            {renderSection("Earlier", earlier)}
-          </div>
-        )}
+          ) : notifications.length === 0 ? (
+            <div className="flex flex-col items-center py-20 text-muted-foreground animate-fade-in">
+              <div className="h-20 w-20 rounded-full bg-secondary flex items-center justify-center mb-4">
+                <Heart className="h-10 w-10 opacity-30" />
+              </div>
+              <p className="text-base font-semibold text-foreground">No activity yet</p>
+              <p className="text-sm mt-1">When people interact with you, you'll see it here</p>
+            </div>
+          ) : (
+            <div className="px-3 py-3">
+              {renderSection("Today", today)}
+              {renderSection("This Week", thisWeek)}
+              {renderSection("Earlier", earlier)}
+            </div>
+          )}
+        </div>
       </div>
       <BottomNav />
       <div className="h-16 md:hidden" />
