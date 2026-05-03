@@ -88,16 +88,17 @@ const Messages = () => {
     : conversations;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-secondary/40">
       <Header />
-      <div className="mx-auto max-w-[600px]">
-        {/* Top bar */}
-        <div className="flex items-center justify-between px-4 py-3">
-          <h2 className="text-xl font-bold text-foreground">Chats</h2>
-          <button className="h-9 w-9 rounded-full bg-secondary flex items-center justify-center text-foreground hover:bg-secondary/80 transition-colors">
-            <Edit className="h-4 w-4" />
-          </button>
-        </div>
+      <div className="mx-auto max-w-[680px] px-2 md:px-4 py-4">
+        <div className="rounded-xl bg-card border border-border shadow-sm overflow-hidden">
+          {/* Top bar */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+            <h2 className="text-2xl font-extrabold text-foreground">Chats</h2>
+            <button className="h-9 w-9 rounded-full bg-secondary flex items-center justify-center text-foreground hover:bg-secondary/80 transition-colors">
+              <Edit className="h-4 w-4" />
+            </button>
+          </div>
 
         {/* Search */}
         <div className="px-4 pb-3">
@@ -222,6 +223,7 @@ const Messages = () => {
               );
             })
           )}
+        </div>
         </div>
       </div>
       <BottomNav />

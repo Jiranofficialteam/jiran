@@ -202,11 +202,12 @@ const Profile = () => {
   const totalFollowers = followerCount + (profileData.follower_boost || 0);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-secondary/40">
       <Header />
 
-      <div className="mx-auto max-w-[935px] animate-fade-in">
-        {/* ═══════════════════ COVER PHOTO ═══════════════════ */}
+      <div className="mx-auto max-w-[1100px] animate-fade-in">
+        {/* ═══════════════════ COVER + HEADER CARD (FB-style) ═══════════════════ */}
+        <div className="bg-card border-b border-border shadow-sm rounded-b-2xl overflow-hidden">
         <div className="relative h-52 md:h-80 w-full overflow-hidden">
           {profileData.cover_url ? (
             <img src={profileData.cover_url} alt="Cover" className="h-full w-full object-cover" />
@@ -435,7 +436,10 @@ const Profile = () => {
             </div>
           </div>
         )}
+        </div>
+        {/* ═══════════════════ END FB CARD ═══════════════════ */}
 
+        <div className="mx-auto max-w-[1100px] px-2 md:px-4 mt-4">
         {/* ═══════════════════ STORY HIGHLIGHTS ═══════════════════ */}
         <StoryHighlights profileId={profileData.id} isOwn={isOwnProfile} />
 
@@ -548,6 +552,7 @@ const Profile = () => {
               )}
             </>
           )}
+        </div>
         </div>
       </div>
 
