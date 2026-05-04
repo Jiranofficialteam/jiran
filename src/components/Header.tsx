@@ -67,6 +67,7 @@ const Header = () => {
     { to: "/reels", icon: PlaySquare, label: "Reels" },
     { to: "/marketplace", icon: Store, label: "Marketplace" },
     { to: "/groups", icon: UsersRound, label: "Groups" },
+    { to: "/pages", icon: Store, label: "Pages" },
   ];
 
   return (
