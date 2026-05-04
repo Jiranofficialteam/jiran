@@ -25,6 +25,8 @@ import Fundraisers from "./pages/Fundraisers";
 import LiveStream from "./pages/LiveStream";
 import Monetization from "./pages/Monetization";
 import Friends from "./pages/Friends";
+import Pages from "./pages/Pages";
+import PageProfile from "./pages/PageProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,6 +61,8 @@ const App = () => (
             <Route path="/live" element={<LiveStream />} />
             <Route path="/monetization" element={<Monetization />} />
             <Route path="/friends" element={<Friends />} />
+            <Route path="/pages" element={<Pages />} />
+            <Route path="/pages/:username" element={<PageProfile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
