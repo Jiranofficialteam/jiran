@@ -1082,6 +1082,80 @@ export type Database = {
           },
         ]
       }
+      page_followers: {
+        Row: {
+          created_at: string
+          id: string
+          page_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          page_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          page_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_followers_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pages: {
+        Row: {
+          avatar_url: string | null
+          category: string
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          follower_count: number
+          id: string
+          name: string
+          owner_id: string
+          updated_at: string
+          username: string
+          verified: boolean
+        }
+        Insert: {
+          avatar_url?: string | null
+          category?: string
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          follower_count?: number
+          id?: string
+          name: string
+          owner_id: string
+          updated_at?: string
+          username: string
+          verified?: boolean
+        }
+        Update: {
+          avatar_url?: string | null
+          category?: string
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          follower_count?: number
+          id?: string
+          name?: string
+          owner_id?: string
+          updated_at?: string
+          username?: string
+          verified?: boolean
+        }
+        Relationships: []
+      }
       payout_requests: {
         Row: {
           admin_note: string | null
@@ -1285,6 +1359,7 @@ export type Database = {
           is_live: boolean | null
           live_viewers: number | null
           location: string | null
+          page_id: string | null
           type: Database["public"]["Enums"]["post_type"]
           updated_at: string
           user_id: string
@@ -1300,6 +1375,7 @@ export type Database = {
           is_live?: boolean | null
           live_viewers?: number | null
           location?: string | null
+          page_id?: string | null
           type?: Database["public"]["Enums"]["post_type"]
           updated_at?: string
           user_id: string
@@ -1315,12 +1391,20 @@ export type Database = {
           is_live?: boolean | null
           live_viewers?: number | null
           location?: string | null
+          page_id?: string | null
           type?: Database["public"]["Enums"]["post_type"]
           updated_at?: string
           user_id?: string
           video_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "posts_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "pages"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "posts_user_id_fkey"
             columns: ["user_id"]
@@ -1368,17 +1452,22 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_type: string
           avatar_url: string | null
           ban_reason: string | null
           ban_until: string | null
           bio: string | null
+          birth_date: string | null
           cover_url: string | null
           created_at: string
+          first_name: string | null
           follower_boost: number
           full_name: string
+          gender: string | null
           id: string
           is_banned: boolean
           is_private: boolean
+          last_name: string | null
           last_seen: string | null
           updated_at: string
           username: string
@@ -1386,17 +1475,22 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          account_type?: string
           avatar_url?: string | null
           ban_reason?: string | null
           ban_until?: string | null
           bio?: string | null
+          birth_date?: string | null
           cover_url?: string | null
           created_at?: string
+          first_name?: string | null
           follower_boost?: number
           full_name?: string
+          gender?: string | null
           id: string
           is_banned?: boolean
           is_private?: boolean
+          last_name?: string | null
           last_seen?: string | null
           updated_at?: string
           username: string
@@ -1404,17 +1498,22 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          account_type?: string
           avatar_url?: string | null
           ban_reason?: string | null
           ban_until?: string | null
           bio?: string | null
+          birth_date?: string | null
           cover_url?: string | null
           created_at?: string
+          first_name?: string | null
           follower_boost?: number
           full_name?: string
+          gender?: string | null
           id?: string
           is_banned?: boolean
           is_private?: boolean
+          last_name?: string | null
           last_seen?: string | null
           updated_at?: string
           username?: string
