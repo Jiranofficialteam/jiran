@@ -153,5 +153,20 @@ export const useConversations = () => {
     fetchConversations();
   }, [user]);
 
+  // Realtime: refresh list when any message arrives or membership changes
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`convo-list:${user.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => {
+        fetchConversations();
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "conversation_members", filter: `user_id=eq.${user.id}` }, () => {
+        fetchConversations();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
   return { conversations, loading, fetchConversations, startConversation };
 };
