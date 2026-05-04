@@ -76,7 +76,7 @@ export const useConversations = () => {
         .eq("conversation_id", convo.id)
         .order("created_at", { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       // Count unread
       const { count } = await (supabase as any)
@@ -124,7 +124,7 @@ export const useConversations = () => {
           .select("user_id")
           .eq("conversation_id", m.conversation_id)
           .eq("user_id", otherUserId)
-          .single();
+          .maybeSingle();
 
         if (otherMember) return m.conversation_id;
       }
