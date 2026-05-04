@@ -65,7 +65,7 @@ export const useConversations = () => {
         .from("profiles")
         .select("id, username, full_name, avatar_url, verified")
         .eq("id", otherUserId)
-        .single();
+        .maybeSingle();
 
       if (!profile) continue;
 
@@ -76,7 +76,7 @@ export const useConversations = () => {
         .eq("conversation_id", convo.id)
         .order("created_at", { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       // Count unread
       const { count } = await (supabase as any)
@@ -124,7 +124,7 @@ export const useConversations = () => {
           .select("user_id")
           .eq("conversation_id", m.conversation_id)
           .eq("user_id", otherUserId)
-          .single();
+          .maybeSingle();
 
         if (otherMember) return m.conversation_id;
       }
@@ -151,6 +151,21 @@ export const useConversations = () => {
 
   useEffect(() => {
     fetchConversations();
+  }, [user]);
+
+  // Realtime: refresh list when any message arrives or membership changes
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`convo-list:${user.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => {
+        fetchConversations();
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "conversation_members", filter: `user_id=eq.${user.id}` }, () => {
+        fetchConversations();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   return { conversations, loading, fetchConversations, startConversation };
