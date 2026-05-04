@@ -65,7 +65,7 @@ export const useConversations = () => {
         .from("profiles")
         .select("id, username, full_name, avatar_url, verified")
         .eq("id", otherUserId)
-        .single();
+        .maybeSingle();
 
       if (!profile) continue;
 
