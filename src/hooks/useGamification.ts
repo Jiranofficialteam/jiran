@@ -110,23 +110,7 @@ export const useGamification = () => {
     const newXp = points.xp + 10;
     const newLevel = getLevel(newXp);
 
-    // Insert daily login
-    await db.from("daily_logins").insert({
-      user_id: user.id,
-      login_date: today,
-      reward_coins: reward,
-    });
-
-    // Update points
-    await db.from("user_points").update({
-      xp: newXp,
-      level: newLevel,
-      coins: points.coins + reward,
-      daily_streak: newStreak,
-      last_login_date: today,
-      updated_at: new Date().toISOString(),
-    }).eq("user_id", user.id);
-
+    await db.rpc("claim_daily_reward");
     setDailyRewardClaimed(true);
     await fetchAll();
     return true;
@@ -134,13 +118,7 @@ export const useGamification = () => {
 
   const addXp = async (amount: number) => {
     if (!user || !points) return;
-    const newXp = points.xp + amount;
-    const newLevel = getLevel(newXp);
-    await db.from("user_points").update({
-      xp: newXp,
-      level: newLevel,
-      updated_at: new Date().toISOString(),
-    }).eq("user_id", user.id);
+    await db.rpc("add_xp", { _amount: amount });
     await fetchAll();
   };
 
