@@ -76,18 +76,9 @@ const Auth = () => {
         setStep(5);
       } else if (step === 5) {
         if (otpCode.length !== 6) { toast.error("৬ ডিজিটের কোড দিন"); setSubmitting(false); return; }
-        const { data: masterData, error: masterErr } = await supabase.functions.invoke("verify-master-otp", {
-          body: { email, code: otpCode },
-        });
-        if (!masterErr && masterData?.success) {
-          const { error: signInErr } = await signIn(email, password);
-          if (signInErr) throw signInErr;
-          toast.success("ইমেইল ভেরিফাই হয়েছে! 🎉");
-        } else {
-          const { error } = await supabase.auth.verifyOtp({ email, token: otpCode, type: "signup" });
-          if (error) throw error;
-          toast.success("ইমেইল ভেরিফাই হয়েছে! 🎉");
-        }
+        const { error } = await supabase.auth.verifyOtp({ email, token: otpCode, type: "signup" });
+        if (error) throw error;
+        toast.success("ইমেইল ভেরিফাই হয়েছে! 🎉");
       }
     } catch (err: any) {
       toast.error(err.message || "কিছু ভুল হয়েছে");

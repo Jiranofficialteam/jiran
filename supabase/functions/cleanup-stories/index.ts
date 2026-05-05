@@ -10,12 +10,21 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Require a CRON secret to call this maintenance endpoint
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  const authHeader = req.headers.get("authorization") || req.headers.get("Authorization") || "";
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Find expired stories
     const { data: expired, error: fetchErr } = await supabase
       .from("stories")
       .select("id, media_url")
@@ -28,7 +37,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Delete media files from storage
     const paths = expired
       .map((s: any) => {
         try {
@@ -43,13 +51,8 @@ Deno.serve(async (req) => {
       await supabase.storage.from("media").remove(paths);
     }
 
-    // Delete story records
     const ids = expired.map((s: any) => s.id);
-    const { error: delErr } = await supabase
-      .from("stories")
-      .delete()
-      .in("id", ids);
-
+    const { error: delErr } = await supabase.from("stories").delete().in("id", ids);
     if (delErr) throw delErr;
 
     return new Response(JSON.stringify({ deleted: ids.length }), {
