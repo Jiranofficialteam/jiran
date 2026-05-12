@@ -32,6 +32,24 @@ const AdminAdsTab = () => {
   const totalBudget = ads.reduce((s, a) => s + Number(a.budget || 0), 0);
   const avgCtr = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : "0.00";
 
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${user.id}/ads/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("media").upload(path, file, { cacheControl: "3600", upsert: false });
+      if (error) throw error;
+      const { data } = supabase.storage.from("media").getPublicUrl(path);
+      setForm(p => ({ ...p, image_url: data.publicUrl }));
+      toast.success("Image uploaded");
+    } catch (err: any) {
+      toast.error(err.message || "Upload failed");
+    }
+    setUploading(false);
+  };
+
   const handleCreate = async () => {
     if (!user || !form.title.trim()) { toast.error("Title is required"); return; }
     setCreating(true);
@@ -40,7 +58,6 @@ const AdminAdsTab = () => {
       title: form.title.trim(),
       description: form.description.trim(),
       image_url: form.image_url.trim(),
-      destination_url: form.destination_url.trim(),
       budget: parseFloat(form.budget) || 50,
       cpc: parseFloat(form.cpc) || 0.5,
       cpm: parseFloat(form.cpm) || 2.0,
@@ -48,9 +65,10 @@ const AdminAdsTab = () => {
       status: "active",
     });
     if (error) toast.error(error.message);
-    else { toast.success("Ad created!"); setShowCreate(false); setForm({ title: "", description: "", image_url: "", destination_url: "", budget: "50", cpc: "0.5", cpm: "2.0", ad_type: "banner" }); fetchAds(); }
+    else { toast.success("Ad created!"); setShowCreate(false); setForm({ title: "", description: "", image_url: "", budget: "50", cpc: "0.5", cpm: "2.0", ad_type: "banner" }); fetchAds(); }
     setCreating(false);
   };
+
 
   const toggleStatus = async (id: string, current: string) => {
     const newStatus = current === "active" ? "paused" : "active";
