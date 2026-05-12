@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Megaphone, Plus, Trash2, Eye, MousePointer, DollarSign, TrendingUp, Pause, Play, BarChart2, Image } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Megaphone, Plus, Trash2, Eye, MousePointer, DollarSign, TrendingUp, Pause, Play, Image as ImageIcon, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -12,8 +12,11 @@ const AdminAdsTab = () => {
   const [ads, setAds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ title: "", description: "", image_url: "", destination_url: "", budget: "50", cpc: "0.5", cpm: "2.0", ad_type: "banner" });
+  const [form, setForm] = useState({ title: "", description: "", image_url: "", budget: "50", cpc: "0.5", cpm: "2.0", ad_type: "banner" });
   const [creating, setCreating] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
 
   const fetchAds = async () => {
     const { data } = await db.from("ads").select("*").order("created_at", { ascending: false });
@@ -29,6 +32,24 @@ const AdminAdsTab = () => {
   const totalBudget = ads.reduce((s, a) => s + Number(a.budget || 0), 0);
   const avgCtr = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : "0.00";
 
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${user.id}/ads/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("media").upload(path, file, { cacheControl: "3600", upsert: false });
+      if (error) throw error;
+      const { data } = supabase.storage.from("media").getPublicUrl(path);
+      setForm(p => ({ ...p, image_url: data.publicUrl }));
+      toast.success("Image uploaded");
+    } catch (err: any) {
+      toast.error(err.message || "Upload failed");
+    }
+    setUploading(false);
+  };
+
   const handleCreate = async () => {
     if (!user || !form.title.trim()) { toast.error("Title is required"); return; }
     setCreating(true);
@@ -37,7 +58,6 @@ const AdminAdsTab = () => {
       title: form.title.trim(),
       description: form.description.trim(),
       image_url: form.image_url.trim(),
-      destination_url: form.destination_url.trim(),
       budget: parseFloat(form.budget) || 50,
       cpc: parseFloat(form.cpc) || 0.5,
       cpm: parseFloat(form.cpm) || 2.0,
@@ -45,9 +65,10 @@ const AdminAdsTab = () => {
       status: "active",
     });
     if (error) toast.error(error.message);
-    else { toast.success("Ad created!"); setShowCreate(false); setForm({ title: "", description: "", image_url: "", destination_url: "", budget: "50", cpc: "0.5", cpm: "2.0", ad_type: "banner" }); fetchAds(); }
+    else { toast.success("Ad created!"); setShowCreate(false); setForm({ title: "", description: "", image_url: "", budget: "50", cpc: "0.5", cpm: "2.0", ad_type: "banner" }); fetchAds(); }
     setCreating(false);
   };
+
 
   const toggleStatus = async (id: string, current: string) => {
     const newStatus = current === "active" ? "paused" : "active";
@@ -113,8 +134,23 @@ const AdminAdsTab = () => {
           </h4>
           <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="Ad Title" className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary" />
           <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder="Description (optional)" className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary resize-none" rows={2} />
-          <input value={form.image_url} onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))} placeholder="Image URL" className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary" />
-          <input value={form.destination_url} onChange={e => setForm(p => ({ ...p, destination_url: e.target.value }))} placeholder="Destination URL (https://...)" className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary" />
+          <div>
+            <label className="text-[11px] text-muted-foreground font-medium block mb-1">Ad Image</label>
+            {form.image_url ? (
+              <div className="relative">
+                <img src={form.image_url} alt="" className="w-full h-40 object-cover rounded-xl border border-border" />
+                <button type="button" onClick={() => setForm(p => ({ ...p, image_url: "" }))} className="absolute top-2 right-2 h-7 w-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} className="w-full flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-8 text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-50">
+                <Upload className="h-5 w-5" />
+                {uploading ? "Uploading..." : "Click to upload image"}
+              </button>
+            )}
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+          </div>
           <div className="grid grid-cols-3 gap-2">
             <div>
               <label className="text-[11px] text-muted-foreground font-medium">Budget (৳)</label>
@@ -147,7 +183,7 @@ const AdminAdsTab = () => {
                   <img src={ad.image_url} alt="" className="h-16 w-20 rounded-xl object-cover flex-shrink-0" />
                 ) : (
                   <div className="flex h-16 w-20 items-center justify-center rounded-xl bg-secondary flex-shrink-0">
-                    <Image className="h-6 w-6 text-muted-foreground" />
+                    <ImageIcon className="h-6 w-6 text-muted-foreground" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
