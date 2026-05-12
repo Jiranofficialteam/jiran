@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Eye, EyeOff, Mail, Lock, User, AtSign, ArrowRight, Calendar, Users, ShieldCheck } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Eye, EyeOff, Mail, Lock, User, AtSign, ArrowRight, Calendar, Users } from "lucide-react";
 
 const Auth = () => {
   const { user, loading, signIn, signUp } = useAuth();
@@ -16,8 +15,6 @@ const Auth = () => {
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [step, setStep] = useState(1);
-  const [otpCode, setOtpCode] = useState("");
-  const [resending, setResending] = useState(false);
 
   const [birthDay, setBirthDay] = useState("");
   const [birthMonth, setBirthMonth] = useState("");
