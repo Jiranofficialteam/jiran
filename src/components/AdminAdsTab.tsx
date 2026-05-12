@@ -134,8 +134,23 @@ const AdminAdsTab = () => {
           </h4>
           <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="Ad Title" className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary" />
           <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder="Description (optional)" className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary resize-none" rows={2} />
-          <input value={form.image_url} onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))} placeholder="Image URL" className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary" />
-          <input value={form.destination_url} onChange={e => setForm(p => ({ ...p, destination_url: e.target.value }))} placeholder="Destination URL (https://...)" className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary" />
+          <div>
+            <label className="text-[11px] text-muted-foreground font-medium block mb-1">Ad Image</label>
+            {form.image_url ? (
+              <div className="relative">
+                <img src={form.image_url} alt="" className="w-full h-40 object-cover rounded-xl border border-border" />
+                <button type="button" onClick={() => setForm(p => ({ ...p, image_url: "" }))} className="absolute top-2 right-2 h-7 w-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} className="w-full flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-8 text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-50">
+                <Upload className="h-5 w-5" />
+                {uploading ? "Uploading..." : "Click to upload image"}
+              </button>
+            )}
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+          </div>
           <div className="grid grid-cols-3 gap-2">
             <div>
               <label className="text-[11px] text-muted-foreground font-medium">Budget (৳)</label>
