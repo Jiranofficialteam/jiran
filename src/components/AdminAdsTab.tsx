@@ -183,7 +183,7 @@ const AdminAdsTab = () => {
                   <img src={ad.image_url} alt="" className="h-16 w-20 rounded-xl object-cover flex-shrink-0" />
                 ) : (
                   <div className="flex h-16 w-20 items-center justify-center rounded-xl bg-secondary flex-shrink-0">
-                    <Image className="h-6 w-6 text-muted-foreground" />
+                    <ImageIcon className="h-6 w-6 text-muted-foreground" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
