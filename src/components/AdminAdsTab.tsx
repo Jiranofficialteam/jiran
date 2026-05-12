@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Megaphone, Plus, Trash2, Eye, MousePointer, DollarSign, TrendingUp, Pause, Play, BarChart2, Image } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Megaphone, Plus, Trash2, Eye, MousePointer, DollarSign, TrendingUp, Pause, Play, Image as ImageIcon, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -12,8 +12,11 @@ const AdminAdsTab = () => {
   const [ads, setAds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ title: "", description: "", image_url: "", destination_url: "", budget: "50", cpc: "0.5", cpm: "2.0", ad_type: "banner" });
+  const [form, setForm] = useState({ title: "", description: "", image_url: "", budget: "50", cpc: "0.5", cpm: "2.0", ad_type: "banner" });
   const [creating, setCreating] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
 
   const fetchAds = async () => {
     const { data } = await db.from("ads").select("*").order("created_at", { ascending: false });
