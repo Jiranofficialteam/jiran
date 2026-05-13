@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { useRecordStoryView, useStoryViewCount, useStoryViewers } from "@/hooks/useStoryViews";
+import { useStoryReactions, useMyStoryReaction, useReactToStory } from "@/hooks/useStoryReactions";
 
 const db = supabase as any;
 
