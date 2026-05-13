@@ -216,11 +216,17 @@ const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) =
   const handleLike = async () => {
     if (liked) return;
     setLiked(true);
+    if (user && item && !isOwnStory) {
+      reactToStory.mutate({ storyId: item.id, userId: user.id, emoji: "❤️" });
+    }
     await sendStoryReaction("❤️ Reacted to your story");
   };
 
   const handleQuickReact = async (emoji: string) => {
     setShowReactions(false);
+    if (user && item && !isOwnStory) {
+      reactToStory.mutate({ storyId: item.id, userId: user.id, emoji });
+    }
     await sendStoryReaction(`${emoji} Reacted to your story`);
     toast.success(`${emoji} Sent!`);
   };
