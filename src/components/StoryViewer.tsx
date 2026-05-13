@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { useRecordStoryView, useStoryViewCount, useStoryViewers } from "@/hooks/useStoryViews";
+import { useStoryReactions, useMyStoryReaction, useReactToStory } from "@/hooks/useStoryReactions";
 
 const db = supabase as any;
 
@@ -171,6 +172,9 @@ const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) =
   const recordView = useRecordStoryView();
   const { data: viewCount = 0 } = useStoryViewCount(isOwnStory ? item?.id : undefined);
   const { data: viewers = [] } = useStoryViewers(showViewers ? item?.id : undefined);
+  const { data: storyReactions = [] } = useStoryReactions(showViewers && isOwnStory ? item?.id : undefined);
+  const { data: myReaction } = useMyStoryReaction(item?.id, !isOwnStory ? user?.id : undefined);
+  const reactToStory = useReactToStory();
 
   // Record view when story changes
   useEffect(() => {
@@ -212,11 +216,17 @@ const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) =
   const handleLike = async () => {
     if (liked) return;
     setLiked(true);
+    if (user && item && !isOwnStory) {
+      reactToStory.mutate({ storyId: item.id, userId: user.id, emoji: "❤️" });
+    }
     await sendStoryReaction("❤️ Reacted to your story");
   };
 
   const handleQuickReact = async (emoji: string) => {
     setShowReactions(false);
+    if (user && item && !isOwnStory) {
+      reactToStory.mutate({ storyId: item.id, userId: user.id, emoji });
+    }
     await sendStoryReaction(`${emoji} Reacted to your story`);
     toast.success(`${emoji} Sent!`);
   };
@@ -395,9 +405,15 @@ const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) =
           {showViewers && isOwnStory && (
             <div className="absolute bottom-0 left-0 right-0 z-50 max-h-[50%] overflow-y-auto rounded-t-2xl bg-black/90 backdrop-blur-xl border-t border-white/10 animate-fade-in" onClick={(e) => e.stopPropagation()}>
               <div className="sticky top-0 flex items-center justify-between bg-black/90 px-4 py-3 backdrop-blur-xl border-b border-white/10">
-                <div className="flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-white/70" />
-                  <span className="text-sm font-bold text-white">{viewCount} viewers</span>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <Eye className="h-4 w-4 text-white/70" />
+                    <span className="text-sm font-bold text-white">{viewCount}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Heart className="h-4 w-4 fill-red-500 text-red-500" />
+                    <span className="text-sm font-bold text-white">{storyReactions.length}</span>
+                  </div>
                 </div>
                 <button onClick={() => { setShowViewers(false); setPaused(false); }} className="rounded-full p-1.5 hover:bg-white/10">
                   <X className="h-4 w-4 text-white/70" />
@@ -407,19 +423,24 @@ const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) =
                 <p className="py-8 text-center text-sm text-white/40">No viewers yet</p>
               ) : (
                 <div className="divide-y divide-white/5">
-                  {viewers.map((v: any) => (
-                    <div key={v.id} className="flex items-center gap-3 px-4 py-2.5">
-                      <img src={v.avatar || "/placeholder.svg"} alt="" className="h-9 w-9 rounded-full object-cover" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">{v.fullName || v.username}</p>
-                        <p className="text-[11px] text-white/40">@{v.username}</p>
+                  {viewers.map((v: any) => {
+                    const reaction = storyReactions.find((r: any) => r.userId === v.id);
+                    return (
+                      <div key={v.id} className="flex items-center gap-3 px-4 py-2.5">
+                        <img src={v.avatar || "/placeholder.svg"} alt="" className="h-9 w-9 rounded-full object-cover" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-white truncate">{v.fullName || v.username}</p>
+                          <p className="text-[11px] text-white/40">@{v.username}</p>
+                        </div>
+                        {reaction && <span className="text-xl">{reaction.emoji}</span>}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
           )}
+
 
           {/* Bottom bar */}
           {!isOwnStory && user ? (
@@ -610,6 +631,46 @@ const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) =
                 </button>
               ) : (
                 <p className="text-center text-xs text-white/50">Log in to reply</p>
+              )}
+            </div>
+          )}
+
+          {/* Mobile viewers panel */}
+          {showViewers && isOwnStory && (
+            <div className="absolute bottom-0 left-0 right-0 z-50 max-h-[60%] overflow-y-auto rounded-t-2xl bg-black/95 backdrop-blur-xl border-t border-white/10 animate-fade-in" onClick={(e) => e.stopPropagation()}>
+              <div className="sticky top-0 flex items-center justify-between bg-black/95 px-4 py-3 backdrop-blur-xl border-b border-white/10">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <Eye className="h-4 w-4 text-white/70" />
+                    <span className="text-sm font-bold text-white">{viewCount}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Heart className="h-4 w-4 fill-red-500 text-red-500" />
+                    <span className="text-sm font-bold text-white">{storyReactions.length}</span>
+                  </div>
+                </div>
+                <button onClick={() => { setShowViewers(false); setPaused(false); }} className="rounded-full p-1.5 hover:bg-white/10">
+                  <X className="h-4 w-4 text-white/70" />
+                </button>
+              </div>
+              {viewers.length === 0 ? (
+                <p className="py-8 text-center text-sm text-white/40">No viewers yet</p>
+              ) : (
+                <div className="divide-y divide-white/5">
+                  {viewers.map((v: any) => {
+                    const reaction = storyReactions.find((r: any) => r.userId === v.id);
+                    return (
+                      <div key={v.id} className="flex items-center gap-3 px-4 py-2.5">
+                        <img src={v.avatar || "/placeholder.svg"} alt="" className="h-9 w-9 rounded-full object-cover" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-white truncate">{v.fullName || v.username}</p>
+                          <p className="text-[11px] text-white/40">@{v.username}</p>
+                        </div>
+                        {reaction && <span className="text-xl">{reaction.emoji}</span>}
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
           )}
