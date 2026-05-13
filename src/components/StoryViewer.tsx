@@ -172,6 +172,9 @@ const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) =
   const recordView = useRecordStoryView();
   const { data: viewCount = 0 } = useStoryViewCount(isOwnStory ? item?.id : undefined);
   const { data: viewers = [] } = useStoryViewers(showViewers ? item?.id : undefined);
+  const { data: storyReactions = [] } = useStoryReactions(showViewers && isOwnStory ? item?.id : undefined);
+  const { data: myReaction } = useMyStoryReaction(item?.id, !isOwnStory ? user?.id : undefined);
+  const reactToStory = useReactToStory();
 
   // Record view when story changes
   useEffect(() => {
