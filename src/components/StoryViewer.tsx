@@ -440,8 +440,7 @@ const StoryViewer = ({ storyGroups, initialIndex, onClose }: StoryViewerProps) =
               )}
             </div>
           )}
-            </div>
-          )}
+
 
           {/* Bottom bar */}
           {!isOwnStory && user ? (
