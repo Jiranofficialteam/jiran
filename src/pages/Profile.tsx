@@ -213,12 +213,12 @@ const Profile = () => {
             <img src={profileData.cover_url} alt="Cover" className="h-full w-full object-cover" />
           ) : (
             <div className="h-full w-full relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-primary/5" />
-              <div className="absolute top-1/4 -left-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
-              <div className="absolute bottom-1/4 -right-10 h-40 w-40 rounded-full bg-accent/10 blur-3xl" />
-              <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)", backgroundSize: "24px 24px" }} />
+              <div className="absolute inset-0 cover-mesh" />
+              <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)", backgroundSize: "24px 24px" }} />
             </div>
           )}
+          {/* Animated shimmer sweep */}
+          <div className="absolute inset-0 shimmer-sweep" />
           {/* Bottom gradient fade */}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
           {/* Side vignette */}
@@ -240,25 +240,28 @@ const Profile = () => {
           <div className="flex flex-col items-center md:items-start md:flex-row md:items-end gap-3 -mt-20 md:-mt-24">
             {/* Avatar with animated ring */}
             <div className="relative group flex-shrink-0">
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-primary via-accent to-primary opacity-75 blur-sm group-hover:opacity-100 transition-opacity animate-pulse" style={{ animationDuration: "3s" }} />
-              <div className="relative rounded-full p-[3px] bg-gradient-to-tr from-primary via-accent to-primary">
+              {/* Outer halo glow */}
+              <div className="absolute -inset-3 rounded-full bg-gradient-to-tr from-primary via-accent to-primary opacity-40 blur-2xl group-hover:opacity-70 transition-opacity duration-500" />
+              {/* Rotating conic ring */}
+              <div className="absolute -inset-[3px] rounded-full avatar-ring-spin opacity-90" />
+              <div className="relative rounded-full p-[3px] bg-background">
                 <img
                   src={profileData.avatar_url || "/placeholder.svg"}
                   alt={profileData.username}
-                  className="h-32 w-32 md:h-44 md:w-44 rounded-full object-cover border-4 border-background"
+                  className="h-32 w-32 md:h-44 md:w-44 rounded-full object-cover border-4 border-background shadow-2xl"
                 />
               </div>
               {isOwnProfile && (
                 <button
                   onClick={() => setEditOpen(true)}
-                  className="absolute bottom-2 right-2 h-9 w-9 rounded-full gradient-brand flex items-center justify-center shadow-xl border-2 border-background opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
+                  className="absolute bottom-2 right-2 h-9 w-9 rounded-full gradient-brand flex items-center justify-center shadow-xl border-2 border-background opacity-0 group-hover:opacity-100 transition-all hover:scale-110 z-10"
                 >
                   <Camera className="h-4 w-4 text-primary-foreground" />
                 </button>
               )}
               {/* Online dot */}
-              <div className="absolute bottom-3 right-3 md:bottom-5 md:right-5">
-                <div className="h-5 w-5 rounded-full bg-[hsl(142,70%,45%)] border-[3px] border-background" />
+              <div className="absolute bottom-3 right-3 md:bottom-5 md:right-5 z-10">
+                <div className="h-5 w-5 rounded-full bg-[hsl(142,70%,45%)] border-[3px] border-background shadow-lg shadow-[hsl(142,70%,45%)]/50" />
                 <div className="absolute inset-0 h-5 w-5 rounded-full bg-[hsl(142,70%,45%)] animate-ping opacity-40" />
               </div>
             </div>
@@ -291,22 +294,33 @@ const Profile = () => {
 
         {/* ═══════════════════ STATS BAR ═══════════════════ */}
         <div className="mt-5 mx-4 md:mx-8">
-          <div className="relative overflow-hidden rounded-3xl border border-border/50 bg-card/40 backdrop-blur-xl">
-            {/* Decorative glow */}
-            <div className="absolute top-0 left-1/4 h-px w-1/2 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-            <div className="flex items-stretch divide-x divide-border/50">
+          <div className="relative overflow-hidden rounded-3xl border border-border/50 bg-card/40 backdrop-blur-xl shadow-lg shadow-primary/5">
+            {/* Decorative glow lines */}
+            <div className="absolute top-0 left-1/4 h-px w-1/2 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+            <div className="absolute bottom-0 left-1/4 h-px w-1/2 bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+            {/* Ambient glow */}
+            <div className="absolute -top-12 left-1/2 -translate-x-1/2 h-24 w-48 bg-primary/10 blur-3xl pointer-events-none" />
+            <div className="relative flex items-stretch divide-x divide-border/50">
               {[
                 { label: "পোস্ট", value: formatCount(postCount), action: undefined, icon: Grid3X3 },
                 { label: "ফলোয়ার্স", value: formatCount(totalFollowers), action: () => setFollowListType("followers"), icon: Heart },
                 { label: "ফলোইং", value: formatCount(followingCount), action: () => setFollowListType("following"), icon: UserPlus },
-              ].map((stat) => (
+              ].map((stat, idx) => (
                 <button
                   key={stat.label}
-                  className="flex-1 py-5 text-center transition-all hover:bg-secondary/30 active:scale-[0.97] group"
+                  className="flex-1 py-5 text-center transition-all hover:bg-primary/5 active:scale-[0.97] group relative"
                   onClick={stat.action}
+                  style={{ animationDelay: `${idx * 80}ms` }}
                 >
-                  <span className="block text-2xl md:text-3xl font-black text-foreground group-hover:text-primary transition-colors">{stat.value}</span>
-                  <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.15em] mt-1 block">{stat.label}</span>
+                  <span className="block animate-stat-rise" style={{ animationDelay: `${idx * 80}ms` }}>
+                    <span className="block text-2xl md:text-3xl font-black text-foreground group-hover:text-primary transition-colors drop-shadow-sm">{stat.value}</span>
+                    <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.15em] mt-1 inline-flex items-center gap-1">
+                      <stat.icon className="h-3 w-3 opacity-60 group-hover:opacity-100 group-hover:text-primary transition-all" />
+                      {stat.label}
+                    </span>
+                  </span>
+                  {/* Hover underline */}
+                  <span className="absolute bottom-2 left-1/2 -translate-x-1/2 h-0.5 w-0 bg-gradient-to-r from-primary to-accent group-hover:w-10 transition-all duration-300 rounded-full" />
                 </button>
               ))}
             </div>
