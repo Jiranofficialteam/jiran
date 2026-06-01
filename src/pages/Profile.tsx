@@ -213,12 +213,12 @@ const Profile = () => {
             <img src={profileData.cover_url} alt="Cover" className="h-full w-full object-cover" />
           ) : (
             <div className="h-full w-full relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-primary/5" />
-              <div className="absolute top-1/4 -left-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
-              <div className="absolute bottom-1/4 -right-10 h-40 w-40 rounded-full bg-accent/10 blur-3xl" />
-              <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)", backgroundSize: "24px 24px" }} />
+              <div className="absolute inset-0 cover-mesh" />
+              <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)", backgroundSize: "24px 24px" }} />
             </div>
           )}
+          {/* Animated shimmer sweep */}
+          <div className="absolute inset-0 shimmer-sweep" />
           {/* Bottom gradient fade */}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
           {/* Side vignette */}
