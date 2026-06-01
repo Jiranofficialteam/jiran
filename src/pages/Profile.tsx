@@ -240,25 +240,28 @@ const Profile = () => {
           <div className="flex flex-col items-center md:items-start md:flex-row md:items-end gap-3 -mt-20 md:-mt-24">
             {/* Avatar with animated ring */}
             <div className="relative group flex-shrink-0">
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-primary via-accent to-primary opacity-75 blur-sm group-hover:opacity-100 transition-opacity animate-pulse" style={{ animationDuration: "3s" }} />
-              <div className="relative rounded-full p-[3px] bg-gradient-to-tr from-primary via-accent to-primary">
+              {/* Outer halo glow */}
+              <div className="absolute -inset-3 rounded-full bg-gradient-to-tr from-primary via-accent to-primary opacity-40 blur-2xl group-hover:opacity-70 transition-opacity duration-500" />
+              {/* Rotating conic ring */}
+              <div className="absolute -inset-[3px] rounded-full avatar-ring-spin opacity-90" />
+              <div className="relative rounded-full p-[3px] bg-background">
                 <img
                   src={profileData.avatar_url || "/placeholder.svg"}
                   alt={profileData.username}
-                  className="h-32 w-32 md:h-44 md:w-44 rounded-full object-cover border-4 border-background"
+                  className="h-32 w-32 md:h-44 md:w-44 rounded-full object-cover border-4 border-background shadow-2xl"
                 />
               </div>
               {isOwnProfile && (
                 <button
                   onClick={() => setEditOpen(true)}
-                  className="absolute bottom-2 right-2 h-9 w-9 rounded-full gradient-brand flex items-center justify-center shadow-xl border-2 border-background opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
+                  className="absolute bottom-2 right-2 h-9 w-9 rounded-full gradient-brand flex items-center justify-center shadow-xl border-2 border-background opacity-0 group-hover:opacity-100 transition-all hover:scale-110 z-10"
                 >
                   <Camera className="h-4 w-4 text-primary-foreground" />
                 </button>
               )}
               {/* Online dot */}
-              <div className="absolute bottom-3 right-3 md:bottom-5 md:right-5">
-                <div className="h-5 w-5 rounded-full bg-[hsl(142,70%,45%)] border-[3px] border-background" />
+              <div className="absolute bottom-3 right-3 md:bottom-5 md:right-5 z-10">
+                <div className="h-5 w-5 rounded-full bg-[hsl(142,70%,45%)] border-[3px] border-background shadow-lg shadow-[hsl(142,70%,45%)]/50" />
                 <div className="absolute inset-0 h-5 w-5 rounded-full bg-[hsl(142,70%,45%)] animate-ping opacity-40" />
               </div>
             </div>
