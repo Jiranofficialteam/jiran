@@ -356,6 +356,55 @@
     height: 1px;
     background: linear-gradient(90deg, transparent, hsl(var(--border)), transparent);
   }
+
+  /* Profile avatar rotating conic ring */
+  .avatar-ring-spin {
+    background: conic-gradient(from 0deg,
+      hsl(var(--primary)),
+      hsl(var(--accent)),
+      hsl(330, 100%, 60%),
+      hsl(var(--primary)));
+    animation: avatar-ring-rotate 6s linear infinite;
+  }
+  @keyframes avatar-ring-rotate {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Animated cover mesh */
+  .cover-mesh {
+    background:
+      radial-gradient(at 20% 30%, hsl(var(--primary) / 0.35) 0px, transparent 50%),
+      radial-gradient(at 80% 20%, hsl(var(--accent) / 0.30) 0px, transparent 50%),
+      radial-gradient(at 70% 80%, hsl(330, 100%, 60% / 0.25) 0px, transparent 50%),
+      radial-gradient(at 10% 90%, hsl(var(--accent) / 0.20) 0px, transparent 50%);
+    background-size: 200% 200%;
+    animation: cover-drift 18s ease-in-out infinite;
+  }
+  @keyframes cover-drift {
+    0%, 100% { background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%; }
+    50% { background-position: 20% 20%, 80% 20%, 80% 80%, 20% 80%; }
+  }
+
+  /* Shimmer sweep */
+  .shimmer-sweep {
+    background: linear-gradient(110deg, transparent 30%, hsl(0 0% 100% / 0.08) 50%, transparent 70%);
+    background-size: 250% 100%;
+    animation: shimmer-move 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes shimmer-move {
+    0% { background-position: 250% 0; }
+    100% { background-position: -50% 0; }
+  }
+
+  /* Stat count rise */
+  .animate-stat-rise {
+    animation: stat-rise 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  }
+  @keyframes stat-rise {
+    from { opacity: 0; transform: translateY(8px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
 }
 
 /* Dark mode auto-detect */
