@@ -29,8 +29,8 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, username: string, fullName: string, extras?: { first_name?: string; last_name?: string; birth_date?: string; gender?: string }) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, username: string, fullName: string, extras?: { first_name?: string; last_name?: string; birth_date?: string; gender?: string }) => Promise<{ error: unknown }>;
+  signIn: (email: string, password: string) => Promise<{ error: unknown }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
-    const { data } = await (supabase as any)
+    const { data } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", userId)
