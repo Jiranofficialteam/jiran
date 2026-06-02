@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const signedIn = await signUpWithXHRFallback(email, password, metadata);
       if (signedIn) window.location.assign("/");
-      return { error: new Error("অ্যাকাউন্ট তৈরি হয়েছে, কিন্তু লগইন সেশন চালু হয়নি। আবার লগইন করুন।") };
+      return { error: signedIn ? null : new Error("অ্যাকাউন্ট তৈরি হয়েছে, কিন্তু লগইন সেশন চালু হয়নি। আবার লগইন করুন।") };
     } catch (directError) {
       if (!isAuthFetchError(directError)) return { error: directError };
 
@@ -114,7 +114,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const signedIn = await signInWithXHRFallback(email, password);
       if (signedIn) window.location.assign("/");
-      return { error: new Error("লগইন সেশন চালু করা যায়নি। আবার চেষ্টা করুন।") };
+      return { error: signedIn ? null : new Error("লগইন সেশন চালু করা যায়নি। আবার চেষ্টা করুন।") };
     } catch (directError) {
       if (!isAuthFetchError(directError)) return { error: directError };
 
