@@ -103,7 +103,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return { error };
     } catch (error) {
       if (!isAuthFetchError(error)) return { error };
-      return { error: await signUpWithXHRFallback(email, password, metadata) };
+      const signedIn = await signUpWithXHRFallback(email, password, metadata);
+      if (signedIn) window.location.assign("/");
+      return { error: null };
     }
   };
 
@@ -113,7 +115,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return { error };
     } catch (error) {
       if (!isAuthFetchError(error)) return { error };
-      return { error: await signInWithXHRFallback(email, password) };
+      const signedIn = await signInWithXHRFallback(email, password);
+      if (signedIn) window.location.assign("/");
+      return { error: null };
     }
   };
 
