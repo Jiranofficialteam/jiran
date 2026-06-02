@@ -25,7 +25,12 @@ type DirectAuthResult = {
 };
 
 export const isAuthFetchError = (error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error || "");
+  const message = error instanceof Error
+    ? error.message
+    : typeof error === "object" && error && "message" in error
+      ? String((error as { message?: unknown }).message || "")
+      : String(error || "");
+
   return /failed to fetch|networkerror|load failed|fetch/i.test(message);
 };
 
