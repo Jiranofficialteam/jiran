@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
+import { isAuthFetchError, signInWithXHRFallback, signUpWithXHRFallback } from "@/lib/authFallback";
 
 declare global {
   interface Window {
@@ -89,20 +90,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signUp = async (email: string, password: string, username: string, fullName: string, extras?: { first_name?: string; last_name?: string; birth_date?: string; gender?: string }) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { username, full_name: fullName, ...(extras || {}) },
-        emailRedirectTo: window.location.origin,
-      },
-    });
-    return { error };
+    const metadata = { username, full_name: fullName, ...(extras || {}) };
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: metadata,
+          emailRedirectTo: window.location.origin,
+        },
+      });
+      return { error };
+    } catch (error) {
+      if (!isAuthFetchError(error)) return { error };
+      return { error: await signUpWithXHRFallback(email, password, metadata) };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return { error };
+    } catch (error) {
+      if (!isAuthFetchError(error)) return { error };
+      return { error: await signInWithXHRFallback(email, password) };
+    }
   };
 
   const signOut = async () => {
