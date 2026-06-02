@@ -1,15 +1,22 @@
-import { supabase } from "@/integrations/supabase/client";
-
 const authBaseUrl = `${import.meta.env.VITE_SUPABASE_URL}/auth/v1`;
 const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const projectRef = new URL(import.meta.env.VITE_SUPABASE_URL).hostname.split(".")[0];
+const authStorageKey = `sb-${projectRef}-auth-token`;
 
 type DirectAuthResult = {
   access_token?: string;
   refresh_token?: string;
+  expires_at?: number;
+  expires_in?: number;
+  token_type?: string;
   user?: unknown;
   session?: {
     access_token?: string;
     refresh_token?: string;
+    expires_at?: number;
+    expires_in?: number;
+    token_type?: string;
+    user?: unknown;
   };
   error?: string;
   error_description?: string;
@@ -54,18 +61,26 @@ const authPost = <T,>(path: string, body: Record<string, unknown>) =>
     xhr.send(JSON.stringify(body));
   });
 
-const applyDirectSession = async (result: DirectAuthResult) => {
+const applyDirectSession = (result: DirectAuthResult) => {
   const accessToken = result.session?.access_token || result.access_token;
   const refreshToken = result.session?.refresh_token || result.refresh_token;
+  const user = result.session?.user || result.user;
 
-  if (!accessToken || !refreshToken) return null;
+  if (!accessToken || !refreshToken || !user) return false;
 
-  const { error } = await supabase.auth.setSession({
+  const expiresIn = result.session?.expires_in || result.expires_in || 3600;
+  const expiresAt = result.session?.expires_at || result.expires_at || Math.floor(Date.now() / 1000) + expiresIn;
+
+  localStorage.setItem(authStorageKey, JSON.stringify({
     access_token: accessToken,
     refresh_token: refreshToken,
-  });
+    expires_at: expiresAt,
+    expires_in: expiresIn,
+    token_type: result.session?.token_type || result.token_type || "bearer",
+    user,
+  }));
 
-  return error;
+  return true;
 };
 
 export const signInWithXHRFallback = async (email: string, password: string) => {
