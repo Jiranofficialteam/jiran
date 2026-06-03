@@ -1,5 +1,3 @@
-import { supabase } from "@/integrations/supabase/client";
-
 const authBaseUrl = `${import.meta.env.VITE_SUPABASE_URL}/auth/v1`;
 const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const projectRef = new URL(import.meta.env.VITE_SUPABASE_URL).hostname.split(".")[0];
@@ -37,12 +35,22 @@ export const isAuthFetchError = (error: unknown) => {
 };
 
 const authFunctionPost = async (body: Record<string, unknown>) => {
-  const { data, error } = await supabase.functions.invoke<DirectAuthResult>("jiran-auth", { body });
+  const response = await fetch("/functions/v1/jiran-auth", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: publishableKey,
+      authorization: `Bearer ${publishableKey}`,
+    },
+    body: JSON.stringify(body),
+  });
 
-  if (error) throw new Error(error.message || "লগইন/সাইনআপ সম্পন্ন করা যায়নি");
+  const data = await response.json().catch(() => null) as DirectAuthResult | null;
+
   if (data?.error) throw new Error(data.error);
+  if (!response.ok) throw new Error(data?.message || "লগইন/সাইনআপ সম্পন্ন করা যায়নি");
 
-  return data;
+  return data || {};
 };
 
 const authPost = <T,>(path: string, body: Record<string, unknown>) =>
