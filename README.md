@@ -1,73 +1,86 @@
-# Welcome to your Lovable project
+# Jiran 🇧🇩
 
-## Project info
+**Jiran** – বাংলাদেশের প্রথম সোশ্যাল মিডিয়া প্ল্যাটফর্ম। ছবি, ভিডিও, রিলস শেয়ার করুন, বন্ধুদের ফলো করুন এবং নতুন কনটেন্ট এক্সপ্লোর করুন।
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+🌐 **Live:** [jiran.lovable.app](https://jiran.lovable.app)
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## ✨ ফিচারসমূহ
 
-**Use Lovable**
+- 🔐 **Authentication** – Facebook-style ৩-ধাপের সাইনআপ
+- 📰 **Feed & Reels** – মাল্টি-ফরম্যাট পোস্ট, snap-scrolling reels, পোল, ইমোজি রিঅ্যাকশন
+- 📸 **Stories** – Facebook-style rectangular cards, unique view tracking
+- 💬 **Messaging** – রিয়েল-টাইম চ্যাট, 20MB মিডিয়া, voice, vanish mode
+- 👤 **Profiles** – Facebook-style cover, glowing avatar, dynamic stats
+- 🛒 **Marketplace** – পণ্য তালিকা, grid view, direct seller messaging
+- 🎮 **Gamification** – Daily login streak, XP levels, referral rewards
+- 📺 **Live Streaming** – Real-time viewer count, LIVE badge
+- 🎉 **Events & Fundraisers** – RSVP events, ফান্ড গোল ট্র্যাকিং
+- ⭐ **Close Friends** – প্রাইভেট কনটেন্ট শেয়ারিং
+- 🚀 **Post Boosting** – Nagad, bKash, Upay দিয়ে ম্যানুয়াল পেমেন্ট
+- 📢 **Ad Network** – CPC/CPM ads, "Sponsored" পোস্ট
+- 💰 **Creator Monetization** – Ad revenue sharing, লোকাল পেমেন্ট গেটওয়ে
+- 🛡️ **Admin Dashboard** – User moderation, dynamic site settings
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🛠️ Tech Stack
 
-**Use your preferred IDE**
+- **Frontend:** React 18, Vite 5, TypeScript 5, Tailwind CSS v3, shadcn/ui
+- **Backend:** Lovable Cloud (Supabase) – Auth, Database (PostgreSQL + RLS), Storage, Edge Functions, Realtime
+- **Design:** TikTok Dark theme, glassmorphism, neon red/cyan accents
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## 🚀 Local Development
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Clone repository
 git clone <YOUR_GIT_URL>
+cd jiran
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Install dependencies
+npm install
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start dev server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+পরিবেশ ভেরিয়েবল (`.env`) Lovable Cloud স্বয়ংক্রিয়ভাবে কনফিগার করে দেয়।
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+---
 
-**Use GitHub Codespaces**
+## 📁 Project Structure
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```
+src/
+├── components/      # Reusable UI components
+├── contexts/        # React contexts (Auth, etc.)
+├── hooks/           # Custom hooks
+├── integrations/    # Supabase client (auto-generated)
+├── lib/             # Utilities
+├── pages/           # Route pages
+└── index.css        # Design tokens
 
-## What technologies are used for this project?
+supabase/
+├── functions/       # Edge functions
+└── config.toml      # Supabase config
+```
 
-This project is built with:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🌍 Language Support
 
-## How can I deploy this project?
+- 🇧🇩 বাংলা (Bengali)
+- 🇬🇧 English
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+---
 
-## Can I connect a custom domain to my Lovable project?
+## 📝 License
 
-Yes, you can!
+© 2026 Jiran. All rights reserved.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+---
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Made with ❤️ in Bangladesh · Built on [Lovable](https://lovable.dev)
