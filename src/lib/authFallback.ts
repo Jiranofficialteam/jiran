@@ -34,6 +34,25 @@ export const isAuthFetchError = (error: unknown) => {
   return /failed to fetch|networkerror|load failed|fetch/i.test(message);
 };
 
+const authFunctionPost = async (body: Record<string, unknown>) => {
+  const response = await fetch("/functions/v1/jiran-auth", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: publishableKey,
+      authorization: `Bearer ${publishableKey}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  const data = await response.json().catch(() => null) as DirectAuthResult | null;
+
+  if (data?.error) throw new Error(data.error);
+  if (!response.ok) throw new Error(data?.message || "লগইন/সাইনআপ সম্পন্ন করা যায়নি");
+
+  return data || {};
+};
+
 const authPost = <T,>(path: string, body: Record<string, unknown>) =>
   new Promise<T>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -61,7 +80,7 @@ const authPost = <T,>(path: string, body: Record<string, unknown>) =>
       reject(new Error(message));
     };
 
-    xhr.onerror = () => reject(new Error("সার্ভারের সাথে সংযোগ করা যাচ্ছে না। Published app-এ চেষ্টা করুন।"));
+    xhr.onerror = () => reject(new Error("সার্ভারের সাথে সংযোগ করা যাচ্ছে না। আবার চেষ্টা করুন।"));
     xhr.ontimeout = () => reject(new Error("সংযোগের সময় শেষ হয়েছে। আবার চেষ্টা করুন।"));
     xhr.send(JSON.stringify(body));
   });
@@ -89,6 +108,13 @@ const applyDirectSession = (result: DirectAuthResult) => {
 };
 
 export const signInWithXHRFallback = async (email: string, password: string) => {
+  try {
+    const result = await authFunctionPost({ mode: "signin", email, password });
+    if (applyDirectSession(result)) return true;
+  } catch (functionError) {
+    if (!isAuthFetchError(functionError)) throw functionError;
+  }
+
   const result = await authPost<DirectAuthResult>("/token?grant_type=password", {
     email,
     password,
@@ -103,6 +129,13 @@ export const signUpWithXHRFallback = async (
   password: string,
   metadata: Record<string, unknown>,
 ) => {
+  try {
+    const result = await authFunctionPost({ mode: "signup", email, password, metadata });
+    if (applyDirectSession(result)) return true;
+  } catch (functionError) {
+    if (!isAuthFetchError(functionError)) throw functionError;
+  }
+
   const redirectTo = encodeURIComponent(window.location.origin);
   const result = await authPost<DirectAuthResult>(`/signup?redirect_to=${redirectTo}`, {
     email,
