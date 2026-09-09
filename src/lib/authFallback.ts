@@ -1,4 +1,6 @@
-const authBaseUrl = `${import.meta.env.VITE_SUPABASE_URL}/auth/v1`;
+const authBaseUrl = import.meta.env.DEV
+  ? `${window.location.origin}/auth-proxy`
+  : `${import.meta.env.VITE_SUPABASE_URL}/auth/v1`;
 const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const projectRef = new URL(import.meta.env.VITE_SUPABASE_URL).hostname.split(".")[0];
 const authStorageKey = `sb-${projectRef}-auth-token`;
