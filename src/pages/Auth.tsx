@@ -87,6 +87,15 @@ const Auth = () => {
     setSubmitting(false);
   };
 
+  const handleGoogle = async () => {
+    setGoogleLoading(true);
+    const { error } = await signInWithGoogle();
+    if (error) {
+      toast.error((error as Error).message || "Google দিয়ে লগইন করা যাচ্ছে না");
+      setGoogleLoading(false);
+    }
+  };
+
   const resetForm = (login: boolean) => {
     setIsLogin(login); setStep(1);
     setEmail(""); setPassword(""); setUsername(""); setFirstName(""); setLastName("");

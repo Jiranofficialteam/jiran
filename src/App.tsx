@@ -28,6 +28,9 @@ import Friends from "./pages/Friends";
 import Pages from "./pages/Pages";
 import PageProfile from "./pages/PageProfile";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "@/components/ProtectedRoute";
+
+const protect = (element: JSX.Element) => <ProtectedRoute>{element}</ProtectedRoute>;
 
 const queryClient = new QueryClient();
 
