@@ -148,6 +148,22 @@ const Auth = () => {
               </div>
             )}
 
+            {(isLogin || step === 1) && (
+              <div className="mb-5 space-y-3">
+                <button type="button" onClick={handleGoogle} disabled={googleLoading}
+                  className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-secondary/50 py-3 text-sm font-semibold text-foreground transition-all hover:bg-secondary active:scale-[0.98] disabled:opacity-50">
+                  <GoogleIcon />
+                  {googleLoading ? "অপেক্ষা করুন..." : "Continue with Google"}
+                </button>
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-[11px] font-semibold uppercase text-muted-foreground">অথবা</span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+              </div>
+            )}
+
+
             <form onSubmit={handleSubmit} className="space-y-3.5">
               {!isLogin && step === 1 && (
                 <>
