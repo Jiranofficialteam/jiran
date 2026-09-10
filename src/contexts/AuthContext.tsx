@@ -46,12 +46,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Creates a profile row for users that don't have one yet (e.g. Google sign-in).
+  const ensureProfile = async () => {
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) return;
+    const meta = (authUser.user_metadata || {}) as Record<string, string>;
+    const email = authUser.email || "";
+    const fallbackName = meta.full_name || meta.name || email.split("@")[0] || "User";
+    const baseUsername = (meta.username || email.split("@")[0] || "user")
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, "")
+      .slice(0, 20) || "user";
+    await supabase.from("profiles").insert({
+      id: authUser.id,
+      username: `${baseUsername}${Math.floor(Math.random() * 10000)}`,
+      full_name: fallbackName,
+      avatar_url: meta.avatar_url || meta.picture || "",
+    });
+  };
+
   const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
+    let { data } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", userId)
-      .single();
+      .maybeSingle();
+
+    if (!data) {
+      await ensureProfile();
+      const retry = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle();
+      data = retry.data;
+    }
+
     if (data) {
       const p = data as Profile;
       // Check if user is banned
