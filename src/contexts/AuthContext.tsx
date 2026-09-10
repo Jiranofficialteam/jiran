@@ -31,9 +31,12 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, username: string, fullName: string, extras?: { first_name?: string; last_name?: string; birth_date?: string; gender?: string }) => Promise<{ error: unknown }>;
   signIn: (email: string, password: string) => Promise<{ error: unknown }>;
+  signInWithGoogle: () => Promise<{ error: unknown }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
+
+const GOOGLE_REDIRECT_URL = "https://jiran.pro.bd";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
