@@ -4,8 +4,18 @@ import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Eye, EyeOff, Mail, Lock, User, AtSign, ArrowRight, Calendar, Users } from "lucide-react";
 
+const GoogleIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+    <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.2-2.27H12v4.3h6.44a5.5 5.5 0 0 1-2.39 3.62v3h3.86c2.26-2.09 3.58-5.17 3.58-8.65z" />
+    <path fill="#34A853" d="M12 24c3.24 0 5.96-1.08 7.95-2.91l-3.86-3c-1.08.72-2.45 1.16-4.09 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09A12 12 0 0 0 12 24z" />
+    <path fill="#FBBC05" d="M5.27 14.29a7.2 7.2 0 0 1 0-4.58V6.62H1.29a12 12 0 0 0 0 10.76l3.98-3.09z" />
+    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.29 6.62l3.98 3.09C6.22 6.86 8.87 4.75 12 4.75z" />
+  </svg>
+);
+
 const Auth = () => {
-  const { user, loading, signIn, signUp } = useAuth();
+  const { user, loading, signIn, signUp, signInWithGoogle } = useAuth();
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -77,6 +87,15 @@ const Auth = () => {
     setSubmitting(false);
   };
 
+  const handleGoogle = async () => {
+    setGoogleLoading(true);
+    const { error } = await signInWithGoogle();
+    if (error) {
+      toast.error((error as Error).message || "Google দিয়ে লগইন করা যাচ্ছে না");
+      setGoogleLoading(false);
+    }
+  };
+
   const resetForm = (login: boolean) => {
     setIsLogin(login); setStep(1);
     setEmail(""); setPassword(""); setUsername(""); setFirstName(""); setLastName("");
@@ -128,6 +147,22 @@ const Auth = () => {
                 ))}
               </div>
             )}
+
+            {(isLogin || step === 1) && (
+              <div className="mb-5 space-y-3">
+                <button type="button" onClick={handleGoogle} disabled={googleLoading}
+                  className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-secondary/50 py-3 text-sm font-semibold text-foreground transition-all hover:bg-secondary active:scale-[0.98] disabled:opacity-50">
+                  <GoogleIcon />
+                  {googleLoading ? "অপেক্ষা করুন..." : "Continue with Google"}
+                </button>
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-[11px] font-semibold uppercase text-muted-foreground">অথবা</span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+              </div>
+            )}
+
 
             <form onSubmit={handleSubmit} className="space-y-3.5">
               {!isLogin && step === 1 && (

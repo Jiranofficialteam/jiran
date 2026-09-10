@@ -28,6 +28,9 @@ import Friends from "./pages/Friends";
 import Pages from "./pages/Pages";
 import PageProfile from "./pages/PageProfile";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "@/components/ProtectedRoute";
+
+const protect = (element: JSX.Element) => <ProtectedRoute>{element}</ProtectedRoute>;
 
 const queryClient = new QueryClient();
 
@@ -44,23 +47,23 @@ const App = () => (
             <Route path="/explore" element={<Explore />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/:username" element={<Profile />} />
-            <Route path="/notifications" element={<Notifications />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/create" element={<CreatePost />} />
-            <Route path="/create-story" element={<CreateStory />} />
+            <Route path="/notifications" element={protect(<Notifications />)} />
+            <Route path="/messages" element={protect(<Messages />)} />
+            <Route path="/create" element={protect(<CreatePost />)} />
+            <Route path="/create-story" element={protect(<CreateStory />)} />
             <Route path="/reels" element={<Reels />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/admin" element={protect(<Admin />)} />
+            <Route path="/settings" element={protect(<Settings />)} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/groups" element={<Groups />} />
-            <Route path="/verification" element={<VerificationRequest />} />
-            <Route path="/rewards" element={<Rewards />} />
-            <Route path="/close-friends" element={<CloseFriends />} />
+            <Route path="/verification" element={protect(<VerificationRequest />)} />
+            <Route path="/rewards" element={protect(<Rewards />)} />
+            <Route path="/close-friends" element={protect(<CloseFriends />)} />
             <Route path="/events" element={<Events />} />
             <Route path="/fundraisers" element={<Fundraisers />} />
             <Route path="/live" element={<LiveStream />} />
-            <Route path="/monetization" element={<Monetization />} />
-            <Route path="/friends" element={<Friends />} />
+            <Route path="/monetization" element={protect(<Monetization />)} />
+            <Route path="/friends" element={protect(<Friends />)} />
             <Route path="/pages" element={<Pages />} />
             <Route path="/pages/:username" element={<PageProfile />} />
             <Route path="*" element={<NotFound />} />
