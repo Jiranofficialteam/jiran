@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
-import { isAuthFetchError, signInWithXHRFallback, signUpWithXHRFallback } from "@/lib/authFallback";
+import { lovable } from "@/integrations/lovable";
 
 declare global {
   interface Window {
@@ -35,8 +35,6 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
-
-const GOOGLE_REDIRECT_URL = "https://jiran.pro.bd";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -124,47 +122,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string, username: string, fullName: string, extras?: { first_name?: string; last_name?: string; birth_date?: string; gender?: string }) => {
     const metadata = { username, full_name: fullName, ...(extras || {}) };
-    try {
-      const signedIn = await signUpWithXHRFallback(email, password, metadata);
-      if (signedIn) window.location.assign("/");
-      return { error: signedIn ? null : new Error("অ্যাকাউন্ট তৈরি হয়েছে, কিন্তু লগইন সেশন চালু হয়নি। আবার লগইন করুন।") };
-    } catch (directError) {
-      if (!isAuthFetchError(directError)) return { error: directError };
-
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: metadata,
-          emailRedirectTo: window.location.origin,
-        },
-      });
-      return { error };
-    }
-  };
-
-  const signIn = async (email: string, password: string) => {
-    try {
-      const signedIn = await signInWithXHRFallback(email, password);
-      if (signedIn) window.location.assign("/");
-      return { error: signedIn ? null : new Error("লগইন সেশন চালু করা যায়নি। আবার চেষ্টা করুন।") };
-    } catch (directError) {
-      if (!isAuthFetchError(directError)) return { error: directError };
-
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      return { error };
-    }
-  };
-
-  const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
+    const { error } = await supabase.auth.signUp({
+      email: email.trim().toLowerCase(),
+      password,
       options: {
-        redirectTo: GOOGLE_REDIRECT_URL,
-        queryParams: { prompt: "select_account" },
+        data: metadata,
+        emailRedirectTo: window.location.origin,
       },
     });
     return { error };
+  };
+
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
+    return { error };
+  };
+
+  const signInWithGoogle = async () => {
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+      extraParams: { prompt: "select_account" },
+    });
+    return { error: result.error ?? null };
   };
 
   const signOut = async () => {
