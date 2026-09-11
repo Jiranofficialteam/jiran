@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
-import { isAuthFetchError, signInWithXHRFallback, signUpWithXHRFallback } from "@/lib/authFallback";
 import { lovable } from "@/integrations/lovable";
 
 declare global {
@@ -123,45 +122,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string, username: string, fullName: string, extras?: { first_name?: string; last_name?: string; birth_date?: string; gender?: string }) => {
     const metadata = { username, full_name: fullName, ...(extras || {}) };
-    try {
-      const { error } = await supabase.auth.signUp({
-        email: email.trim().toLowerCase(),
-        password,
-        options: {
-          data: metadata,
-          emailRedirectTo: window.location.origin,
-        },
-      });
-      return { error };
-    } catch (error) {
-      if (!isAuthFetchError(error)) return { error };
-      try {
-        const signedIn = await signUpWithXHRFallback(email, password, metadata);
-        if (signedIn) window.location.assign("/");
-        return { error: signedIn ? null : new Error("অ্যাকাউন্ট তৈরি হয়েছে। এখন লগইন করুন।") };
-      } catch (fallbackError) {
-        return { error: fallbackError };
-      }
-    }
+    const { error } = await supabase.auth.signUp({
+      email: email.trim().toLowerCase(),
+      password,
+      options: {
+        data: metadata,
+        emailRedirectTo: window.location.origin,
+      },
+    });
+    return { error };
   };
 
   const signIn = async (email: string, password: string) => {
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
-        password,
-      });
-      return { error };
-    } catch (error) {
-      if (!isAuthFetchError(error)) return { error };
-      try {
-        const signedIn = await signInWithXHRFallback(email, password);
-        if (signedIn) window.location.assign("/");
-        return { error: signedIn ? null : new Error("লগইন সেশন চালু করা যায়নি। আবার চেষ্টা করুন।") };
-      } catch (fallbackError) {
-        return { error: fallbackError };
-      }
-    }
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
+    return { error };
   };
 
   const signInWithGoogle = async () => {
