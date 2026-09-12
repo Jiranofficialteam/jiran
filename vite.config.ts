@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     proxy: {
       "/auth-proxy": {
-        target: "https://xqxaypbatzygogkimppi.supabase.co",
+        target: "https://pegdfoymrrhuqwuvqurc.supabase.co",
         changeOrigin: true,
         rewrite: (requestPath) => requestPath.replace(/^\/auth-proxy/, "/auth/v1"),
       },
