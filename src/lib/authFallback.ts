@@ -5,7 +5,7 @@ const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const projectRef = new URL(import.meta.env.VITE_SUPABASE_URL).hostname.split(".")[0];
 const authStorageKey = `sb-${projectRef}-auth-token`;
 
-type DirectAuthResult = {
+export type DirectAuthResult = {
   access_token?: string;
   refresh_token?: string;
   expires_at?: number;
@@ -68,36 +68,20 @@ const authPost = <T,>(path: string, body: Record<string, unknown>) =>
     xhr.send(JSON.stringify(body));
   });
 
-const applyDirectSession = (result: DirectAuthResult) => {
+export const getDirectSessionTokens = (result: DirectAuthResult) => {
   const accessToken = result.session?.access_token || result.access_token;
   const refreshToken = result.session?.refresh_token || result.refresh_token;
-  const user = result.session?.user || result.user;
 
-  if (!accessToken || !refreshToken || !user) return false;
-
-  const expiresIn = result.session?.expires_in || result.expires_in || 3600;
-  const expiresAt = result.session?.expires_at || result.expires_at || Math.floor(Date.now() / 1000) + expiresIn;
-
-  localStorage.setItem(authStorageKey, JSON.stringify({
-    access_token: accessToken,
-    refresh_token: refreshToken,
-    expires_at: expiresAt,
-    expires_in: expiresIn,
-    token_type: result.session?.token_type || result.token_type || "bearer",
-    user,
-  }));
-
-  return true;
+  if (!accessToken || !refreshToken) return null;
+  return { access_token: accessToken, refresh_token: refreshToken };
 };
 
 export const signInWithXHRFallback = async (email: string, password: string) => {
-  const result = await authPost<DirectAuthResult>("/token?grant_type=password", {
+  return authPost<DirectAuthResult>("/token?grant_type=password", {
     email: email.trim().toLowerCase(),
     password,
     gotrue_meta_security: {},
   });
-
-  return applyDirectSession(result);
 };
 
 export const signUpWithXHRFallback = async (
@@ -106,12 +90,10 @@ export const signUpWithXHRFallback = async (
   metadata: Record<string, unknown>,
 ) => {
   const redirectTo = encodeURIComponent(window.location.origin);
-  const result = await authPost<DirectAuthResult>(`/signup?redirect_to=${redirectTo}`, {
+  return authPost<DirectAuthResult>(`/signup?redirect_to=${redirectTo}`, {
     email: email.trim().toLowerCase(),
     password,
     data: metadata,
     gotrue_meta_security: {},
   });
-
-  return applyDirectSession(result);
 };

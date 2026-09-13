@@ -2,6 +2,11 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 import { lovable } from "@/integrations/lovable";
+import {
+  getDirectSessionTokens,
+  signInWithXHRFallback,
+  signUpWithXHRFallback,
+} from "@/lib/authFallback";
 
 declare global {
   interface Window {
@@ -122,23 +127,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string, username: string, fullName: string, extras?: { first_name?: string; last_name?: string; birth_date?: string; gender?: string }) => {
     const metadata = { username, full_name: fullName, ...(extras || {}) };
-    const { error } = await supabase.auth.signUp({
-      email: email.trim().toLowerCase(),
-      password,
-      options: {
-        data: metadata,
-        emailRedirectTo: window.location.origin,
-      },
-    });
-    return { error };
+    try {
+      const result = await signUpWithXHRFallback(email, password, metadata);
+      const tokens = getDirectSessionTokens(result);
+      if (tokens) {
+        const { error } = await supabase.auth.setSession(tokens);
+        return { error };
+      }
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password,
-    });
-    return { error };
+    try {
+      const result = await signInWithXHRFallback(email, password);
+      const tokens = getDirectSessionTokens(result);
+      if (!tokens) return { error: new Error("লগইন সেশন তৈরি করা যায়নি। আবার চেষ্টা করুন।") };
+      const { error } = await supabase.auth.setSession(tokens);
+      return { error };
+    } catch (error) {
+      return { error };
+    }
   };
 
   const signInWithGoogle = async () => {
